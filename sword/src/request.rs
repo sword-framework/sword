@@ -5,8 +5,11 @@ use axum::{
     extract::{FromRequest, OptionalFromRequestParts, Path, Request as AxumRequest},
 };
 
+use serde_json::json;
+use validator::Validate;
+
 use crate::http::{HttpResponse, Result};
-use serde::Deserialize;
+use serde::de::DeserializeOwned;
 
 pub struct Request {
     params: HashMap<String, String>,
@@ -82,7 +85,7 @@ impl Request {
         Err(HttpResponse::NotFound().message(format!("Parameter not found: {}", key)))
     }
 
-    pub fn body<'de, T: Deserialize<'de>>(&'de self) -> Result<T> {
+    pub fn body<T: DeserializeOwned>(&self) -> Result<T> {
         if self.method == "GET" || self.method == "HEAD" {
             return Err(HttpResponse::BadRequest()
                 .message(format!("Method {} does not support body", self.method)));
@@ -122,5 +125,41 @@ impl Request {
 
     pub fn uri(&self) -> &str {
         &self.uri
+    }
+
+    pub fn validated_body<T>(&self) -> Result<T>
+    where
+        T: serde::de::DeserializeOwned + Validate,
+    {
+        let body = self.body::<T>()?;
+
+        body.validate().map_err(|error| {
+            HttpResponse::BadRequest()
+                .message("Invalid request body")
+                .data(json!({
+                    "type": "ValidationError",
+                    "errors":  crate::validation::format_errors(&error)
+                }))
+        })?;
+
+        Ok(body)
+    }
+
+    pub fn validated_query<T>(&self) -> Result<T>
+    where
+        T: serde::de::DeserializeOwned + Validate,
+    {
+        let query = self.query::<T>()?;
+
+        query.validate().map_err(|error| {
+            HttpResponse::BadRequest()
+                .message("Invalid query parameters")
+                .data(json!({
+                    "type": "ValidationError",
+                    "errors": crate::validation::format_errors(&error)
+                }))
+        })?;
+
+        Ok(query)
     }
 }
