@@ -27,6 +27,15 @@
                 "$rustc"
             ],
             "group": "test"
-        }
+        },
+        {
+            "label": "Run Tests (Rust) with Output",
+            "type": "shell",
+            "command": "cargo test -- --nocapture",
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": "test"
+        },
     ]
 }
