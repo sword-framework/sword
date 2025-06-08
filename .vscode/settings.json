@@ -1,0 +1,34 @@
+{
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit"
+    },
+    "files.exclude": {
+        "**/node_modules": true,
+        "**/.git": true,
+        "target": true
+    },
+    "search.exclude": {
+        "**/dist": true,
+        "**/build": true,
+        "target": true
+    },
+    "extensions.ignoreRecommendations": true,
+    "errorLens.enabled": true,
+    "[rust]": {
+        "editor.semanticHighlighting.enabled": true,
+        "editor.defaultFormatter": "rust-lang.rust-analyzer",
+        "editor.formatOnSave": true
+    },
+    "rust-analyzer.inlayHints.typeHints.enable": true,
+    "rust-analyzer.inlayHints.parameterHints.enable": false,
+    "rust-analyzer.inlayHints.chainingHints.enable": false,
+    "rust-analyzer.inlayHints.closingBraceHints.enable": false,
+    "rust-analyzer.inlayHints.renderColons": false,
+    "rust-analyzer.diagnostics.enable": true,
+    "rust-analyzer.imports.granularity.group": "crate",
+    "rust-analyzer.cargo.features": [],
+    "rust-analyzer.files.exclude": [
+        "target"
+    ],
+}
