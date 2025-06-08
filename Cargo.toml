@@ -2,7 +2,7 @@
 [workspace]
 resolver = "2"
 members = [
-    "tests",
+    "sword-tests",
     "sword-macros",
     "sword"
 ]

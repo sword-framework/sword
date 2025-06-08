@@ -100,7 +100,12 @@ impl Request {
         }
 
         serde_json::from_slice(bytes).map_err(|err| {
-            HttpResponse::BadRequest().message(format!("Invalid JSON body: {}", err))
+            HttpResponse::BadRequest()
+                .message("Invalid request")
+                .data(json!({
+                    "type": "ParseError",
+                    "message": format!("Failed to parse request body: {}", err)
+                }))
         })
     }
 
@@ -108,10 +113,7 @@ impl Request {
         self.headers.get(key).cloned()
     }
 
-    pub fn query<T>(&self) -> Result<T>
-    where
-        T: serde::de::DeserializeOwned,
-    {
+    pub fn query<T: DeserializeOwned>(&self) -> Result<T> {
         let Some(query_str) = &self.query_string else {
             return serde_qs::from_str("").map_err(|err| {
                 HttpResponse::BadRequest().message(format!("Invalid query parameters: {}", err))
@@ -119,7 +121,12 @@ impl Request {
         };
 
         serde_qs::from_str(query_str).map_err(|err| {
-            HttpResponse::BadRequest().message(format!("Invalid query parameters: {}", err))
+            HttpResponse::BadRequest()
+                .message("Invalid request query")
+                .data(json!({
+                    "type": "ParseError",
+                    "message": format!("Failed to parse request query: {}", err)
+                }))
         })
     }
 
@@ -127,9 +134,10 @@ impl Request {
         &self.uri
     }
 
+    #[cfg(feature = "validation")]
     pub fn validated_body<T>(&self) -> Result<T>
     where
-        T: serde::de::DeserializeOwned + Validate,
+        T: DeserializeOwned + Validate,
     {
         let body = self.body::<T>()?;
 
@@ -138,16 +146,17 @@ impl Request {
                 .message("Invalid request body")
                 .data(json!({
                     "type": "ValidationError",
-                    "errors":  crate::validation::format_errors(&error)
+                    "errors":  crate::validation::format_validation_errors(&error)
                 }))
         })?;
 
         Ok(body)
     }
 
+    #[cfg(feature = "validation")]
     pub fn validated_query<T>(&self) -> Result<T>
     where
-        T: serde::de::DeserializeOwned + Validate,
+        T: DeserializeOwned + Validate,
     {
         let query = self.query::<T>()?;
 
@@ -156,7 +165,7 @@ impl Request {
                 .message("Invalid query parameters")
                 .data(json!({
                     "type": "ValidationError",
-                    "errors": crate::validation::format_errors(&error)
+                    "errors": crate::validation::format_validation_errors(&error)
                 }))
         })?;
 

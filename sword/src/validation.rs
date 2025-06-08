@@ -1,8 +1,8 @@
-use serde_json::{Map, Value};
+use serde_json::{Value, json};
 use validator::{ValidationError, ValidationErrors};
 
-pub fn format_errors(e: &ValidationErrors) -> Value {
-    let mut map = Map::new();
+pub fn format_validation_errors(e: &ValidationErrors) -> Value {
+    let mut errors = Vec::new();
 
     let to_error_message = |err: &ValidationError| {
         err.message
@@ -11,15 +11,18 @@ pub fn format_errors(e: &ValidationErrors) -> Value {
             .unwrap_or_else(|| err.code.to_string())
     };
 
-    for (field, errs) in e.field_errors() {
-        let msgs = errs
-            .iter()
-            .map(&to_error_message)
-            .map(Value::String)
-            .collect();
+    for (field, field_errors) in e.field_errors() {
+        let field_name = field.to_string();
+        let messages: Vec<String> = field_errors.iter().map(to_error_message).collect();
 
-        map.insert(field.to_string(), Value::Array(msgs));
+        for message in messages {
+            let error = json!({
+                "field": field_name,
+                "message": message,
+            });
+            errors.push(error);
+        }
     }
 
-    Value::Object(map)
+    Value::Array(errors)
 }
