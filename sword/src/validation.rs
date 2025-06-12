@@ -20,6 +20,7 @@ pub fn format_validation_errors(e: &ValidationErrors) -> Value {
                 "field": field_name,
                 "message": message,
             });
+
             errors.push(error);
         }
     }
