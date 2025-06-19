@@ -6,6 +6,7 @@ use axum::{
     http::{Method, Uri},
 };
 
+#[cfg(feature = "validation")]
 use validator::Validate;
 
 use crate::http::{HttpResponse, Result as HttpResult, errors::RequestError};
