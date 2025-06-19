@@ -30,3 +30,9 @@ impl Application {
         self.router.clone()
     }
 }
+
+impl Default for Application {
+    fn default() -> Self {
+        Self::new()
+    }
+}

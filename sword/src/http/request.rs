@@ -79,7 +79,7 @@ impl Request {
         let message = "Parameter not found";
         let details = format!("Parameter '{}' not found in request parameters", key);
 
-        return Err(RequestError::ParseError(message, details));
+        Err(RequestError::ParseError(message, details))
     }
 
     pub fn body<T: DeserializeOwned>(&self) -> Result<T, RequestError> {
@@ -111,7 +111,7 @@ impl Request {
         let Some(query_str) = query_str else {
             return Err(RequestError::ParseError(
                 "Invalid query parameters",
-                format!("Failed to parse - query string is empty"),
+                "Failed to parse - query string is empty".to_string(),
             ));
         };
 
