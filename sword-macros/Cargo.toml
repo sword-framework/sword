@@ -2,6 +2,13 @@
 name = "sword-macros"
 version = "0.1.0"
 edition = "2024"
+authors = ["Luciano Revillod <lrevillod2022@alu.uct.cl>"]
+description = "Axum based web framework prototype macros (sword crate)"
+repository = "https://github.com/MrRevillod/sword"
+keywords = ["web", "framework", "axum", "http", "async"]
+categories = ["web-programming::http-server", "web-programming"]
+readme = "../README.md"
+license-file = "../LICENSE"
 
 [lib]
 proc-macro = true

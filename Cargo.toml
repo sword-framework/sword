@@ -6,3 +6,5 @@ members = [
     "sword-macros",
     "sword"
 ]
+
+exclude = ["sword-tests"]
