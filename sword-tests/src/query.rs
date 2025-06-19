@@ -2,7 +2,7 @@ use std::sync::{Arc, OnceLock};
 
 use axum_test::TestServer;
 use sword::http::{HttpResponse, Request, Result};
-use sword::routing::{get, router};
+use sword::routing::{controller, get};
 
 use serde::{Deserialize, Serialize};
 use validator::Validate;
@@ -37,9 +37,9 @@ struct ValidableQueryData {
     limit: u32,
 }
 
-pub struct UserController;
+pub struct UserController {}
 
-#[router("/users")]
+#[controller("/users")]
 impl UserController {
     #[get("/simple-query")]
     async fn get_users(req: Request) -> Result<HttpResponse> {
@@ -119,7 +119,6 @@ async fn validated_query_error_test() {
 
     assert!(data.get("type").is_some());
     assert_eq!(data.get("type").unwrap(), "ValidationError");
-
     assert!(data.get("errors").is_some());
 
     let errors = data.get("errors").unwrap().as_array().unwrap();
@@ -129,11 +128,8 @@ async fn validated_query_error_test() {
     let error = &errors[0];
 
     assert!(error.get("field").is_some());
-
     assert_eq!(error.get("field").unwrap(), "page");
-
     assert!(error.get("message").is_some());
-
     assert_eq!(
         error.get("message").unwrap(),
         "Page must be between 1 and 1000"

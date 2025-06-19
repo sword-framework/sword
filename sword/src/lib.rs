@@ -11,7 +11,7 @@ pub mod http {
 mod validation;
 
 pub mod routing {
-    pub use sword_macros::{delete, get, patch, post, put, router};
+    pub use sword_macros::{controller, delete, get, patch, post, put};
 }
 
 pub mod di {}
