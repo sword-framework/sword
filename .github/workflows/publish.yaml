@@ -1,0 +1,22 @@
+name: Publish to Crates.io
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Publish
+        run: |
+          cargo login ${{ secrets.CRATES_IO_TOKEN }}
+          cd sword-macros
+          cargo publish
+          cd ../sword
+          cargo publish
+    env:
+      CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
