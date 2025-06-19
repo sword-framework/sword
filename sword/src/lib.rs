@@ -11,7 +11,22 @@ pub mod http {
 mod validation;
 
 pub mod routing {
-    pub use sword_macros::{controller, delete, get, patch, post, put};
+    pub use sword_macros::{delete, get, patch, post, put};
+
+    pub trait RouterProvider {
+        fn router() -> axum::Router;
+    }
 }
 
 pub mod di {}
+
+pub mod application;
+
+pub mod controller {
+    pub use sword_macros::{Controller, controller_impl};
+
+    pub trait ControllerKind {
+        fn name() -> &'static str;
+        fn file_path() -> &'static str;
+    }
+}

@@ -1,8 +1,9 @@
 use std::sync::{Arc, OnceLock};
 
 use axum_test::TestServer;
+use sword::controller::{Controller, controller_impl};
 use sword::http::{HttpResponse, Request, Result};
-use sword::routing::{controller, get};
+use sword::routing::{RouterProvider, get};
 
 use serde::{Deserialize, Serialize};
 use validator::Validate;
@@ -37,9 +38,10 @@ struct ValidableQueryData {
     limit: u32,
 }
 
+#[derive(Controller)]
 pub struct UserController {}
 
-#[controller("/users")]
+#[controller_impl(prefix = "/users")]
 impl UserController {
     #[get("/simple-query")]
     async fn get_users(req: Request) -> Result<HttpResponse> {

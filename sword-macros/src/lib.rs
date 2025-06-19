@@ -1,4 +1,5 @@
 mod controller;
+mod controller_impl;
 use proc_macro::TokenStream;
 
 #[proc_macro_attribute]
@@ -32,6 +33,11 @@ pub fn patch(attr: TokenStream, item: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
-pub fn controller(attr: TokenStream, item: TokenStream) -> TokenStream {
-    controller::expand_controller(attr, item)
+pub fn controller_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
+    controller_impl::expand_controller_impl(attr, item)
+}
+
+#[proc_macro_derive(Controller)]
+pub fn controller(item: TokenStream) -> TokenStream {
+    controller::expand_controller_derive(TokenStream::new(), item)
 }
