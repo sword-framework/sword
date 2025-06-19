@@ -1051,7 +1051,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_qs",
- "sword-macros",
+ "sword-macros 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio",
  "validator",
 ]
@@ -1059,6 +1059,19 @@ dependencies = [
 [[package]]
 name = "sword-macros"
 version = "0.1.0"
+dependencies = [
+ "proc-macro-error",
+ "proc-macro2",
+ "quote",
+ "regex",
+ "syn 2.0.101",
+]
+
+[[package]]
+name = "sword-macros"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b57f39cc540fec13699a8da7dc88b3229ebb69062111f131326ee1a36226e6f0"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
