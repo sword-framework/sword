@@ -30,3 +30,13 @@ pub mod controller {
         fn file_path() -> &'static str;
     }
 }
+
+pub(crate) mod utils {
+    use std::fmt::Display;
+
+    pub fn handle_critical_error<E: Display>(message: &str, error: E, lib: Option<&str>) -> ! {
+        eprintln!("{}: {}", lib.unwrap_or("Sword"), message);
+        eprintln!("Error: {}", error);
+        std::process::exit(1)
+    }
+}
