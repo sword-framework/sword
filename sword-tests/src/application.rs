@@ -1,11 +1,7 @@
 use sword::{
-    application::Application,
-    controller::{Controller, controller_impl},
-    http::HttpResponse,
-    routing::get,
+    application::Application, controller::controller_impl, http::HttpResponse, routing::get,
 };
 
-#[derive(Controller)]
 struct TestController {}
 
 #[controller_impl(prefix = "/test")]
@@ -18,8 +14,7 @@ impl TestController {
     }
 }
 
-#[derive(Controller)]
-struct SecondTestController;
+struct SecondTestController {}
 
 #[controller_impl(prefix = "/second")]
 impl SecondTestController {

@@ -2,10 +2,7 @@ mod config;
 
 use tokio::net::TcpListener;
 
-use crate::{
-    application::config::Config, controller::ControllerKind, routing::RouterProvider,
-    utils::handle_critical_error,
-};
+use crate::{application::config::Config, routing::RouterProvider, utils::handle_critical_error};
 
 #[derive(Debug, Clone)]
 pub struct Application {
@@ -26,7 +23,7 @@ impl Application {
         }
     }
 
-    pub fn add_controller<R: RouterProvider + ControllerKind>(&mut self) -> Self {
+    pub fn add_controller<R: RouterProvider>(&mut self) -> Self {
         self.router = self.router.clone().merge(R::router());
         self.clone()
     }

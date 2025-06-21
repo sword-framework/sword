@@ -1,7 +1,7 @@
 use std::sync::{Arc, OnceLock};
 
 use axum_test::TestServer;
-use sword::controller::{Controller, controller_impl};
+use sword::controller::controller_impl;
 use sword::http::{HttpResponse, Request, Result};
 use sword::routing::{RouterProvider, get};
 
@@ -38,7 +38,6 @@ struct ValidableQueryData {
     limit: u32,
 }
 
-#[derive(Controller)]
 pub struct UserController {}
 
 #[controller_impl(prefix = "/users")]

@@ -60,6 +60,27 @@ where
 }
 
 impl Request {
+    pub fn from_axum_request(req: AxumRequest) -> Self {
+        let (parts, _body) = req.into_parts();
+
+        let params = HashMap::new();
+        let mut headers = HashMap::new();
+
+        for (key, value) in parts.headers.iter() {
+            if let Ok(value_str) = value.to_str() {
+                headers.insert(key.to_string(), value_str.to_string());
+            }
+        }
+
+        Self {
+            params,
+            body_bytes: Bytes::new(), // We'll need to handle this differently for middleware
+            method: parts.method,
+            headers,
+            uri: parts.uri,
+        }
+    }
+
     pub fn param<T: FromStr>(&self, key: &str) -> Result<T, RequestError> {
         if let Some(value) = self.params.get(key) {
             let Ok(param) = value.parse::<T>() else {
@@ -168,5 +189,42 @@ impl Request {
         })?;
 
         Ok(query)
+    }
+
+    pub fn into_axum_request(self) -> AxumRequest {
+        use axum::http::{HeaderName, HeaderValue};
+
+        let mut builder = axum::http::Request::builder()
+            .method(self.method)
+            .uri(self.uri);
+
+        for (key, value) in self.headers {
+            if let (Ok(header_name), Ok(header_value)) =
+                (key.parse::<HeaderName>(), value.parse::<HeaderValue>())
+            {
+                builder = builder.header(header_name, header_value);
+            }
+        }
+
+        let body = axum::body::Body::from(self.body_bytes);
+        builder.body(body).expect("Failed to build axum request")
+    }
+}
+
+impl Default for Request {
+    fn default() -> Self {
+        Self {
+            params: HashMap::new(),
+            body_bytes: Bytes::new(),
+            method: Method::GET,
+            headers: HashMap::new(),
+            uri: Uri::from_static("/"),
+        }
+    }
+}
+
+impl From<Request> for AxumRequest {
+    fn from(req: Request) -> Self {
+        req.into_axum_request()
     }
 }

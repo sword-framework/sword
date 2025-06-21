@@ -18,18 +18,13 @@ pub mod routing {
     }
 }
 
-pub mod di {}
-
 pub mod application;
 
 pub mod controller {
-    pub use sword_macros::{Controller, controller_impl};
-
-    pub trait ControllerKind {
-        fn name() -> &'static str;
-        fn file_path() -> &'static str;
-    }
+    pub use sword_macros::controller_impl;
 }
+
+pub mod middleware;
 
 pub(crate) mod utils {
     use std::fmt::Display;
