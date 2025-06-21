@@ -11,17 +11,19 @@ pub mod http {
 mod validation;
 
 pub mod routing {
+    use crate::application::state::AppState;
+    use axum::routing::Router;
     pub use sword_macros::{delete, get, patch, post, put};
 
     pub trait RouterProvider {
-        fn router() -> axum::Router;
+        fn router(app_state: AppState) -> Router;
     }
 }
 
 pub mod application;
 
 pub mod controller {
-    pub use sword_macros::controller_impl;
+    pub use sword_macros::{controller, controller_impl};
 }
 
 pub mod middleware;

@@ -60,27 +60,6 @@ where
 }
 
 impl Request {
-    pub fn from_axum_request(req: AxumRequest) -> Self {
-        let (parts, _body) = req.into_parts();
-
-        let params = HashMap::new();
-        let mut headers = HashMap::new();
-
-        for (key, value) in parts.headers.iter() {
-            if let Ok(value_str) = value.to_str() {
-                headers.insert(key.to_string(), value_str.to_string());
-            }
-        }
-
-        Self {
-            params,
-            body_bytes: Bytes::new(), // We'll need to handle this differently for middleware
-            method: parts.method,
-            headers,
-            uri: parts.uri,
-        }
-    }
-
     pub fn param<T: FromStr>(&self, key: &str) -> Result<T, RequestError> {
         if let Some(value) = self.params.get(key) {
             let Ok(param) = value.parse::<T>() else {

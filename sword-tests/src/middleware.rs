@@ -1,6 +1,6 @@
 use sword::{
     application::Application,
-    controller::controller_impl,
+    controller::{controller, controller_impl},
     http::{HttpResponse, Request},
     middleware::{Middleware, MiddlewareResult, NextFunction, middleware},
     routing::get,
@@ -26,9 +26,10 @@ impl SimpleMiddleware2 {
     }
 }
 
+#[controller("/test")]
 struct TestController {}
 
-#[controller_impl(prefix = "/test")]
+#[controller_impl]
 impl TestController {
     #[get("/hello")]
     #[middleware(SimpleMiddleware, SimpleMiddleware2)]

@@ -13,14 +13,19 @@ pub fn expand_middleware_derive(item: TokenStream) -> TokenStream {
                 req: ::axum::extract::Request,
                 next: ::axum::middleware::Next,
             ) -> ::axum::response::Response {
-                let sword_req = ::sword::http::Request::from_axum_request(req);
+                use ::axum::extract::FromRequest;
+                use ::axum::response::IntoResponse;
+
+                // Convert axum request to sword request
+                let sword_req = match ::sword::http::Request::from_request(req, &()).await {
+                    Ok(req) => req,
+                    Err(response) => return response.into_response(),
+                };
+
                 let sword_next = ::sword::middleware::NextFunction::new(next);
                 match Self::handle(sword_req, sword_next).await {
                     Ok(response) => response,
-                    Err(err) => {
-                        use ::axum::response::IntoResponse;
-                        err.into_response()
-                    }
+                    Err(err) => err.into_response(),
                 }
             }
         }

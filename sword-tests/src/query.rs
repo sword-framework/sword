@@ -1,9 +1,9 @@
 use std::sync::{Arc, OnceLock};
 
 use axum_test::TestServer;
-use sword::controller::controller_impl;
+use sword::controller::{controller, controller_impl};
 use sword::http::{HttpResponse, Request, Result};
-use sword::routing::{RouterProvider, get};
+use sword::routing::get;
 
 use serde::{Deserialize, Serialize};
 use validator::Validate;
@@ -12,11 +12,12 @@ pub static APP: OnceLock<Arc<TestServer>> = OnceLock::new();
 
 #[cfg(test)]
 fn test_server() -> Arc<TestServer> {
-    APP.get_or_init(|| {
-        let router = UserController::router();
-        Arc::new(TestServer::new(router).unwrap())
-    })
-    .clone()
+    use sword::application::Application;
+
+    let app = Application::new().add_controller::<UserController>();
+
+    APP.get_or_init(|| Arc::new(TestServer::new(app.router()).unwrap()))
+        .clone()
 }
 
 #[derive(Deserialize, Serialize)]
@@ -38,9 +39,10 @@ struct ValidableQueryData {
     limit: u32,
 }
 
+#[controller("/users")]
 pub struct UserController {}
 
-#[controller_impl(prefix = "/users")]
+#[controller_impl]
 impl UserController {
     #[get("/simple-query")]
     async fn get_users(req: Request) -> Result<HttpResponse> {

@@ -33,6 +33,11 @@ pub fn patch(attr: TokenStream, item: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
+pub fn controller(attr: TokenStream, item: TokenStream) -> TokenStream {
+    controller::expand_controller(attr, item)
+}
+
+#[proc_macro_attribute]
 pub fn controller_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
     controller::expand_controller_impl(attr, item)
 }

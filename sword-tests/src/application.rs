@@ -1,10 +1,14 @@
 use sword::{
-    application::Application, controller::controller_impl, http::HttpResponse, routing::get,
+    application::Application,
+    controller::{controller, controller_impl},
+    http::HttpResponse,
+    routing::get,
 };
 
+#[controller("/test")]
 struct TestController {}
 
-#[controller_impl(prefix = "/test")]
+#[controller_impl]
 impl TestController {
     #[get("/hello")]
     async fn hello() -> HttpResponse {
@@ -14,9 +18,10 @@ impl TestController {
     }
 }
 
+#[controller("/second")]
 struct SecondTestController {}
 
-#[controller_impl(prefix = "/second")]
+#[controller_impl]
 impl SecondTestController {
     #[get("/greet")]
     async fn greet() -> HttpResponse {

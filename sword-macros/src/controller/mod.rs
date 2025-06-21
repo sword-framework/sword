@@ -4,45 +4,34 @@ use proc_macro::TokenStream;
 use proc_macro_error::emit_error;
 use quote::quote;
 use syn::{
-    Attribute, Expr, ExprLit, Ident, ImplItem, ItemImpl, Lit, Path, Token, parse::Parse,
-    parse_macro_input, punctuated::Punctuated, spanned::Spanned,
+    Attribute, Ident, ImplItem, ItemImpl, ItemStruct, LitStr, Path, Token, parse_macro_input,
+    punctuated::Punctuated,
 };
 
 use crate::controller::path_utils::HTTP_METHODS;
 
-struct ControllerImplArgs {
-    prefix: String,
+pub fn expand_controller(attr: TokenStream, item: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(item as ItemStruct);
+    let args = parse_macro_input!(attr as LitStr);
+
+    let router_prefix_str = args.value();
+    let struct_name = &input.ident;
+
+    let expanded = quote! {
+        #input
+
+        impl #struct_name {
+            pub fn prefix() -> &'static str {
+                #router_prefix_str
+            }
+        }
+    };
+
+    TokenStream::from(expanded)
 }
 
-impl Parse for ControllerImplArgs {
-    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let ident: Ident = input.parse()?;
-        if ident != "prefix" {
-            return Err(syn::Error::new(ident.span(), "Expected 'prefix'"));
-        }
-
-        let _: Token![=] = input.parse()?;
-        let expr: Expr = input.parse()?;
-
-        if let Expr::Lit(ExprLit {
-            lit: Lit::Str(lit_str),
-            ..
-        }) = expr
-        {
-            Ok(ControllerImplArgs {
-                prefix: lit_str.value(),
-            })
-        } else {
-            Err(syn::Error::new(expr.span(), "Expected string literal"))
-        }
-    }
-}
-
-pub fn expand_controller_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
+pub fn expand_controller_impl(_: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as ItemImpl);
-    let args = parse_macro_input!(attr as ControllerImplArgs);
-
-    let router_prefix_str = args.prefix;
 
     let struct_self = &input.self_ty;
     let mut routes = vec![];
@@ -103,9 +92,10 @@ pub fn expand_controller_impl(attr: TokenStream, item: TokenStream) -> TokenStre
         #input
 
         impl ::sword::routing::RouterProvider for #struct_self {
-            fn router() -> ::axum::Router {
-                ::axum::Router::new()
-                    .nest(#router_prefix_str, #base_router)
+            fn router(app_state: ::sword::application::state::AppState) -> ::axum::routing::Router {
+                ::axum::routing::Router::new()
+                    .nest(#struct_self::prefix(), #base_router)
+                    .with_state(app_state)
             }
         }
     };

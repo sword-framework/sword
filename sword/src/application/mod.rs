@@ -1,30 +1,42 @@
 mod config;
+pub mod state;
 
+use axum::routing::Router;
 use tokio::net::TcpListener;
 
-use crate::{application::config::Config, routing::RouterProvider, utils::handle_critical_error};
+use crate::{
+    application::{config::Config, state::AppState},
+    routing::RouterProvider,
+    utils::handle_critical_error,
+};
 
 #[derive(Debug, Clone)]
 pub struct Application {
-    router: axum::Router,
-    config: config::Config,
+    router: Router,
+    state: AppState,
+    config: Config,
 }
 
 impl Application {
-    pub fn new() -> Self {
+    pub fn new() -> Application {
         let config = match Config::new() {
             Ok(cfg) => cfg,
             Err(e) => handle_critical_error("Failed to load configuration", e, Some("config-rs")),
         };
 
+        let state = AppState::new(config.clone());
+        let router = axum::Router::new().with_state(state.clone());
+
         Application {
-            router: axum::Router::new(),
+            router,
+            state,
             config,
         }
     }
 
-    pub fn add_controller<R: RouterProvider>(&mut self) -> Self {
-        self.router = self.router.clone().merge(R::router());
+    pub fn add_controller<R: RouterProvider>(&mut self) -> Application {
+        let controller_router = R::router(self.state.clone());
+        self.router = self.router.clone().merge(controller_router);
         self.clone()
     }
 
@@ -36,10 +48,12 @@ impl Application {
             Err(e) => handle_critical_error("Failed to bind to address", e, Some("tokio-rs")),
         };
 
-        axum::serve(listener, self.router.clone()).await.unwrap();
+        let router = self.router.clone();
+
+        axum::serve(listener, router).await.unwrap();
     }
 
-    pub fn router(&self) -> axum::Router {
+    pub fn router(&self) -> Router {
         self.router.clone()
     }
 }
