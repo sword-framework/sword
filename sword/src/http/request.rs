@@ -9,24 +9,28 @@ use axum::{
 #[cfg(feature = "validation")]
 use validator::Validate;
 
-use crate::http::{HttpResponse, Result as HttpResult, errors::RequestError};
+use crate::{
+    application::state::AppState,
+    http::{HttpResponse, Result as HttpResult, errors::RequestError},
+};
 use serde::de::DeserializeOwned;
 
-pub struct Request {
+pub struct Request<S = AppState> {
     params: HashMap<String, String>,
     body_bytes: Bytes,
     method: Method,
     headers: HashMap<String, String>,
     uri: Uri,
+    pub(crate) state: S,
 }
 
-impl<S> FromRequest<S> for Request
+impl<S> FromRequest<S> for Request<S>
 where
     S: Send + Sync + Clone,
 {
     type Rejection = HttpResponse;
 
-    async fn from_request(req: AxumRequest, _: &S) -> HttpResult<Self> {
+    async fn from_request(req: AxumRequest, state: &S) -> HttpResult<Self> {
         let (mut parts, body) = req.into_parts();
 
         let mut params = HashMap::new();
@@ -55,6 +59,7 @@ where
             method: parts.method,
             headers,
             uri: parts.uri,
+            state: state.clone(),
         })
     }
 }
@@ -187,18 +192,6 @@ impl Request {
 
         let body = axum::body::Body::from(self.body_bytes);
         builder.body(body).expect("Failed to build axum request")
-    }
-}
-
-impl Default for Request {
-    fn default() -> Self {
-        Self {
-            params: HashMap::new(),
-            body_bytes: Bytes::new(),
-            method: Method::GET,
-            headers: HashMap::new(),
-            uri: Uri::from_static("/"),
-        }
     }
 }
 

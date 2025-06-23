@@ -1,3 +1,4 @@
+use axum::extract::State;
 use sword::{
     application::Application,
     controller::{controller, controller_impl},
@@ -33,7 +34,7 @@ struct TestController {}
 impl TestController {
     #[get("/hello")]
     #[middleware(SimpleMiddleware, SimpleMiddleware2)]
-    async fn hello() -> HttpResponse {
+    async fn hello(req: Request) -> HttpResponse {
         HttpResponse::Ok()
             .data("Hello, World!")
             .message("Test controller response")

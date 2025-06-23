@@ -71,7 +71,7 @@ pub fn expand_controller_impl(_: TokenStream, item: TokenStream) -> TokenStream 
                 };
 
                 for mw in middlewares.iter().rev() {
-                    handler = quote! { #handler.layer(::axum::middleware::from_fn(#mw::middleware_handle)) };
+                    handler = quote! { #handler.layer(::axum::middleware::from_fn_with_state(app_state.clone(), #mw::middleware_handle)) };
                 }
 
                 let route = quote! {
@@ -83,18 +83,16 @@ pub fn expand_controller_impl(_: TokenStream, item: TokenStream) -> TokenStream 
         }
     }
 
-    let base_router = quote! {
-        ::axum::Router::new()
-            #(#routes)*
-    };
-
     let expanded = quote! {
         #input
 
         impl ::sword::routing::RouterProvider for #struct_self {
             fn router(app_state: ::sword::application::state::AppState) -> ::axum::routing::Router {
+                let base_router = ::axum::Router::new()
+                    #(#routes)*;
+
                 ::axum::routing::Router::new()
-                    .nest(#struct_self::prefix(), #base_router)
+                    .nest(#struct_self::prefix(), base_router)
                     .with_state(app_state)
             }
         }
