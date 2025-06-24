@@ -1,0 +1,23 @@
+[package]
+name = "examples"
+version = "0.1.0"
+edition = "2021"
+
+[[example]]
+name = "basic_web_server"
+path = "src/basic_web_server.rs"
+
+[[example]]
+name = "data_validation"
+path = "src/data_validation.rs"
+
+[[example]]
+name = "middleware"
+path = "src/middleware.rs"
+
+[dependencies]
+sword = { path = "../sword" }
+tokio = { version = "1.0", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+validator = { version = "0.20.0", features = ["derive"] }
