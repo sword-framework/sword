@@ -1,27 +1,24 @@
-use axum::middleware::FromFnLayer;
-use std::pin::Pin;
-
+use crate::__private::{AxumNext, AxumResponse};
 use crate::http::{Context, Result};
-
-use axum::extract::Request as AxumRequest;
-use axum::response::Response as AxumResponse;
 
 pub use sword_macros::{Middleware, middleware};
 
 pub type MiddlewareResult = Result<AxumResponse>;
 
-use crate::__private::AxumNext;
-
-type AxumMwFn =
-    fn(AxumRequest, AxumNext) -> Pin<Box<dyn Future<Output = AxumResponse> + Send + 'static>>;
-
-pub trait MiddlewareLayer {
-    fn layer() -> FromFnLayer<AxumMwFn, (), ()>;
+pub trait MiddlewareHandler: Send + Sync + 'static {
+    fn handle(ctx: Context, next: NextFunction) -> impl Future<Output = MiddlewareResult> + Send
+    where
+        Self: Send + Sync,
+        Context: Send,
+        NextFunction: Send;
 }
 
 pub struct NextFunction {
     inner: AxumNext,
 }
+
+unsafe impl Send for NextFunction {}
+unsafe impl Sync for NextFunction {}
 
 impl NextFunction {
     pub fn new(next: AxumNext) -> Self {

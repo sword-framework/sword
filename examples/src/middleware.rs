@@ -2,14 +2,14 @@ use sword::{
     application::Application,
     controller::{controller, controller_impl},
     http::{Context, HttpResponse, Result},
-    middleware::{middleware, Middleware, MiddlewareResult, NextFunction},
+    middleware::{middleware, Middleware, MiddlewareHandler, MiddlewareResult, NextFunction},
     routing::get,
 };
 
 #[derive(Middleware)]
 struct MyMiddleware;
 
-impl MyMiddleware {
+impl MiddlewareHandler for MyMiddleware {
     async fn handle(mut ctx: Context, next: NextFunction) -> MiddlewareResult {
         ctx.extensions
             .insert("Middleware executed successfully".to_string());
@@ -18,7 +18,7 @@ impl MyMiddleware {
     }
 }
 
-#[controller("/")]
+#[controller("/api")]
 struct AppController {}
 
 #[controller_impl]

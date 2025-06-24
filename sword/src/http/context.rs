@@ -215,3 +215,6 @@ impl From<Context> for AxumRequest {
         ctx.into_axum_request()
     }
 }
+
+unsafe impl Send for Context {}
+unsafe impl Sync for Context {}

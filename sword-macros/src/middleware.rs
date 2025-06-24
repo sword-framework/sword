@@ -16,6 +16,7 @@ pub fn expand_middleware_derive(item: TokenStream) -> TokenStream {
             ) -> ::sword::__private::AxumResponse {
                 use ::sword::__private::FromRequest;
                 use ::sword::__private::IntoResponse;
+                use ::sword::middleware::MiddlewareHandler;
 
                 let sword_ctx = match ::sword::http::Context::from_request(req, &state).await {
                     Ok(ctx) => ctx,
@@ -23,7 +24,7 @@ pub fn expand_middleware_derive(item: TokenStream) -> TokenStream {
                 };
 
                 let sword_next = ::sword::middleware::NextFunction::new(next);
-                match Self::handle(sword_ctx, sword_next).await {
+                match #struct_name::handle(sword_ctx, sword_next).await {
                     Ok(response) => response,
                     Err(err) => err.into_response(),
                 }

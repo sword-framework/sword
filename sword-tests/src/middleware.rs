@@ -3,14 +3,14 @@ use sword::{
     application::Application,
     controller::{controller, controller_impl},
     http::{Context, HttpResponse, ResponseBody, response},
-    middleware::{Middleware, MiddlewareResult, NextFunction, middleware},
+    middleware::{Middleware, MiddlewareHandler, MiddlewareResult, NextFunction, middleware},
     routing::get,
 };
 
 #[derive(Middleware)]
 struct ErrorMiddleware;
 
-impl ErrorMiddleware {
+impl MiddlewareHandler for ErrorMiddleware {
     async fn handle(_: Context, _: NextFunction) -> MiddlewareResult {
         return Err(response!(500, { "message": "Internal Server Error" } ));
     }
@@ -19,7 +19,7 @@ impl ErrorMiddleware {
 #[derive(Middleware)]
 struct ExtensionsTestMiddleware;
 
-impl ExtensionsTestMiddleware {
+impl MiddlewareHandler for ExtensionsTestMiddleware {
     async fn handle(mut ctx: Context, next: NextFunction) -> MiddlewareResult {
         ctx.extensions
             .insert::<String>("test_extension".to_string());
@@ -29,9 +29,9 @@ impl ExtensionsTestMiddleware {
 }
 
 #[derive(Middleware)]
-struct MiddlewareWithState {}
+struct MiddlewareWithState;
 
-impl MiddlewareWithState {
+impl MiddlewareHandler for MiddlewareWithState {
     async fn handle(mut ctx: Context, next: NextFunction) -> MiddlewareResult {
         ctx.extensions.insert::<u16>(8080);
         Ok(next.run(ctx).await)
