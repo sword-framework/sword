@@ -1,12 +1,11 @@
 pub mod http;
 
-#[cfg(feature = "validation")]
 mod validation;
 
 pub mod routing {
     use crate::application::AppState;
 
-    use axum::routing::Router;
+    pub use axum::routing::Router;
     pub use sword_macros::{delete, get, patch, post, put};
 
     pub trait RouterProvider {
@@ -30,4 +29,16 @@ pub(crate) mod utils {
         eprintln!("Error: {}", error);
         std::process::exit(1)
     }
+}
+
+#[doc = "hidden"]
+pub mod __private {
+    pub use axum::extract::Request as AxumRequest;
+    pub use axum::extract::State;
+    pub use axum::extract::{FromRequest, FromRequestParts};
+    pub use axum::middleware::Next as AxumNext;
+    pub use axum::middleware::from_fn_with_state;
+    pub use axum::response::IntoResponse;
+    pub use axum::response::Response as AxumResponse;
+    pub use axum::routing::{delete, get, patch, post, put};
 }

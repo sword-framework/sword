@@ -1,9 +1,6 @@
 use serde_json::{Value, json};
-
-#[cfg(feature = "validation")]
 use validator::{ValidationError, ValidationErrors};
 
-#[cfg(feature = "validation")]
 pub fn format_validation_errors(e: &ValidationErrors) -> Value {
     let mut errors = Vec::new();
 

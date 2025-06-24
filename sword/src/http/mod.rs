@@ -11,7 +11,6 @@ pub use context::Context;
 use axum::http::Method;
 use serde::de::DeserializeOwned;
 
-#[cfg(feature = "validation")]
 use validator::Validate;
 
 use crate::http::errors::RequestError;
@@ -45,13 +44,11 @@ pub trait RequestMethods {
     fn query<T: DeserializeOwned>(&self) -> std::result::Result<T, RequestError>;
 
     /// Validates and parses the body of the request into the specified type.
-    #[cfg(feature = "validation")]
     fn validated_body<T: DeserializeOwned + Validate>(
         &self,
     ) -> std::result::Result<T, RequestError>;
 
     /// Validates and parses the query parameters of the request into the specified type.
-    #[cfg(feature = "validation")]
     fn validated_query<T: DeserializeOwned + Validate>(
         &self,
     ) -> std::result::Result<T, RequestError>;

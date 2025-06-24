@@ -10,9 +10,6 @@ categories = ["web-programming::http-server", "web-programming"]
 readme = "../README.md"
 license-file = "../LICENSE"
 
-[features]
-validation = ["dep:validator"]
-
 [dependencies]
 tokio = { version = "1.45.1" }
 
@@ -27,7 +24,7 @@ serde_qs = "0.15.0"
 
 sword-macros = { path = "../sword-macros" }
 
-validator = { version = "0.20.0", optional = true, features = ["derive"] }
+validator = { version = "0.20.0", features = ["derive"] }
 
 config = "0.15.11"
 shellexpand = "3.1.1"

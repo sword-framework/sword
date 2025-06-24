@@ -1,11 +1,9 @@
 use axum_responses::http::HttpResponse;
-#[allow(unused_imports)]
 use serde_json::{Value, json};
 
 #[derive(Debug)]
 pub enum RequestError {
     ParseError(&'static str, String),
-    #[cfg(feature = "validation")]
     ValidationError(&'static str, Value),
     BodyIsEmpty(&'static str),
 }
@@ -19,7 +17,6 @@ impl From<RequestError> for HttpResponse {
                     "message": details
                 }))
             }
-            #[cfg(feature = "validation")]
             RequestError::ValidationError(message, details) => {
                 HttpResponse::BadRequest().message(message).data(json!({
                     "type": "ValidationError",

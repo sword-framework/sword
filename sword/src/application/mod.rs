@@ -60,8 +60,6 @@ impl Application {
 
     pub fn state<S: Sync + Send + 'static>(self, state: S) -> Self {
         let new_state = self.state.insert(state);
-
-        // Rebuild the router with the new state
         let router = Router::new().with_state(new_state.clone());
 
         Self {

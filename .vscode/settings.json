@@ -27,7 +27,4 @@
     "rust-analyzer.inlayHints.renderColons": false,
     "rust-analyzer.diagnostics.enable": true,
     "rust-analyzer.imports.granularity.group": "crate",
-    "rust-analyzer.cargo.features": [
-        "validation",
-    ],
 }

@@ -1,4 +1,3 @@
-use axum::extract::State;
 use serde_json::json;
 use sword::{
     application::Application,

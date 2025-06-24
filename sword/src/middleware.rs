@@ -1,14 +1,16 @@
+use axum::middleware::FromFnLayer;
 use std::pin::Pin;
 
 use crate::http::{Context, Result};
 
 use axum::extract::Request as AxumRequest;
-use axum::middleware::{FromFnLayer, Next as AxumNext};
 use axum::response::Response as AxumResponse;
 
 pub use sword_macros::{Middleware, middleware};
 
 pub type MiddlewareResult = Result<AxumResponse>;
+
+use crate::__private::AxumNext;
 
 type AxumMwFn =
     fn(AxumRequest, AxumNext) -> Pin<Box<dyn Future<Output = AxumResponse> + Send + 'static>>;

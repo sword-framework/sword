@@ -10,12 +10,12 @@ pub fn expand_middleware_derive(item: TokenStream) -> TokenStream {
     let expanded = quote! {
         impl #struct_name {
             pub async fn middleware_handle(
-                State(state): ::axum::extract::State<::sword::application::AppState>,
-                req: ::axum::extract::Request,
-                next: ::axum::middleware::Next,
-            ) -> ::axum::response::Response {
-                use ::axum::extract::FromRequest;
-                use ::axum::response::IntoResponse;
+                ::sword::__private::State(state): ::sword::__private::State<::sword::application::AppState>,
+                req: ::sword::__private::AxumRequest,
+                next: ::sword::__private::AxumNext,
+            ) -> ::sword::__private::AxumResponse {
+                use ::sword::__private::FromRequest;
+                use ::sword::__private::IntoResponse;
 
                 let sword_ctx = match ::sword::http::Context::from_request(req, &state).await {
                     Ok(ctx) => ctx,

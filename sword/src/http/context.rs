@@ -6,13 +6,13 @@ use axum::{
     http::{Extensions, Method, Uri},
 };
 
-#[cfg(feature = "validation")]
 use validator::Validate;
 
 use crate::{
     application::AppState,
     http::{HttpResponse, RequestMethods, Result as HttpResult, errors::RequestError},
 };
+
 use serde::de::DeserializeOwned;
 
 pub struct Context {
@@ -152,7 +152,6 @@ impl RequestMethods for Context {
         })
     }
 
-    #[cfg(feature = "validation")]
     fn validated_body<T>(&self) -> Result<T, RequestError>
     where
         T: DeserializeOwned + Validate,
@@ -169,7 +168,6 @@ impl RequestMethods for Context {
         Ok(body)
     }
 
-    #[cfg(feature = "validation")]
     fn validated_query<T>(&self) -> Result<T, RequestError>
     where
         T: DeserializeOwned + Validate,

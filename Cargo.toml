@@ -1,10 +1,10 @@
-
 [workspace]
 resolver = "2"
 members = [
     "sword-tests",
     "sword-macros",
-    "sword"
+    "sword",
+    "examples",
 ]
 
 exclude = ["sword-tests"]
