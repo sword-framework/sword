@@ -2,7 +2,7 @@ use std::sync::{Arc, OnceLock};
 
 use axum_test::TestServer;
 use sword::controller::{controller, controller_impl};
-use sword::http::{HttpResponse, Request, Result};
+use sword::http::{Context, HttpResponse, RequestMethods, Result};
 use sword::routing::get;
 
 use serde::{Deserialize, Serialize};
@@ -45,8 +45,8 @@ pub struct UserController {}
 #[controller_impl]
 impl UserController {
     #[get("/simple-query")]
-    async fn get_users(req: Request) -> Result<HttpResponse> {
-        let query: QueryData = req.query()?;
+    async fn get_users(ctx: Context) -> Result<HttpResponse> {
+        let query: QueryData = ctx.query()?;
 
         Ok(HttpResponse::Ok()
             .data(query)
@@ -54,8 +54,8 @@ impl UserController {
     }
 
     #[get("/validate-query")]
-    async fn get_users_with_validation(req: Request) -> Result<HttpResponse> {
-        let query: ValidableQueryData = req.validated_query()?;
+    async fn get_users_with_validation(ctx: Context) -> Result<HttpResponse> {
+        let query: ValidableQueryData = ctx.validated_query()?;
 
         Ok(HttpResponse::Ok()
             .data(query)

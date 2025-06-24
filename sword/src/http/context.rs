@@ -9,25 +9,26 @@ use axum::{
 #[cfg(feature = "validation")]
 use validator::Validate;
 
-use crate::http::{HttpResponse, Result as HttpResult, errors::RequestError};
+use crate::{
+    application::AppState,
+    http::{HttpResponse, RequestMethods, Result as HttpResult, errors::RequestError},
+};
 use serde::de::DeserializeOwned;
 
-pub struct Request {
+pub struct Context {
     params: HashMap<String, String>,
     body_bytes: Bytes,
     method: Method,
     headers: HashMap<String, String>,
     uri: Uri,
     pub extensions: Extensions,
+    pub state: AppState,
 }
 
-impl<S> FromRequest<S> for Request
-where
-    S: Send + Sync + Clone,
-{
+impl FromRequest<AppState> for Context {
     type Rejection = HttpResponse;
 
-    async fn from_request(req: AxumRequest, _: &S) -> HttpResult<Self> {
+    async fn from_request(req: AxumRequest, state: &AppState) -> HttpResult<Self> {
         let (mut parts, body) = req.into_parts();
 
         let mut params = HashMap::new();
@@ -57,12 +58,37 @@ where
             headers,
             uri: parts.uri,
             extensions: parts.extensions,
+            state: state.clone(),
         })
     }
 }
 
-impl Request {
-    pub fn param<T: FromStr>(&self, key: &str) -> Result<T, RequestError> {
+impl RequestMethods for Context {
+    fn uri(&self) -> String {
+        self.uri.to_string()
+    }
+
+    fn method(&self) -> &Method {
+        &self.method
+    }
+
+    fn header(&self, key: &str) -> Option<&str> {
+        self.headers.get(key).map(|value| value.as_str())
+    }
+
+    fn headers(&self) -> &HashMap<String, String> {
+        &self.headers
+    }
+
+    fn headers_mut(&mut self) -> &mut HashMap<String, String> {
+        &mut self.headers
+    }
+
+    fn set_header(&mut self, name: impl Into<String>, value: impl Into<String>) {
+        self.headers.insert(name.into(), value.into());
+    }
+
+    fn param<T: FromStr>(&self, key: &str) -> Result<T, RequestError> {
         if let Some(value) = self.params.get(key) {
             let Ok(param) = value.parse::<T>() else {
                 let message = "Invalid parameter type";
@@ -85,7 +111,7 @@ impl Request {
         Err(RequestError::ParseError(message, details))
     }
 
-    pub fn body<T: DeserializeOwned>(&self) -> Result<T, RequestError> {
+    fn body<T: DeserializeOwned>(&self) -> Result<T, RequestError> {
         if self.body_bytes.is_empty() {
             return Err(RequestError::BodyIsEmpty(
                 "Invalid call, request body is empty",
@@ -104,11 +130,7 @@ impl Request {
         })
     }
 
-    pub fn header(&self, key: &str) -> Option<&str> {
-        self.headers.get(key).map(|value| value.as_str())
-    }
-
-    pub fn query<T: DeserializeOwned>(&self) -> Result<T, RequestError> {
+    fn query<T: DeserializeOwned>(&self) -> Result<T, RequestError> {
         let query_str = self.uri.query();
 
         let Some(query_str) = query_str else {
@@ -130,16 +152,8 @@ impl Request {
         })
     }
 
-    pub fn uri(&self) -> String {
-        self.uri.to_string()
-    }
-
-    pub fn method(&self) -> &Method {
-        &self.method
-    }
-
     #[cfg(feature = "validation")]
-    pub fn validated_body<T>(&self) -> Result<T, RequestError>
+    fn validated_body<T>(&self) -> Result<T, RequestError>
     where
         T: DeserializeOwned + Validate,
     {
@@ -156,7 +170,7 @@ impl Request {
     }
 
     #[cfg(feature = "validation")]
-    pub fn validated_query<T>(&self) -> Result<T, RequestError>
+    fn validated_query<T>(&self) -> Result<T, RequestError>
     where
         T: DeserializeOwned + Validate,
     {
@@ -171,7 +185,9 @@ impl Request {
 
         Ok(query)
     }
+}
 
+impl Context {
     pub fn into_axum_request(self) -> AxumRequest {
         use axum::http::{HeaderName, HeaderValue};
 
@@ -194,14 +210,10 @@ impl Request {
 
         request
     }
-
-    pub fn state<T: Send + Sync + 'static>(&self) -> Option<&T> {
-        self.extensions.get::<T>()
-    }
 }
 
-impl From<Request> for AxumRequest {
-    fn from(req: Request) -> Self {
-        req.into_axum_request()
+impl From<Context> for AxumRequest {
+    fn from(ctx: Context) -> Self {
+        ctx.into_axum_request()
     }
 }

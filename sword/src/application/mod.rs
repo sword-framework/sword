@@ -1,5 +1,14 @@
-use axum::routing::Router;
+use std::convert::Infallible;
+
+use axum::{
+    extract::Request as AxumRequest,
+    response::IntoResponse,
+    routing::{Route, Router},
+};
+
 use tokio::net::TcpListener;
+use tower_layer::Layer;
+use tower_service::Service;
 
 use crate::{routing::RouterProvider, utils::handle_critical_error};
 
@@ -30,6 +39,34 @@ impl Application {
         Self {
             router,
             state: self.state,
+        }
+    }
+
+    pub fn layer<L>(self, layer: L) -> Self
+    where
+        L: Layer<Route> + Clone + Send + Sync + 'static,
+        L::Service: Service<AxumRequest> + Clone + Send + Sync + 'static,
+        <L::Service as Service<AxumRequest>>::Response: IntoResponse + 'static,
+        <L::Service as Service<AxumRequest>>::Error: Into<Infallible> + 'static,
+        <L::Service as Service<AxumRequest>>::Future: Send + 'static,
+    {
+        let router = self.router.layer(layer);
+
+        Self {
+            router,
+            state: self.state,
+        }
+    }
+
+    pub fn state<S: Sync + Send + 'static>(self, state: S) -> Self {
+        let new_state = self.state.insert(state);
+
+        // Rebuild the router with the new state
+        let router = Router::new().with_state(new_state.clone());
+
+        Self {
+            router,
+            state: new_state,
         }
     }
 

@@ -3,7 +3,7 @@ use serde_json::json;
 use sword::{
     application::Application,
     controller::{controller, controller_impl},
-    http::{HttpResponse, Request, ResponseBody, response},
+    http::{Context, HttpResponse, ResponseBody, response},
     middleware::{Middleware, MiddlewareResult, NextFunction, middleware},
     routing::get,
 };
@@ -12,7 +12,7 @@ use sword::{
 struct ErrorMiddleware;
 
 impl ErrorMiddleware {
-    async fn handle(_: Request, _: NextFunction) -> MiddlewareResult {
+    async fn handle(_: Context, _: NextFunction) -> MiddlewareResult {
         return Err(response!(500, { "message": "Internal Server Error" } ));
     }
 }
@@ -21,11 +21,11 @@ impl ErrorMiddleware {
 struct ExtensionsTestMiddleware;
 
 impl ExtensionsTestMiddleware {
-    async fn handle(mut req: Request, next: NextFunction) -> MiddlewareResult {
-        req.extensions
+    async fn handle(mut ctx: Context, next: NextFunction) -> MiddlewareResult {
+        ctx.extensions
             .insert::<String>("test_extension".to_string());
 
-        Ok(next.run(req).await)
+        Ok(next.run(ctx).await)
     }
 }
 
@@ -33,9 +33,9 @@ impl ExtensionsTestMiddleware {
 struct MiddlewareWithState {}
 
 impl MiddlewareWithState {
-    async fn handle(mut req: Request, next: NextFunction) -> MiddlewareResult {
-        req.extensions.insert::<u16>(8080);
-        Ok(next.run(req).await)
+    async fn handle(mut ctx: Context, next: NextFunction) -> MiddlewareResult {
+        ctx.extensions.insert::<u16>(8080);
+        Ok(next.run(ctx).await)
     }
 }
 
@@ -54,7 +54,7 @@ impl TestController {
 
     #[get("/extensions-test")]
     #[middleware(ExtensionsTestMiddleware)]
-    async fn extensions_test(req: Request) -> HttpResponse {
+    async fn extensions_test(req: Context) -> HttpResponse {
         let extension_value = req.extensions.get::<String>();
 
         HttpResponse::Ok()
@@ -66,7 +66,7 @@ impl TestController {
 
     #[get("/middleware-state")]
     #[middleware(MiddlewareWithState)]
-    async fn middleware_state(req: Request) -> HttpResponse {
+    async fn middleware_state(req: Context) -> HttpResponse {
         let port = req.extensions.get::<u16>().cloned().unwrap_or(0);
         HttpResponse::Ok()
             .message("Test controller response with middleware state")
@@ -90,8 +90,6 @@ async fn extensions_mw_test() {
     assert_eq!(response.status_code(), 200);
     let json = response.json::<ResponseBody>();
 
-    dbg!(&json);
-
     let Some(data) = json.data else {
         panic!("Expected data in response");
     };
@@ -106,8 +104,6 @@ async fn middleware_state_test() {
     let response = test.get("/test/middleware-state").await;
     assert_eq!(response.status_code(), 200);
     let json = response.json::<ResponseBody>();
-
-    dbg!(&json);
 
     let Some(data) = json.data else {
         panic!("Expected data in response");

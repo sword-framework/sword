@@ -1,6 +1,6 @@
 use std::pin::Pin;
 
-use crate::http::{Request, Result};
+use crate::http::{Context, Result};
 
 use axum::extract::Request as AxumRequest;
 use axum::middleware::{FromFnLayer, Next as AxumNext};
@@ -26,8 +26,8 @@ impl NextFunction {
         Self { inner: next }
     }
 
-    pub async fn run(self, req: Request) -> AxumResponse {
-        let axum_req = req.into_axum_request();
+    pub async fn run(self, ctx: Context) -> AxumResponse {
+        let axum_req = ctx.into_axum_request();
         self.inner.run(axum_req).await
     }
 }

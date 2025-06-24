@@ -1429,6 +1429,8 @@ dependencies = [
  "shellexpand",
  "sword-macros",
  "tokio",
+ "tower-layer",
+ "tower-service",
  "validator",
 ]
 

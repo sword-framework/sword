@@ -1,11 +1,4 @@
-pub mod http {
-    mod errors;
-    mod request;
-
-    pub use axum_responses::http::*;
-    pub use axum_responses::{Result, response};
-    pub use request::Request;
-}
+pub mod http;
 
 #[cfg(feature = "validation")]
 mod validation;

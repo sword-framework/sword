@@ -6,3 +6,6 @@ mod application;
 
 #[cfg(test)]
 mod middleware;
+
+#[cfg(test)]
+mod state;
