@@ -43,3 +43,14 @@ impl Config {
             .try_deserialize()
     }
 }
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            server: ServerConfig {
+                host: "127.0.0.1".to_string(),
+                port: 8080,
+            },
+        }
+    }
+}

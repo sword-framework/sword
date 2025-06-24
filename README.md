@@ -30,15 +30,15 @@
 - 💡 **Express-Like** - It provides a `req` from request with some utility methods.
 
 ## Currently working on
-- [ ] 📱 Add Application struct
+- ✅📱 Add Application struct
+- ✅ 🏗️ Add Application Context
+- ✅ 🔒 Add Middleware support
 - [ ] ⚙️ Add config file support
 
 ## 📋 Roadmap
 
-- [ ] 🏗️ Add Application Context
 - [ ] 📁 Add File - FormData support
 - [ ] 💉 Add Dependency Injection support based on `shaku` crate
-- [ ] 🔒 Add Middleware support
 - [ ] 🧪 Add more tests
 - [ ] 📚 Add more documentation
 - [ ] 🛠️ CLI Command line interface for code-generation (templates)

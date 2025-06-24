@@ -87,7 +87,7 @@ pub fn expand_controller_impl(_: TokenStream, item: TokenStream) -> TokenStream 
         #input
 
         impl ::sword::routing::RouterProvider for #struct_self {
-            fn router(app_state: ::sword::application::state::AppState) -> ::axum::routing::Router {
+            fn router(app_state: ::sword::application::AppState) -> ::axum::routing::Router {
                 let base_router = ::axum::Router::new()
                     #(#routes)*;
 

@@ -3,34 +3,31 @@ use std::{collections::HashMap, str::FromStr};
 use axum::{
     body::{Bytes, to_bytes},
     extract::{FromRequest, OptionalFromRequestParts, Path, Request as AxumRequest},
-    http::{Method, Uri},
+    http::{Extensions, Method, Uri},
 };
 
 #[cfg(feature = "validation")]
 use validator::Validate;
 
-use crate::{
-    application::state::AppState,
-    http::{HttpResponse, Result as HttpResult, errors::RequestError},
-};
+use crate::http::{HttpResponse, Result as HttpResult, errors::RequestError};
 use serde::de::DeserializeOwned;
 
-pub struct Request<S = AppState> {
+pub struct Request {
     params: HashMap<String, String>,
     body_bytes: Bytes,
     method: Method,
     headers: HashMap<String, String>,
     uri: Uri,
-    pub(crate) state: S,
+    pub extensions: Extensions,
 }
 
-impl<S> FromRequest<S> for Request<S>
+impl<S> FromRequest<S> for Request
 where
     S: Send + Sync + Clone,
 {
     type Rejection = HttpResponse;
 
-    async fn from_request(req: AxumRequest, state: &S) -> HttpResult<Self> {
+    async fn from_request(req: AxumRequest, _: &S) -> HttpResult<Self> {
         let (mut parts, body) = req.into_parts();
 
         let mut params = HashMap::new();
@@ -59,7 +56,7 @@ where
             method: parts.method,
             headers,
             uri: parts.uri,
-            state: state.clone(),
+            extensions: parts.extensions,
         })
     }
 }
@@ -191,7 +188,15 @@ impl Request {
         }
 
         let body = axum::body::Body::from(self.body_bytes);
-        builder.body(body).expect("Failed to build axum request")
+        let mut request = builder.body(body).expect("Failed to build axum request");
+
+        *request.extensions_mut() = self.extensions;
+
+        request
+    }
+
+    pub fn state<T: Send + Sync + 'static>(&self) -> Option<&T> {
+        self.extensions.get::<T>()
     }
 }
 

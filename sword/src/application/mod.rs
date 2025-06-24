@@ -1,47 +1,48 @@
-mod config;
-pub mod state;
-
 use axum::routing::Router;
 use tokio::net::TcpListener;
 
-use crate::{
-    application::{config::Config, state::AppState},
-    routing::RouterProvider,
-    utils::handle_critical_error,
-};
+use crate::{routing::RouterProvider, utils::handle_critical_error};
+
+mod config;
+mod state;
+
+pub use config::Config;
+pub use state::AppState;
 
 #[derive(Debug, Clone)]
 pub struct Application {
     router: Router,
     state: AppState,
-    config: Config,
 }
 
 impl Application {
-    pub fn new() -> Application {
-        let config = match Config::new() {
-            Ok(cfg) => cfg,
-            Err(e) => handle_critical_error("Failed to load configuration", e, Some("config-rs")),
-        };
+    pub fn builder() -> Self {
+        let state = AppState::new();
+        let router = Router::new().with_state(state.clone());
 
-        let state = AppState::new(config.clone());
-        let router = axum::Router::new().with_state(state.clone());
+        Self { router, state }
+    }
 
-        Application {
+    pub fn controller<R: RouterProvider>(self) -> Self {
+        let controller_router = R::router(self.state.clone());
+        let router = self.router.clone().merge(controller_router);
+
+        Self {
             router,
-            state,
-            config,
+            state: self.state,
         }
     }
 
-    pub fn add_controller<R: RouterProvider>(&mut self) -> Application {
-        let controller_router = R::router(self.state.clone());
-        self.router = self.router.clone().merge(controller_router);
-        self.clone()
-    }
-
     pub async fn run(&self) {
-        let addr = format!("{}:{}", self.config.server.host, self.config.server.port);
+        let config = self.state.get::<Config>().unwrap_or_else(|| {
+            handle_critical_error(
+                "Failed to retrieve application configuration",
+                "Config not found",
+                Some("sword"),
+            )
+        });
+
+        let addr = format!("{}:{}", config.server.host, config.server.port);
 
         let listener = match TcpListener::bind(&addr).await {
             Ok(listener) => listener,
@@ -49,17 +50,10 @@ impl Application {
         };
 
         let router = self.router.clone();
-
         axum::serve(listener, router).await.unwrap();
     }
 
     pub fn router(&self) -> Router {
         self.router.clone()
-    }
-}
-
-impl Default for Application {
-    fn default() -> Self {
-        Self::new()
     }
 }

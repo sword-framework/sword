@@ -10,7 +10,7 @@ pub fn expand_middleware_derive(item: TokenStream) -> TokenStream {
     let expanded = quote! {
         impl #struct_name {
             pub async fn middleware_handle(
-                State(state): ::axum::extract::State<::sword::application::state::AppState>,
+                State(state): ::axum::extract::State<::sword::application::AppState>,
                 req: ::axum::extract::Request,
                 next: ::axum::middleware::Next,
             ) -> ::axum::response::Response {

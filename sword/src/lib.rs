@@ -11,7 +11,8 @@ pub mod http {
 mod validation;
 
 pub mod routing {
-    use crate::application::state::AppState;
+    use crate::application::AppState;
+
     use axum::routing::Router;
     pub use sword_macros::{delete, get, patch, post, put};
 

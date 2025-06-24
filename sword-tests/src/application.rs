@@ -33,9 +33,9 @@ impl SecondTestController {
 
 #[tokio::test]
 async fn test_application() {
-    let app = Application::new()
-        .add_controller::<TestController>()
-        .add_controller::<SecondTestController>();
+    let app = Application::builder()
+        .controller::<TestController>()
+        .controller::<SecondTestController>();
 
     let test = axum_test::TestServer::new(app.router()).unwrap();
 

@@ -1,4 +1,4 @@
-use std::pin::Pin;
+use std::{pin::Pin, future::Future};
 
 use crate::http::{Request, Result};
 

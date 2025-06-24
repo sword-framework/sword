@@ -14,7 +14,7 @@ pub static APP: OnceLock<Arc<TestServer>> = OnceLock::new();
 fn test_server() -> Arc<TestServer> {
     use sword::application::Application;
 
-    let app = Application::new().add_controller::<UserController>();
+    let app = Application::builder().controller::<UserController>();
 
     APP.get_or_init(|| Arc::new(TestServer::new(app.router()).unwrap()))
         .clone()
