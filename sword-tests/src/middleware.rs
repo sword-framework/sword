@@ -1,11 +1,5 @@
 use serde_json::json;
-use sword::{
-    application::Application,
-    controller::{controller, controller_impl},
-    http::{Context, HttpResponse, ResponseBody, response},
-    middleware::{Middleware, MiddlewareHandler, MiddlewareResult, NextFunction, middleware},
-    routing::get,
-};
+use sword::prelude::*;
 
 #[derive(Middleware)]
 struct ErrorMiddleware;

@@ -1,10 +1,4 @@
-use sword::{
-    application::Application,
-    controller::{controller, controller_impl},
-    http::{Context, HttpResponse, Result},
-    middleware::{middleware, Middleware, MiddlewareHandler, MiddlewareResult, NextFunction},
-    routing::get,
-};
+use sword::prelude::*;
 
 #[derive(Middleware)]
 struct MyMiddleware;

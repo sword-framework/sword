@@ -1,11 +1,7 @@
 use axum_test::TestServer;
 use serde_json::json;
-use sword::{
-    application::Application,
-    controller::{controller, controller_impl},
-    http::{Context, HttpResponse, ResponseBody},
-    routing::get,
-};
+
+use sword::prelude::*;
 
 #[controller("/test")]
 struct TestController {}

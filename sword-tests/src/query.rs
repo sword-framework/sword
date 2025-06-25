@@ -1,11 +1,8 @@
 use std::sync::{Arc, OnceLock};
 
 use axum_test::TestServer;
-use sword::controller::{controller, controller_impl};
-use sword::http::{Context, HttpResponse, RequestMethods, Result};
-use sword::routing::get;
-
 use serde::{Deserialize, Serialize};
+use sword::prelude::*;
 use validator::Validate;
 
 pub static APP: OnceLock<Arc<TestServer>> = OnceLock::new();

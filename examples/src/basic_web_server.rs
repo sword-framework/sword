@@ -1,9 +1,4 @@
-use sword::{
-    application::Application,
-    controller::{controller, controller_impl},
-    http::{Context, HttpResponse, RequestMethods, Result},
-    routing::{get, post},
-};
+use sword::prelude::*;
 
 #[controller("/")]
 struct AppController {}
