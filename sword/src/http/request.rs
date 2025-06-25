@@ -6,29 +6,27 @@ use axum::{
     http::{Extensions, Method, Uri},
 };
 
+use serde::de::DeserializeOwned;
 use validator::Validate;
 
-use crate::{
-    application::AppState,
-    http::{HttpResponse, RequestMethods, Result as HttpResult, errors::RequestError},
-};
+use crate::http::{HttpResponse, RequestMethods, Result as HttpResult, errors::RequestError};
 
-use serde::de::DeserializeOwned;
-
-pub struct Context {
+pub struct Request {
     params: HashMap<String, String>,
     body_bytes: Bytes,
     method: Method,
     headers: HashMap<String, String>,
     uri: Uri,
     pub extensions: Extensions,
-    pub state: AppState,
 }
 
-impl FromRequest<AppState> for Context {
+impl<S> FromRequest<S> for Request
+where
+    S: Send + Sync + 'static,
+{
     type Rejection = HttpResponse;
 
-    async fn from_request(req: AxumRequest, state: &AppState) -> HttpResult<Self> {
+    async fn from_request(req: AxumRequest, _: &S) -> HttpResult<Self> {
         let (mut parts, body) = req.into_parts();
 
         let mut params = HashMap::new();
@@ -58,12 +56,11 @@ impl FromRequest<AppState> for Context {
             headers,
             uri: parts.uri,
             extensions: parts.extensions,
-            state: state.clone(),
         })
     }
 }
 
-impl RequestMethods for Context {
+impl RequestMethods for Request {
     fn uri(&self) -> String {
         self.uri.to_string()
     }
@@ -185,7 +182,7 @@ impl RequestMethods for Context {
     }
 }
 
-impl Context {
+impl Request {
     pub fn into_axum_request(self) -> AxumRequest {
         use axum::http::{HeaderName, HeaderValue};
 
@@ -210,11 +207,11 @@ impl Context {
     }
 }
 
-impl From<Context> for AxumRequest {
-    fn from(ctx: Context) -> Self {
-        ctx.into_axum_request()
+impl From<Request> for AxumRequest {
+    fn from(req: Request) -> Self {
+        req.into_axum_request()
     }
 }
 
-unsafe impl Send for Context {}
-unsafe impl Sync for Context {}
+unsafe impl Send for Request {}
+unsafe impl Sync for Request {}

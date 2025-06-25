@@ -71,7 +71,7 @@ pub fn expand_controller_impl(_: TokenStream, item: TokenStream) -> TokenStream 
                 };
 
                 for mw in middlewares.iter().rev() {
-                    handler = quote! { #handler.layer(::sword::__private::from_fn_with_state(app_state.clone(), #mw::middleware_handle)) };
+                    handler = quote! { #handler.layer(::sword::__private::from_fn_with_state(app_state.clone(), #mw::handle)) };
                 }
 
                 let route = quote! {

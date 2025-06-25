@@ -16,7 +16,7 @@ mod config;
 mod state;
 
 pub use config::Config;
-pub use state::AppState;
+pub use state::{AppState, State};
 
 #[derive(Debug, Clone)]
 pub struct Application {

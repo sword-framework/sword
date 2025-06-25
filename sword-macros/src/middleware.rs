@@ -18,13 +18,13 @@ pub fn expand_middleware_derive(item: TokenStream) -> TokenStream {
                 use ::sword::__private::IntoResponse;
                 use ::sword::middleware::MiddlewareHandler;
 
-                let sword_ctx = match ::sword::http::Context::from_request(req, &state).await {
-                    Ok(ctx) => ctx,
+                let sword_req = match ::sword::http::Request::from_request(req, &state).await {
+                    Ok(req) => req,
                     Err(response) => return response.into_response(),
                 };
 
-                let sword_next = ::sword::middleware::NextFunction::new(next);
-                match #struct_name::handle(sword_ctx, sword_next).await {
+                let sword_next = ::sword::middleware::Next::new(next);
+                match #struct_name::handle(sword_req, sword_next).await {
                     Ok(response) => response,
                     Err(err) => err.into_response(),
                 }

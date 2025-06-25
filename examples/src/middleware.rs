@@ -1,34 +1,35 @@
-use sword::prelude::*;
+// use sword::prelude::*;
 
-#[derive(Middleware)]
-struct MyMiddleware;
+// struct MyMiddleware;
 
-impl MiddlewareHandler for MyMiddleware {
-    async fn handle(mut ctx: Context, next: NextFunction) -> MiddlewareResult {
-        ctx.extensions
-            .insert("Middleware executed successfully".to_string());
+// impl Middleware for MyMiddleware {
+//     async fn handle(mut req: Request, next: Next) -> MiddlewareResult {
+//         req.extensions
+//             .insert("Middleware executed successfully".to_string());
 
-        Ok(next.run(ctx).await)
-    }
-}
+//         Ok(next.run(req.into()).await)
+//     }
+// }
 
-#[controller("/api")]
-struct AppController {}
+// #[controller("/api")]
+// struct AppController {}
 
-#[controller_impl]
-impl AppController {
-    #[get("/data")]
-    #[middleware(MyMiddleware)]
-    async fn submit_data(ctx: Context) -> Result<HttpResponse> {
-        let mw_message = ctx.extensions.get::<String>().unwrap();
-        Ok(HttpResponse::Ok().message(mw_message))
-    }
-}
+// #[controller_impl]
+// impl AppController {
+//     #[get("/data")]
+//     #[middleware(MyMiddleware)]
+//     async fn submit_data(req: Request) -> Result<HttpResponse> {
+//         let mw_message = req.extensions.get::<String>().unwrap();
+//         Ok(HttpResponse::Ok().message(mw_message))
+//     }
+// }
+
+use sword::prelude::Application;
 
 #[tokio::main]
 async fn main() {
     Application::builder()
-        .controller::<AppController>()
+        // .controller::<AppController>()
         .run()
         .await;
 }

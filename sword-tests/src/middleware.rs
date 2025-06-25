@@ -1,34 +1,33 @@
-use serde_json::json;
+use serde_json::{Value, json};
 use sword::prelude::*;
 
-#[derive(Middleware)]
 struct ErrorMiddleware;
 
-impl MiddlewareHandler for ErrorMiddleware {
-    async fn handle(_: Context, _: NextFunction) -> MiddlewareResult {
+impl Middleware for ErrorMiddleware {
+    async fn handle(_: Request, _: Next) -> MiddlewareResult {
         return Err(response!(500, { "message": "Internal Server Error" } ));
     }
 }
 
-#[derive(Middleware)]
 struct ExtensionsTestMiddleware;
 
-impl MiddlewareHandler for ExtensionsTestMiddleware {
-    async fn handle(mut ctx: Context, next: NextFunction) -> MiddlewareResult {
-        ctx.extensions
+impl Middleware for ExtensionsTestMiddleware {
+    async fn handle(mut req: Request, next: Next) -> MiddlewareResult {
+        req.extensions
             .insert::<String>("test_extension".to_string());
 
-        Ok(next.run(ctx).await)
+        Ok(next.run(req.into()).await)
     }
 }
 
-#[derive(Middleware)]
-struct MiddlewareWithState;
+struct MwWithState;
 
-impl MiddlewareHandler for MiddlewareWithState {
-    async fn handle(mut ctx: Context, next: NextFunction) -> MiddlewareResult {
-        ctx.extensions.insert::<u16>(8080);
-        Ok(next.run(ctx).await)
+impl MiddlewareWithState<Value> for MwWithState {
+    async fn handle(state: State<Value>, mut req: Request, next: Next) -> MiddlewareResult {
+        req.extensions.insert::<u16>(8080);
+        req.extensions.insert(state.clone());
+
+        Ok(next.run(req.into()).await)
     }
 }
 
@@ -47,7 +46,7 @@ impl TestController {
 
     #[get("/extensions-test")]
     #[middleware(ExtensionsTestMiddleware)]
-    async fn extensions_test(req: Context) -> HttpResponse {
+    async fn extensions_test(req: Request) -> HttpResponse {
         let extension_value = req.extensions.get::<String>();
 
         HttpResponse::Ok()
@@ -58,12 +57,17 @@ impl TestController {
     }
 
     #[get("/middleware-state")]
-    #[middleware(MiddlewareWithState)]
-    async fn middleware_state(req: Context) -> HttpResponse {
+    #[middleware(MwWithState)]
+    async fn middleware_state(req: Request) -> Result<HttpResponse> {
         let port = req.extensions.get::<u16>().cloned().unwrap_or(0);
-        HttpResponse::Ok()
+        let state = req.extensions.get::<Value>().cloned().unwrap_or_default();
+
+        Ok(HttpResponse::Ok()
             .message("Test controller response with middleware state")
-            .data(json!({ "port": port }))
+            .data(json!({
+                "port": port,
+                "key": state.get("key").and_then(Value::as_str).unwrap_or_default()
+            })))
     }
 }
 
@@ -81,6 +85,7 @@ async fn extensions_mw_test() {
     let test = axum_test::TestServer::new(app.router()).unwrap();
     let response = test.get("/test/extensions-test").await;
     assert_eq!(response.status_code(), 200);
+
     let json = response.json::<ResponseBody>();
 
     let Some(data) = json.data else {
@@ -91,11 +96,16 @@ async fn extensions_mw_test() {
 }
 
 #[tokio::test]
-async fn middleware_state_test() {
-    let app = Application::builder().controller::<TestController>();
+async fn middleware_state() {
+    let app = Application::builder()
+        .controller::<TestController>()
+        .state(json!({ "key": "value" }));
+
     let test = axum_test::TestServer::new(app.router()).unwrap();
     let response = test.get("/test/middleware-state").await;
+
     assert_eq!(response.status_code(), 200);
+
     let json = response.json::<ResponseBody>();
 
     let Some(data) = json.data else {
@@ -103,4 +113,5 @@ async fn middleware_state_test() {
     };
 
     assert_eq!(data["port"], 8080);
+    assert_eq!(data["key"], "value");
 }

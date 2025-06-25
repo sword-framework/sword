@@ -1486,7 +1486,6 @@ version = "0.1.0"
 dependencies = [
  "axum",
  "axum_responses",
- "chrono",
  "config",
  "serde",
  "serde_json",

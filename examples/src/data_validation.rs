@@ -21,14 +21,14 @@ struct AppController {}
 #[controller_impl]
 impl AppController {
     #[get("/hello")]
-    async fn hello(ctx: Context) -> Result<HttpResponse> {
-        let query = ctx.validated_query::<MyQuery>()?;
+    async fn hello(req: Request) -> Result<HttpResponse> {
+        let query = req.validated_query::<MyQuery>()?;
         Ok(HttpResponse::Ok().data(query))
     }
 
     #[post("/submit")]
-    async fn submit_data(ctx: Context) -> Result<HttpResponse> {
-        let body = ctx.validated_body::<MyBody>()?;
+    async fn submit_data(req: Request) -> Result<HttpResponse> {
+        let body = req.validated_body::<MyBody>()?;
 
         Ok(HttpResponse::Ok()
             .data(body)

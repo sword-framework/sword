@@ -1,16 +1,15 @@
-mod context;
 mod errors;
+mod request;
 
 use std::collections::HashMap;
 use std::str::FromStr;
 
 pub use axum_responses::http::*;
 pub use axum_responses::{Result, response};
-pub use context::Context;
+pub use request::Request;
 
 use axum::http::Method;
 use serde::de::DeserializeOwned;
-
 use validator::Validate;
 
 use crate::http::errors::RequestError;

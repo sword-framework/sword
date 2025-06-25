@@ -1,32 +1,28 @@
-use crate::__private::{AxumNext, AxumResponse};
-use crate::http::{Context, Result};
+use crate::__private::AxumResponse;
+use crate::http::{Request, Result};
+use crate::prelude::State;
 
+pub use axum::middleware::Next;
 pub use sword_macros::{Middleware, middleware};
 
 pub type MiddlewareResult = Result<AxumResponse>;
 
-pub trait MiddlewareHandler: Send + Sync + 'static {
-    fn handle(ctx: Context, next: NextFunction) -> impl Future<Output = MiddlewareResult> + Send
+pub trait Middleware: Send + Sync + 'static {
+    fn handle(req: Request, next: Next) -> impl Future<Output = MiddlewareResult> + Send
     where
         Self: Send + Sync,
-        Context: Send,
-        NextFunction: Send;
+        Request: Send,
+        Next: Send;
 }
 
-pub struct NextFunction {
-    inner: AxumNext,
-}
-
-unsafe impl Send for NextFunction {}
-unsafe impl Sync for NextFunction {}
-
-impl NextFunction {
-    pub fn new(next: AxumNext) -> Self {
-        Self { inner: next }
-    }
-
-    pub async fn run(self, ctx: Context) -> AxumResponse {
-        let axum_req = ctx.into_axum_request();
-        self.inner.run(axum_req).await
-    }
+pub trait MiddlewareWithState<T>: Send + Sync + 'static {
+    fn handle(
+        state: State<T>,
+        req: Request,
+        next: Next,
+    ) -> impl Future<Output = MiddlewareResult> + Send
+    where
+        Self: Send + Sync,
+        Request: Send,
+        Next: Send;
 }

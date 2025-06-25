@@ -1,5 +1,5 @@
 use axum_test::TestServer;
-use serde_json::json;
+use serde_json::{Value, json};
 
 use sword::prelude::*;
 
@@ -9,14 +9,9 @@ struct TestController {}
 #[controller_impl]
 impl TestController {
     #[get("/state")]
-    async fn handler(ctx: Context) -> HttpResponse {
-        let data = ctx
-            .state
-            .get::<serde_json::Value>()
-            .expect("State not found");
-
+    async fn handler(data: State<Value>, _: Request) -> HttpResponse {
         HttpResponse::Ok()
-            .data(data)
+            .data(&*data)
             .add_header("Content-Type", "application/json")
     }
 }

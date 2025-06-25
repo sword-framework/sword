@@ -22,8 +22,8 @@ impl AppController {
     }
 
     #[post("/submit")]
-    async fn submit_data(ctx: Context) -> Result<HttpResponse> {
-        let body = ctx.body::<serde_json::Value>()?;
+    async fn submit_data(req: Request) -> Result<HttpResponse> {
+        let body = req.body::<serde_json::Value>()?;
 
         Ok(HttpResponse::Ok()
             .data(body)

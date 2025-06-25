@@ -1,5 +1,5 @@
 pub mod prelude {
-    pub use crate::application::{AppState, Application};
+    pub use crate::application::{AppState, Application, State};
     pub use crate::controller::{controller, controller_impl};
     pub use crate::http::*;
     pub use crate::middleware::*;
@@ -42,7 +42,6 @@ pub(crate) mod utils {
 #[doc = "hidden"]
 pub mod __private {
     pub use axum::extract::Request as AxumRequest;
-    pub use axum::extract::State;
     pub use axum::extract::{FromRequest, FromRequestParts};
     pub use axum::middleware::Next as AxumNext;
     pub use axum::middleware::from_fn_with_state;
