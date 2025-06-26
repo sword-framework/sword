@@ -15,8 +15,13 @@ path = "src/data_validation.rs"
 name = "middleware"
 path = "src/middleware.rs"
 
+[[example]]
+name = "global_state"
+path = "src/global_state.rs"
+
 [dependencies]
 sword = { path = "../sword" }
+sword-macros = { path = "../sword-macros" }
 tokio = { version = "1.0", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"

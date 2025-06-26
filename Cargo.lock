@@ -480,6 +480,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sword",
+ "sword-macros",
  "tokio",
  "validator",
 ]

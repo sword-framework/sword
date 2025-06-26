@@ -16,17 +16,17 @@ mod config;
 mod state;
 
 pub use config::Config;
-pub use state::AppState;
+pub use state::SwordState;
 
 #[derive(Debug, Clone)]
 pub struct Application {
     router: Router,
-    state: state::AppState,
+    state: SwordState,
 }
 
 impl Application {
     pub fn builder() -> Self {
-        let state = AppState::new();
+        let state = SwordState::new();
         let router = Router::new().with_state(state.clone());
 
         Self { router, state }
@@ -85,6 +85,7 @@ impl Application {
         };
 
         let router = self.router.clone();
+
         axum::serve(listener, router).await.unwrap();
     }
 

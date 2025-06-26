@@ -1,4 +1,4 @@
-use crate::{application::AppState, http::HttpResponse};
+use crate::{application::SwordState, http::HttpResponse};
 
 use axum::extract::{FromRef, FromRequestParts};
 use axum::http::request::Parts;
@@ -9,13 +9,13 @@ pub struct State<T>(pub T);
 impl<S, T> FromRequestParts<S> for State<T>
 where
     T: Clone + Send + Sync + 'static,
-    AppState: FromRef<S>,
+    SwordState: FromRef<S>,
     S: Send + Sync,
 {
     type Rejection = HttpResponse;
 
     async fn from_request_parts(_: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        let app_state = AppState::from_ref(state);
+        let app_state = SwordState::from_ref(state);
 
         let inner_state = app_state
             .get::<T>()

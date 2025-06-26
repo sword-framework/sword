@@ -7,11 +7,11 @@ use std::{
 use crate::application::Config;
 
 #[derive(Clone, Debug)]
-pub struct AppState {
+pub struct SwordState {
     inner: Arc<HashMap<TypeId, Arc<dyn Any + Send + Sync>>>,
 }
 
-impl AppState {
+impl SwordState {
     pub fn new() -> Self {
         let config = Config::new().unwrap_or_else(|_| {
             eprintln!("Failed to load configuration, using default values.");
@@ -28,14 +28,10 @@ impl AppState {
         }
     }
 
-    pub fn get<T: Send + Sync + 'static>(&self) -> Option<&T> {
+    pub(crate) fn get<T: Send + Sync + 'static>(&self) -> Option<&T> {
         self.inner
             .get(&TypeId::of::<T>())
             .and_then(|any| any.downcast_ref::<T>())
-    }
-
-    pub fn get_cloned<T: Clone + Send + Sync + 'static>(&self) -> Option<T> {
-        self.get::<T>().cloned()
     }
 
     pub(crate) fn insert<T: Send + Sync + 'static>(self, state: T) -> Self {
@@ -48,7 +44,7 @@ impl AppState {
     }
 }
 
-impl Default for AppState {
+impl Default for SwordState {
     fn default() -> Self {
         Self::new()
     }

@@ -13,13 +13,13 @@ pub mod http;
 mod validation;
 
 pub mod routing {
-    use crate::application::AppState;
+    use crate::application::SwordState;
 
     pub use axum::routing::Router;
     pub use sword_macros::{delete, get, patch, post, put};
 
     pub trait RouterProvider {
-        fn router(app_state: AppState) -> Router;
+        fn router(app_state: SwordState) -> Router;
     }
 }
 
