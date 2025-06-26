@@ -98,8 +98,8 @@ async fn extensions_mw_test() {
 #[tokio::test]
 async fn middleware_state() {
     let app = Application::builder()
-        .controller::<TestController>()
-        .state(json!({ "key": "value" }));
+        .state(json!({ "key": "value" }))
+        .controller::<TestController>();
 
     let test = axum_test::TestServer::new(app.router()).unwrap();
     let response = test.get("/test/middleware-state").await;

@@ -1,5 +1,4 @@
 mod controller;
-mod middleware;
 use proc_macro::TokenStream;
 
 #[proc_macro_attribute]
@@ -40,11 +39,6 @@ pub fn controller(attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn controller_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
     controller::expand_controller_impl(attr, item)
-}
-
-#[proc_macro_derive(Middleware)]
-pub fn middleware_derive(item: TokenStream) -> TokenStream {
-    middleware::expand_middleware_derive(item)
 }
 
 #[proc_macro_attribute]

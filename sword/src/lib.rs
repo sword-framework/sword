@@ -1,11 +1,13 @@
 pub mod prelude {
-    pub use crate::application::{AppState, Application, State};
+    pub use crate::application::Application;
     pub use crate::controller::{controller, controller_impl};
+    pub use crate::extract::State;
     pub use crate::http::*;
     pub use crate::middleware::*;
     pub use crate::routing::*;
 }
 
+pub mod extract;
 pub mod http;
 
 mod validation;

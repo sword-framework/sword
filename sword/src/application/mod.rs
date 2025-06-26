@@ -16,12 +16,12 @@ mod config;
 mod state;
 
 pub use config::Config;
-pub use state::{AppState, State};
+pub use state::AppState;
 
 #[derive(Debug, Clone)]
 pub struct Application {
     router: Router,
-    state: AppState,
+    state: state::AppState,
 }
 
 impl Application {
