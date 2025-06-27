@@ -16,7 +16,7 @@ use crate::{routing::RouterProvider, utils::handle_critical_error};
 
 mod state;
 
-pub use config::Config;
+// pub use config::Config;
 pub use state::SwordState;
 
 #[derive(Debug, Clone)]
