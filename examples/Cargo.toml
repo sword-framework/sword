@@ -19,6 +19,10 @@ path = "src/middleware.rs"
 name = "global_state"
 path = "src/global_state.rs"
 
+[[example]]
+name = "middleware_with_state"
+path = "src/middleware_with_state.rs"
+
 [dependencies]
 sword = { path = "../sword" }
 sword-macros = { path = "../sword-macros" }

@@ -28,6 +28,6 @@ impl AppController {
 async fn main() {
     Application::builder()
         .controller::<AppController>()
-        .run()
+        .run("0.0.0.0:8080")
         .await;
 }

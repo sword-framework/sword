@@ -12,7 +12,8 @@ use tower_service::Service;
 
 use crate::{routing::RouterProvider, utils::handle_critical_error};
 
-mod config;
+// mod config;
+
 mod state;
 
 pub use config::Config;
@@ -68,16 +69,16 @@ impl Application {
         }
     }
 
-    pub async fn run(&self) {
-        let config = self.state.get::<Config>().unwrap_or_else(|| {
-            handle_critical_error(
-                "Failed to retrieve application configuration",
-                "Config not found",
-                Some("sword"),
-            )
-        });
+    pub async fn run(&self, addr: &str) {
+        // let config = self.state.get::<Config>().unwrap_or_else(|| {
+        //     handle_critical_error(
+        //         "Failed to retrieve application configuration",
+        //         "Config not found",
+        //         Some("sword"),
+        //     )
+        // });
 
-        let addr = format!("{}:{}", config.server.host, config.server.port);
+        // let addr = format!("{}:{}", config.server.host, config.server.port);
 
         let listener = match TcpListener::bind(&addr).await {
             Ok(listener) => listener,

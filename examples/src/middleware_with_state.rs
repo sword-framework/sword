@@ -17,15 +17,27 @@ struct AppState {
     db: InMemoryDb,
 }
 
+struct MyMiddleware;
+
+impl MiddlewareWithState<AppState> for MyMiddleware {
+    async fn handle(ctx: State<AppState>, mut req: Request, next: Next) -> MiddlewareResult {
+        let count = ctx.db.read().await.len();
+        req.extensions.insert(count);
+
+        Ok(next.run(req.into()).await)
+    }
+}
+
 #[controller("/api")]
 struct AppController {}
 
 #[controller_impl]
 impl AppController {
     #[get("/data")]
-    async fn submit_data(state: State<AppState>, _: Request) -> HttpResponse {
+    #[middleware(MyMiddleware)]
+    async fn submit_data(state: State<AppState>, req: Request) -> HttpResponse {
         let db = &state.db;
-        let count = db.read().await.len();
+        let count = req.extensions.get::<usize>().cloned().unwrap_or(0);
         let message = format!("Current data count: {}", count);
 
         db.write().await.push(message);

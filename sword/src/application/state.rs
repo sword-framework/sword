@@ -4,8 +4,6 @@ use std::{
     sync::Arc,
 };
 
-use crate::application::Config;
-
 #[derive(Clone, Debug)]
 pub struct SwordState {
     inner: Arc<HashMap<TypeId, Arc<dyn Any + Send + Sync>>>,
@@ -13,18 +11,8 @@ pub struct SwordState {
 
 impl SwordState {
     pub fn new() -> Self {
-        let config = Config::new().unwrap_or_else(|_| {
-            eprintln!("Failed to load configuration, using default values.");
-            Config::default()
-        });
-
-        let base_state = HashMap::from([(
-            TypeId::of::<Config>(),
-            Arc::new(config) as Arc<dyn Any + Send + Sync>,
-        )]);
-
         Self {
-            inner: Arc::new(base_state),
+            inner: Arc::new(HashMap::new()),
         }
     }
 
