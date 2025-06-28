@@ -10,7 +10,7 @@ use tokio::net::TcpListener;
 use tower_layer::Layer;
 use tower_service::Service;
 
-use crate::{routing::RouterProvider, utils::handle_critical_error};
+use crate::routing::RouterProvider;
 
 // mod config;
 
@@ -82,7 +82,7 @@ impl Application {
 
         let listener = match TcpListener::bind(&addr).await {
             Ok(listener) => listener,
-            Err(e) => handle_critical_error("Failed to bind to address", e, Some("tokio-rs")),
+            Err(e) => panic!("[x] Error - Failed to bind to address {}: {}", addr, e),
         };
 
         let router = self.router.clone();

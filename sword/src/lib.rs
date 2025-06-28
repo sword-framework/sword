@@ -7,6 +7,10 @@ pub mod prelude {
     pub use crate::routing::*;
 }
 
+pub mod di {
+    pub use shaku_axum::{Inject, InjectProvided};
+}
+
 pub mod extract;
 pub mod http;
 
@@ -30,16 +34,6 @@ pub mod controller {
 }
 
 pub mod middleware;
-
-pub(crate) mod utils {
-    use std::fmt::Display;
-
-    pub fn handle_critical_error<E: Display>(message: &str, error: E, lib: Option<&str>) -> ! {
-        eprintln!("{}: {}", lib.unwrap_or("Sword"), message);
-        eprintln!("Error: {}", error);
-        std::process::exit(1)
-    }
-}
 
 #[doc = "hidden"]
 pub mod __private {

@@ -48,6 +48,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e16d2d3311acee920a9eb8d33b8cbc1787ce4a264e85f964c2404b969bdcd487"
 
 [[package]]
+name = "anymap2"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d301b3b94cb4b2f23d7917810addbbaff90738e0ca2be692bd027e70d7e0330c"
+
+[[package]]
 name = "assert-json-diff"
 version = "2.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1059,6 +1065,38 @@ dependencies = [
 ]
 
 [[package]]
+name = "shaku"
+version = "0.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d599314a26c92706bde1c984391b1eeb77ebf46e23142216a58eacb6e12f858b"
+dependencies = [
+ "anymap2",
+ "once_cell",
+ "shaku_derive",
+]
+
+[[package]]
+name = "shaku_axum"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3b4cb5052ca87a5f83bbc924b3faef0b523183841f57d2093b2cb96747985c59"
+dependencies = [
+ "axum",
+ "shaku",
+]
+
+[[package]]
+name = "shaku_derive"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "524f791f1f958b9c1825c1e48657d3bc485ee9ac4a1c7c226ab7fc7010afa7dc"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
 name = "shlex"
 version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1109,13 +1147,14 @@ checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 
 [[package]]
 name = "sword"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "axum",
  "axum_responses",
  "serde",
  "serde_json",
  "serde_qs",
+ "shaku_axum",
  "sword-macros",
  "tokio",
  "tower-layer",
@@ -1125,7 +1164,7 @@ dependencies = [
 
 [[package]]
 name = "sword-macros"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
@@ -1154,6 +1193,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "72b64191b275b66ffe2469e8af2c1cfe3bafa67b529ead792a6d0160888b4237"
 dependencies = [
  "proc-macro2",
+ "quote",
  "unicode-ident",
 ]
 

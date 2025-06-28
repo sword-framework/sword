@@ -1,6 +1,6 @@
 [package]
 name = "sword-macros"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 authors = ["Luciano Revillod <lrevillod2022@alu.uct.cl>"]
 description = "Axum based web framework prototype macros (sword crate)"
