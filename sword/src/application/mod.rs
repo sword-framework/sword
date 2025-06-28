@@ -82,7 +82,7 @@ impl Application {
 
         let listener = match TcpListener::bind(&addr).await {
             Ok(listener) => listener,
-            Err(e) => panic!("[x] Error - Failed to bind to address {}: {}", addr, e),
+            Err(e) => panic!("[x] Error - Failed to bind to address {addr}: {e}"),
         };
 
         let router = self.router.clone();

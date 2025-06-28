@@ -103,7 +103,7 @@ impl RequestMethods for Request {
         }
 
         let message = "Parameter not found";
-        let details = format!("Parameter '{}' not found in request parameters", key);
+        let details = format!("Parameter '{key}' not found in request parameters");
 
         Err(RequestError::ParseError(message, details))
     }
