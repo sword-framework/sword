@@ -9,3 +9,6 @@ mod middleware;
 
 #[cfg(test)]
 mod state;
+
+#[cfg(test)]
+mod di;

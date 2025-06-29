@@ -2,6 +2,7 @@ use std::sync::{Arc, OnceLock};
 
 use axum_test::TestServer;
 use serde::{Deserialize, Serialize};
+use sword::http::Result;
 use sword::prelude::*;
 use validator::Validate;
 

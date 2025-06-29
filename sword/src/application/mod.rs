@@ -12,11 +12,8 @@ use tower_service::Service;
 
 use crate::routing::RouterProvider;
 
-// mod config;
-
 mod state;
 
-// pub use config::Config;
 pub use state::SwordState;
 
 #[derive(Debug, Clone)]
@@ -67,6 +64,59 @@ impl Application {
             router,
             state: new_state,
         }
+    }
+
+    /// Register a Shaku dependency injection module in the application state.
+    ///
+    /// This is a convenience method that's semantically equivalent to `state()` but provides
+    /// better code readability when working with dependency injection modules.
+    ///
+    /// # Example:
+    /// ```rust
+    /// use std::sync::Arc;
+    /// use shaku::{module, Component, Interface};
+    /// use sword::prelude::*;
+    ///
+    /// trait Logger: Interface {
+    ///     fn log(&self, message: &str);
+    /// }
+    ///
+    /// #[derive(Component)]
+    /// #[shaku(interface = Logger)]
+    /// struct ConsoleLogger;
+    ///
+    /// impl Logger for ConsoleLogger {
+    ///     fn log(&self, message: &str) {
+    ///         println!("Log: {}", message);
+    ///     }
+    /// }
+    ///
+    /// module! {
+    ///     AppModule {
+    ///         components = [ConsoleLogger],
+    ///         providers = []
+    ///     }
+    /// }
+    ///
+    /// #[controller("/users")]
+    /// struct UserController {}
+    ///
+    /// #[controller_impl]
+    /// impl UserController {
+    ///     #[get("/")]
+    ///     async fn get_users() -> HttpResponse {
+    ///         HttpResponse::Ok().data("Users")
+    ///     }
+    /// }
+    ///
+    /// let module = AppModule::builder().build();
+    ///
+    /// let app = Application::builder()
+    ///     .di_module(Arc::new(module))
+    ///     .controller::<UserController>();
+    /// ```
+    pub fn di_module<M: Sync + Send + 'static>(self, module: M) -> Self {
+        self.state(module)
     }
 
     pub async fn run(&self, addr: &str) {

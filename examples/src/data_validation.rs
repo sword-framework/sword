@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use sword::http::Result;
 use sword::prelude::*;
 use validator::Validate;
 

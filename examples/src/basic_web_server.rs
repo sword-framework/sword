@@ -1,3 +1,4 @@
+use sword::http::Result;
 use sword::prelude::*;
 
 #[controller("/")]

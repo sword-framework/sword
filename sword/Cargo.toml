@@ -1,6 +1,6 @@
 [package]
 name = "sword"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 authors = ["Luciano Revillod <lrevillod2022@alu.uct.cl>"]
 description = "Axum based web framework prototype"
@@ -30,4 +30,5 @@ validator = { version = "0.20.0", features = ["derive"] }
 tower-layer = "0.3.3"
 tower-service = "0.3.3"
 shaku_axum = "0.6.0"
+shaku = "0.6.2"
 

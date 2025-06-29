@@ -1,4 +1,5 @@
 use serde_json::{Value, json};
+use sword::http::Result;
 use sword::prelude::*;
 
 struct ErrorMiddleware;
