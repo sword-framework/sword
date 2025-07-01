@@ -6,6 +6,7 @@ pub enum RequestError {
     ParseError(&'static str, String),
     ValidationError(&'static str, Value),
     BodyIsEmpty(&'static str),
+    StateNotFound(&'static str),
 }
 
 impl From<RequestError> for HttpResponse {
@@ -29,6 +30,13 @@ impl From<RequestError> for HttpResponse {
                     "message": "Request body is empty"
                 }))
             }
+
+            RequestError::StateNotFound(type_name) => HttpResponse::InternalServerError()
+                .message("State not found")
+                .data(json!({
+                    "type": "StateNotFound",
+                    "message": format!("State of type '{}' not found", type_name)
+                })),
         }
     }
 }

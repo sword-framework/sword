@@ -6,7 +6,7 @@ use std::str::FromStr;
 
 pub use axum_responses::http::*;
 pub use axum_responses::{Result, response};
-pub use request::Request;
+pub use request::Context;
 
 use axum::http::Method;
 use serde::de::DeserializeOwned;

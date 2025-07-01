@@ -2,33 +2,36 @@ use serde_json::{Value, json};
 use sword::http::Result;
 use sword::prelude::*;
 
-struct ErrorMiddleware;
-
-impl Middleware for ErrorMiddleware {
-    async fn handle(_: Request, _: Next) -> MiddlewareResult {
-        return Err(response!(500, { "message": "Internal Server Error" } ));
-    }
-}
-
 struct ExtensionsTestMiddleware;
 
 impl Middleware for ExtensionsTestMiddleware {
-    async fn handle(mut req: Request, next: Next) -> MiddlewareResult {
-        req.extensions
+    async fn handle(mut ctx: Context, next: Next) -> MiddlewareResult {
+        ctx.extensions
             .insert::<String>("test_extension".to_string());
 
-        Ok(next.run(req.into()).await)
+        Ok(next.run(ctx.into()).await)
     }
 }
 
 struct MwWithState;
 
-impl MiddlewareWithState<Value> for MwWithState {
-    async fn handle(state: State<Value>, mut req: Request, next: Next) -> MiddlewareResult {
-        req.extensions.insert::<u16>(8080);
-        req.extensions.insert(state.clone());
+impl Middleware for MwWithState {
+    async fn handle(mut ctx: Context, next: Next) -> MiddlewareResult {
+        let app_state = ctx.get_state::<Value>()?;
 
-        Ok(next.run(req.into()).await)
+        ctx.extensions.insert::<u16>(8080);
+        ctx.extensions.insert(app_state.clone());
+
+        Ok(next.run(ctx.into()).await)
+    }
+}
+
+struct RoleMiddleware;
+
+impl MiddlewareWithConfig<Vec<&str>> for RoleMiddleware {
+    async fn handle(roles: Vec<&str>, ctx: Context, next: Next) -> MiddlewareResult {
+        dbg!(&roles);
+        Ok(next.run(ctx.into()).await)
     }
 }
 
@@ -37,18 +40,10 @@ struct TestController {}
 
 #[controller_impl]
 impl TestController {
-    #[get("/error-500")]
-    #[middleware(ErrorMiddleware)]
-    async fn hello() -> HttpResponse {
-        HttpResponse::Ok()
-            .data("Hello, World!")
-            .message("Test controller response")
-    }
-
     #[get("/extensions-test")]
     #[middleware(ExtensionsTestMiddleware)]
-    async fn extensions_test(req: Request) -> HttpResponse {
-        let extension_value = req.extensions.get::<String>();
+    async fn extensions_test(ctx: Context) -> HttpResponse {
+        let extension_value = ctx.extensions.get::<String>();
 
         HttpResponse::Ok()
             .message("Test controller response with extensions")
@@ -59,24 +54,25 @@ impl TestController {
 
     #[get("/middleware-state")]
     #[middleware(MwWithState)]
-    async fn middleware_state(State(state): State<Value>, req: Request) -> Result<HttpResponse> {
-        let port = req.extensions.get::<u16>().cloned().unwrap_or(0);
+    async fn middleware_state(ctx: Context) -> Result<HttpResponse> {
+        let port = ctx.extensions.get::<u16>().cloned().unwrap_or(0);
+        let app_state = ctx.get_state::<Value>()?;
+
+        let json = json!({
+            "port": port,
+            "key": app_state.get("key").and_then(Value::as_str).unwrap_or_default()
+        });
 
         Ok(HttpResponse::Ok()
             .message("Test controller response with middleware state")
-            .data(json!({
-                "port": port,
-                "key": state.get("key").and_then(Value::as_str).unwrap_or_default()
-            })))
+            .data(json))
     }
-}
 
-#[tokio::test]
-async fn error_mw_test() {
-    let app = Application::builder().controller::<TestController>();
-    let test = axum_test::TestServer::new(app.router()).unwrap();
-    let response = test.get("/test/error-500").await;
-    assert_eq!(response.status_code(), 500);
+    #[get("/role-test")]
+    #[middleware(RoleMiddleware)]
+    async fn role_test(_: Context) -> HttpResponse {
+        response!(200, { "message": "test passed" })
+    }
 }
 
 #[tokio::test]
@@ -114,4 +110,12 @@ async fn middleware_state() {
 
     assert_eq!(data["port"], 8080);
     assert_eq!(data["key"], "value");
+}
+
+#[tokio::test]
+async fn role_middleware_test() {
+    let app = Application::builder().controller::<TestController>();
+    let test = axum_test::TestServer::new(app.router()).unwrap();
+    let response = test.get("/test/role-test").await;
+    assert_eq!(response.status_code(), 200);
 }

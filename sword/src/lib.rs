@@ -2,7 +2,7 @@ pub mod prelude {
     pub use crate::application::Application;
     pub use crate::controller::{controller, controller_impl};
     pub use crate::extract::State;
-    pub use crate::http::{HttpResponse, Request, RequestMethods, ResponseBody, response};
+    pub use crate::http::{Context, HttpResponse, RequestMethods, ResponseBody, response};
     pub use crate::middleware::*;
     pub use crate::routing::*;
 }

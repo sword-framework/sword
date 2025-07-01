@@ -2,31 +2,36 @@ use std::{collections::HashMap, str::FromStr};
 
 use axum::{
     body::{Bytes, to_bytes},
-    extract::{FromRequest, OptionalFromRequestParts, Path, Request as AxumRequest},
+    extract::{FromRef, FromRequest, OptionalFromRequestParts, Path, Request as AxumRequest},
     http::{Extensions, Method, Uri},
 };
 
 use serde::de::DeserializeOwned;
 use validator::Validate;
 
-use crate::http::{HttpResponse, RequestMethods, Result as HttpResult, errors::RequestError};
+use crate::{
+    application::SwordState,
+    http::{HttpResponse, RequestMethods, Result as HttpResult, errors::RequestError},
+};
 
-pub struct Request {
+pub struct Context {
     params: HashMap<String, String>,
     body_bytes: Bytes,
     method: Method,
     headers: HashMap<String, String>,
     uri: Uri,
+    state: SwordState,
     pub extensions: Extensions,
 }
 
-impl<S> FromRequest<S> for Request
+impl<S> FromRequest<S> for Context
 where
     S: Send + Sync + 'static,
+    SwordState: FromRef<S>,
 {
     type Rejection = HttpResponse;
 
-    async fn from_request(req: AxumRequest, _: &S) -> HttpResult<Self> {
+    async fn from_request(req: AxumRequest, state: &S) -> HttpResult<Self> {
         let (mut parts, body) = req.into_parts();
 
         let mut params = HashMap::new();
@@ -49,6 +54,8 @@ where
             }
         }
 
+        let state = SwordState::from_ref(state);
+
         Ok(Self {
             params,
             body_bytes,
@@ -56,11 +63,12 @@ where
             headers,
             uri: parts.uri,
             extensions: parts.extensions,
+            state,
         })
     }
 }
 
-impl RequestMethods for Request {
+impl RequestMethods for Context {
     fn uri(&self) -> String {
         self.uri.to_string()
     }
@@ -182,7 +190,19 @@ impl RequestMethods for Request {
     }
 }
 
-impl Request {
+impl Context {
+    pub fn get_state<T>(&self) -> Result<T, RequestError>
+    where
+        T: Send + Sync + 'static + Clone,
+    {
+        self.state
+            .get::<T>()
+            .cloned()
+            .ok_or_else(|| RequestError::StateNotFound(std::any::type_name::<T>()))
+    }
+}
+
+impl Context {
     pub fn into_axum_request(self) -> AxumRequest {
         use axum::http::{HeaderName, HeaderValue};
 
@@ -207,11 +227,11 @@ impl Request {
     }
 }
 
-impl From<Request> for AxumRequest {
-    fn from(req: Request) -> Self {
+impl From<Context> for AxumRequest {
+    fn from(req: Context) -> Self {
         req.into_axum_request()
     }
 }
 
-unsafe impl Send for Request {}
-unsafe impl Sync for Request {}
+unsafe impl Send for Context {}
+unsafe impl Sync for Context {}

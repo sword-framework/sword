@@ -112,7 +112,7 @@ impl TestController {
     async fn get_counter(
         counter_service: Inject<TestModule, dyn CounterService>,
         logger: Inject<TestModule, dyn Logger>,
-        _: Request,
+        _: Context,
     ) -> HttpResponse {
         let count = counter_service.get_count();
         logger.log(&format!("Counter accessed: {}", count));
@@ -126,7 +126,7 @@ impl TestController {
     async fn increment_counter(
         counter_service: Inject<TestModule, dyn CounterService>,
         logger: Inject<TestModule, dyn Logger>,
-        _: Request,
+        _: Context,
     ) -> HttpResponse {
         counter_service.increment();
         let count = counter_service.get_count();
@@ -141,16 +141,18 @@ impl TestController {
     async fn add_to_counter(
         counter_service: Inject<TestModule, dyn CounterService>,
         logger: Inject<TestModule, dyn Logger>,
-        req: Request,
+        ctx: Context,
     ) -> Result<HttpResponse> {
         #[derive(serde::Deserialize)]
         struct AddRequest {
             value: usize,
         }
 
-        let body: AddRequest = req.body()?;
+        let body: AddRequest = ctx.body()?;
         counter_service.add(body.value);
+
         let count = counter_service.get_count();
+
         logger.log(&format!(
             "Added {} to counter, new value: {}",
             body.value, count
@@ -165,7 +167,7 @@ impl TestController {
     }
 
     #[get("/logs")]
-    async fn get_logs(logger: Inject<TestModule, dyn Logger>, _: Request) -> HttpResponse {
+    async fn get_logs(logger: Inject<TestModule, dyn Logger>, _: Context) -> HttpResponse {
         let logs = logger.get_logs();
 
         HttpResponse::Ok()
@@ -177,7 +179,7 @@ impl TestController {
     async fn reset_counter(
         counter_service: Inject<TestModule, dyn CounterService>,
         logger: Inject<TestModule, dyn Logger>,
-        _: Request,
+        _: Context,
     ) -> HttpResponse {
         counter_service.reset();
         logger.log("Counter reset to 0");

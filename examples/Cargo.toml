@@ -12,16 +12,8 @@ name = "data_validation"
 path = "src/data_validation.rs"
 
 [[example]]
-name = "middleware"
-path = "src/middleware.rs"
-
-[[example]]
 name = "global_state"
 path = "src/global_state.rs"
-
-[[example]]
-name = "middleware_with_state"
-path = "src/middleware_with_state.rs"
 
 [[example]]
 name = "di"
