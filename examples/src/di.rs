@@ -2,8 +2,7 @@ use std::sync::Arc;
 
 use shaku::{module, Component, Interface};
 use sword::{
-    di::Inject,
-    http::HttpResponse,
+    http::{Context, HttpResponse, Result},
     prelude::{controller, controller_impl, Application},
 };
 
@@ -36,9 +35,11 @@ struct UserController {}
 #[controller_impl]
 impl UserController {
     #[get("/")]
-    async fn get_users(logger: Inject<AppModule, dyn Logger>) -> HttpResponse {
-        logger.log("Fetching users");
-        HttpResponse::Ok().data("Users fetched successfully")
+    async fn get_users(ctx: Context) -> Result<HttpResponse> {
+        ctx.get_dependency::<AppModule, dyn Logger>()?
+            .log("Fetching users");
+
+        Ok(HttpResponse::Ok().data("Users fetched successfully"))
     }
 }
 
@@ -46,9 +47,11 @@ impl UserController {
 async fn main() {
     let module = AppModule::builder().build();
 
-    Application::builder()
-        .di_module(Arc::new(module))
-        .controller::<UserController>()
-        .run("0.0.0.0:8080")
-        .await;
+    if false {
+        Application::builder()
+            .di_module(Arc::new(module))
+            .controller::<UserController>()
+            .run("0.0.0.0:8080")
+            .await;
+    }
 }

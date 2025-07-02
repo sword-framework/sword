@@ -1,28 +1,17 @@
 use std::{collections::HashMap, str::FromStr};
 
 use axum::{
-    body::{Bytes, to_bytes},
+    body::{Body, Bytes, to_bytes},
     extract::{FromRef, FromRequest, OptionalFromRequestParts, Path, Request as AxumRequest},
-    http::{Extensions, Method, Uri},
+    http::Method,
 };
-
 use serde::de::DeserializeOwned;
 use validator::Validate;
 
 use crate::{
     application::SwordState,
-    http::{HttpResponse, RequestMethods, Result as HttpResult, errors::RequestError},
+    http::{Context, HttpResponse, Result as HttpResult, errors::RequestError},
 };
-
-pub struct Context {
-    params: HashMap<String, String>,
-    body_bytes: Bytes,
-    method: Method,
-    headers: HashMap<String, String>,
-    uri: Uri,
-    state: SwordState,
-    pub extensions: Extensions,
-}
 
 impl<S> FromRequest<S> for Context
 where
@@ -68,32 +57,32 @@ where
     }
 }
 
-impl RequestMethods for Context {
-    fn uri(&self) -> String {
+impl Context {
+    pub fn uri(&self) -> String {
         self.uri.to_string()
     }
 
-    fn method(&self) -> &Method {
+    pub fn method(&self) -> &Method {
         &self.method
     }
 
-    fn header(&self, key: &str) -> Option<&str> {
+    pub fn header(&self, key: &str) -> Option<&str> {
         self.headers.get(key).map(|value| value.as_str())
     }
 
-    fn headers(&self) -> &HashMap<String, String> {
+    pub fn headers(&self) -> &HashMap<String, String> {
         &self.headers
     }
 
-    fn headers_mut(&mut self) -> &mut HashMap<String, String> {
+    pub fn headers_mut(&mut self) -> &mut HashMap<String, String> {
         &mut self.headers
     }
 
-    fn set_header(&mut self, name: impl Into<String>, value: impl Into<String>) {
+    pub fn set_header(&mut self, name: impl Into<String>, value: impl Into<String>) {
         self.headers.insert(name.into(), value.into());
     }
 
-    fn param<T: FromStr>(&self, key: &str) -> Result<T, RequestError> {
+    pub fn param<T: FromStr>(&self, key: &str) -> Result<T, RequestError> {
         if let Some(value) = self.params.get(key) {
             let Ok(param) = value.parse::<T>() else {
                 let message = "Invalid parameter type";
@@ -116,7 +105,7 @@ impl RequestMethods for Context {
         Err(RequestError::ParseError(message, details))
     }
 
-    fn body<T: DeserializeOwned>(&self) -> Result<T, RequestError> {
+    pub fn body<T: DeserializeOwned>(&self) -> Result<T, RequestError> {
         if self.body_bytes.is_empty() {
             return Err(RequestError::BodyIsEmpty(
                 "Invalid call, request body is empty",
@@ -135,7 +124,7 @@ impl RequestMethods for Context {
         })
     }
 
-    fn query<T: DeserializeOwned>(&self) -> Result<T, RequestError> {
+    pub fn query<T: DeserializeOwned>(&self) -> Result<T, RequestError> {
         let query_str = self.uri.query();
 
         let Some(query_str) = query_str else {
@@ -157,7 +146,7 @@ impl RequestMethods for Context {
         })
     }
 
-    fn validated_body<T>(&self) -> Result<T, RequestError>
+    pub fn validated_body<T>(&self) -> Result<T, RequestError>
     where
         T: DeserializeOwned + Validate,
     {
@@ -173,7 +162,7 @@ impl RequestMethods for Context {
         Ok(body)
     }
 
-    fn validated_query<T>(&self) -> Result<T, RequestError>
+    pub fn validated_query<T>(&self) -> Result<T, RequestError>
     where
         T: DeserializeOwned + Validate,
     {
@@ -190,27 +179,13 @@ impl RequestMethods for Context {
     }
 }
 
-impl Context {
-    pub fn get_state<T>(&self) -> Result<T, RequestError>
-    where
-        T: Send + Sync + 'static + Clone,
-    {
-        self.state
-            .get::<T>()
-            .cloned()
-            .ok_or_else(|| RequestError::StateNotFound(std::any::type_name::<T>()))
-    }
-}
-
-impl Context {
-    pub fn into_axum_request(self) -> AxumRequest {
+impl From<Context> for AxumRequest {
+    fn from(req: Context) -> Self {
         use axum::http::{HeaderName, HeaderValue};
 
-        let mut builder = axum::http::Request::builder()
-            .method(self.method)
-            .uri(self.uri);
+        let mut builder = AxumRequest::builder().method(req.method).uri(req.uri);
 
-        for (key, value) in self.headers {
+        for (key, value) in req.headers {
             if let (Ok(header_name), Ok(header_value)) =
                 (key.parse::<HeaderName>(), value.parse::<HeaderValue>())
             {
@@ -218,20 +193,11 @@ impl Context {
             }
         }
 
-        let body = axum::body::Body::from(self.body_bytes);
+        let body = Body::from(req.body_bytes);
         let mut request = builder.body(body).expect("Failed to build axum request");
 
-        *request.extensions_mut() = self.extensions;
+        *request.extensions_mut() = req.extensions;
 
         request
     }
 }
-
-impl From<Context> for AxumRequest {
-    fn from(req: Context) -> Self {
-        req.into_axum_request()
-    }
-}
-
-unsafe impl Send for Context {}
-unsafe impl Sync for Context {}

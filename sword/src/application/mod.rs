@@ -40,6 +40,9 @@ impl Application {
         }
     }
 
+    /// Register a layer in the application.
+    /// This method allows you to add middleware or other layers to the application's router.
+    /// This is useful to add tower based middleware or other layers that implement the `Layer` trait.
     pub fn layer<L>(self, layer: L) -> Self
     where
         L: Layer<Route> + Clone + Send + Sync + 'static,
@@ -66,70 +69,11 @@ impl Application {
         }
     }
 
-    /// Register a Shaku dependency injection module in the application state.
-    ///
-    /// This is a convenience method that's semantically equivalent to `state()` but provides
-    /// better code readability when working with dependency injection modules.
-    ///
-    /// # Example:
-    /// ```rust
-    /// use std::sync::Arc;
-    /// use shaku::{module, Component, Interface};
-    /// use sword::prelude::*;
-    ///
-    /// trait Logger: Interface {
-    ///     fn log(&self, message: &str);
-    /// }
-    ///
-    /// #[derive(Component)]
-    /// #[shaku(interface = Logger)]
-    /// struct ConsoleLogger;
-    ///
-    /// impl Logger for ConsoleLogger {
-    ///     fn log(&self, message: &str) {
-    ///         println!("Log: {}", message);
-    ///     }
-    /// }
-    ///
-    /// module! {
-    ///     AppModule {
-    ///         components = [ConsoleLogger],
-    ///         providers = []
-    ///     }
-    /// }
-    ///
-    /// #[controller("/users")]
-    /// struct UserController {}
-    ///
-    /// #[controller_impl]
-    /// impl UserController {
-    ///     #[get("/")]
-    ///     async fn get_users() -> HttpResponse {
-    ///         HttpResponse::Ok().data("Users")
-    ///     }
-    /// }
-    ///
-    /// let module = AppModule::builder().build();
-    ///
-    /// let app = Application::builder()
-    ///     .di_module(Arc::new(module))
-    ///     .controller::<UserController>();
-    /// ```
     pub fn di_module<M: Sync + Send + 'static>(self, module: M) -> Self {
         self.state(module)
     }
 
     pub async fn run(&self, addr: &str) {
-        // let config = self.state.get::<Config>().unwrap_or_else(|| {
-        //     handle_critical_error(
-        //         "Failed to retrieve application configuration",
-        //         "Config not found",
-        //         Some("sword"),
-        //     )
-        // });
-
-        // let addr = format!("{}:{}", config.server.host, config.server.port);
-
         let listener = match TcpListener::bind(&addr).await {
             Ok(listener) => listener,
             Err(e) => panic!("[x] Error - Failed to bind to address {addr}: {e}"),

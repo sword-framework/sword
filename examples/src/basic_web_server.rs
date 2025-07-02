@@ -34,8 +34,10 @@ impl AppController {
 
 #[tokio::main]
 async fn main() {
-    Application::builder()
-        .controller::<AppController>()
-        .run("0.0.0.0:8080")
-        .await;
+    if false {
+        Application::builder()
+            .controller::<AppController>()
+            .run("0.0.0.0:8080")
+            .await;
+    }
 }

@@ -4,7 +4,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use shaku::{Component, Interface, module};
-use sword::{di::Inject, http::Result, prelude::*};
+use sword::{http::Result, prelude::*};
 
 trait CounterService: Interface {
     fn get_count(&self) -> usize;
@@ -109,46 +109,48 @@ struct TestController {}
 #[controller_impl]
 impl TestController {
     #[get("/counter")]
-    async fn get_counter(
-        counter_service: Inject<TestModule, dyn CounterService>,
-        logger: Inject<TestModule, dyn Logger>,
-        _: Context,
-    ) -> HttpResponse {
+    async fn get_counter(ctx: Context) -> Result<HttpResponse> {
+        let counter_service = ctx.get_dependency::<TestModule, dyn CounterService>()?;
+        let logger = ctx.get_dependency::<TestModule, dyn Logger>()?;
+
         let count = counter_service.get_count();
         logger.log(&format!("Counter accessed: {}", count));
 
-        HttpResponse::Ok()
+        Ok(HttpResponse::Ok()
             .data(json!({ "count": count }))
-            .message("Counter retrieved successfully")
+            .message("Counter retrieved successfully"))
     }
 
     #[post("/counter/increment")]
-    async fn increment_counter(
-        counter_service: Inject<TestModule, dyn CounterService>,
-        logger: Inject<TestModule, dyn Logger>,
-        _: Context,
-    ) -> HttpResponse {
-        counter_service.increment();
-        let count = counter_service.get_count();
-        logger.log(&format!("Counter incremented to: {}", count));
+    async fn increment_counter(ctx: Context) -> Result<HttpResponse> {
+        ctx.get_dependency::<TestModule, dyn Logger>()?
+            .log("Incrementing counter");
 
-        HttpResponse::Ok()
+        let counter_service = ctx.get_dependency::<TestModule, dyn CounterService>()?;
+
+        counter_service.increment();
+
+        let count = counter_service.get_count();
+
+        ctx.get_dependency::<TestModule, dyn Logger>()?
+            .log(&format!("Counter incremented to: {}", count));
+
+        Ok(HttpResponse::Ok()
             .data(json!({ "count": count }))
-            .message("Counter incremented successfully")
+            .message("Counter incremented successfully"))
     }
 
     #[post("/counter/add")]
-    async fn add_to_counter(
-        counter_service: Inject<TestModule, dyn CounterService>,
-        logger: Inject<TestModule, dyn Logger>,
-        ctx: Context,
-    ) -> Result<HttpResponse> {
+    async fn add_to_counter(ctx: Context) -> Result<HttpResponse> {
         #[derive(serde::Deserialize)]
         struct AddRequest {
             value: usize,
         }
 
         let body: AddRequest = ctx.body()?;
+        let logger = ctx.get_dependency::<TestModule, dyn Logger>()?;
+        let counter_service = ctx.get_dependency::<TestModule, dyn CounterService>()?;
+
         counter_service.add(body.value);
 
         let count = counter_service.get_count();
@@ -167,26 +169,26 @@ impl TestController {
     }
 
     #[get("/logs")]
-    async fn get_logs(logger: Inject<TestModule, dyn Logger>, _: Context) -> HttpResponse {
+    async fn get_logs(ctx: Context) -> Result<HttpResponse> {
+        let logger = ctx.get_dependency::<TestModule, dyn Logger>()?;
         let logs = logger.get_logs();
 
-        HttpResponse::Ok()
+        Ok(HttpResponse::Ok()
             .data(json!({ "logs": logs }))
-            .message("Logs retrieved successfully")
+            .message("Logs retrieved successfully"))
     }
 
     #[post("/counter/reset")]
-    async fn reset_counter(
-        counter_service: Inject<TestModule, dyn CounterService>,
-        logger: Inject<TestModule, dyn Logger>,
-        _: Context,
-    ) -> HttpResponse {
-        counter_service.reset();
-        logger.log("Counter reset to 0");
+    async fn reset_counter(ctx: Context) -> Result<HttpResponse> {
+        ctx.get_dependency::<TestModule, dyn Logger>()?
+            .log("Resetting counter to 0");
 
-        HttpResponse::Ok()
+        ctx.get_dependency::<TestModule, dyn CounterService>()?
+            .reset();
+
+        Ok(HttpResponse::Ok()
             .data(json!({ "count": 0 }))
-            .message("Counter reset successfully")
+            .message("Counter reset successfully"))
     }
 }
 
@@ -195,7 +197,7 @@ async fn test_dependency_injection_with_multiple_services() {
     let module = TestModule::builder().build();
 
     let app = Application::builder()
-        .di_module(Arc::new(module))
+        .di_module(module)
         .controller::<TestController>();
 
     let server = TestServer::new(app.router()).unwrap();
@@ -226,22 +228,22 @@ async fn test_dependency_injection_with_multiple_services() {
     let logs_data = logs_json.data.unwrap();
     let logs = logs_data["logs"].as_array().unwrap();
 
-    assert_eq!(logs.len(), 3);
+    assert_eq!(logs.len(), 4);
     assert!(logs[0].as_str().unwrap().contains("Counter accessed: 0"));
+    assert!(logs[1].as_str().unwrap().contains("Incrementing counter"));
     assert!(
-        logs[1]
+        logs[2]
             .as_str()
             .unwrap()
             .contains("Counter incremented to: 1")
     );
     assert!(
-        logs[2]
+        logs[3]
             .as_str()
             .unwrap()
             .contains("Added 5 to counter, new value: 6")
     );
 
-    // Test 5: Reset counter
     let reset_response = server.post("/api/counter/reset").await;
     assert_eq!(reset_response.status_code(), 200);
     let reset_json = reset_response.json::<ResponseBody>();
@@ -258,7 +260,7 @@ async fn test_service_isolation_between_tests() {
     let module = TestModule::builder().build();
 
     let app = Application::builder()
-        .di_module(Arc::new(module))
+        .di_module(module)
         .controller::<TestController>();
 
     let server = TestServer::new(app.router()).unwrap();

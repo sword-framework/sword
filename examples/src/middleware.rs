@@ -1,4 +1,4 @@
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 use sword::http::Result;
 use sword::prelude::*;
 
@@ -71,51 +71,14 @@ impl TestController {
     #[get("/role-test")]
     #[middleware(RoleMiddleware, config = vec!["admin", "user"])]
     async fn role_test(_: Context) -> HttpResponse {
-        HttpResponse::Ok()
+        HttpResponse::Ok().message("Role middleware test passed")
     }
 }
 
-#[tokio::test]
-async fn extensions_mw_test() {
-    let app = Application::builder().controller::<TestController>();
-    let test = axum_test::TestServer::new(app.router()).unwrap();
-    let response = test.get("/test/extensions-test").await;
-    assert_eq!(response.status_code(), 200);
-
-    let json = response.json::<ResponseBody>();
-
-    let Some(data) = json.data else {
-        panic!("Expected data in response");
-    };
-
-    assert_eq!(data["extension_value"], "test_extension");
-}
-
-#[tokio::test]
-async fn middleware_state() {
-    let app = Application::builder()
-        .state(json!({ "key": "value" }))
-        .controller::<TestController>();
-
-    let test = axum_test::TestServer::new(app.router()).unwrap();
-    let response = test.get("/test/middleware-state").await;
-
-    assert_eq!(response.status_code(), 200);
-
-    let json = response.json::<ResponseBody>();
-
-    let Some(data) = json.data else {
-        panic!("Expected data in response");
-    };
-
-    assert_eq!(data["port"], 8080);
-    assert_eq!(data["key"], "value");
-}
-
-#[tokio::test]
-async fn role_middleware_test() {
-    let app = Application::builder().controller::<TestController>();
-    let test = axum_test::TestServer::new(app.router()).unwrap();
-    let response = test.get("/test/role-test").await;
-    assert_eq!(response.status_code(), 200);
+#[tokio::main]
+async fn main() {
+    Application::builder()
+        .controller::<TestController>()
+        .run("")
+        .await;
 }

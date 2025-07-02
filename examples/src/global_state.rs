@@ -44,9 +44,11 @@ impl AppController {
 async fn main() {
     let app_state = AppState { db: db() };
 
-    Application::builder()
-        .state(app_state)
-        .controller::<AppController>()
-        .run("0.0.0.0:8080")
-        .await;
+    if false {
+        Application::builder()
+            .state(app_state)
+            .controller::<AppController>()
+            .run("0.0.0.0:8080")
+            .await;
+    }
 }

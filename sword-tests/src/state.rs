@@ -24,7 +24,7 @@ async fn test_state() {
     let data = json!({ "key": "value" });
 
     let app = Application::builder()
-        .state::<serde_json::Value>(data)
+        .state(data)
         .controller::<TestController>();
 
     let server = TestServer::new(app.router()).unwrap();
