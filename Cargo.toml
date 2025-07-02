@@ -7,4 +7,4 @@ members = [
     "examples",
 ]
 
-exclude = ["sword-tests"]
+exclude = ["sword-tests", "examples"]

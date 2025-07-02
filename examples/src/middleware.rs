@@ -69,6 +69,7 @@ impl TestController {
     }
 
     #[get("/role-test")]
+    #[middleware(MwWithState)]
     #[middleware(RoleMiddleware, config = vec!["admin", "user"])]
     async fn role_test(_: Context) -> HttpResponse {
         HttpResponse::Ok().message("Role middleware test passed")

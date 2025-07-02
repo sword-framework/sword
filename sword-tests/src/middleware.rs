@@ -22,6 +22,8 @@ impl Middleware for MwWithState {
         ctx.extensions.insert::<u16>(8080);
         ctx.extensions.insert(app_state.clone());
 
+        println!("2");
+
         Ok(next.run(ctx.into()).await)
     }
 }
@@ -45,6 +47,8 @@ impl TestController {
     async fn extensions_test(ctx: Context) -> HttpResponse {
         let extension_value = ctx.extensions.get::<String>();
 
+        println!("1");
+
         HttpResponse::Ok()
             .message("Test controller response with extensions")
             .data(json!({
@@ -53,14 +57,17 @@ impl TestController {
     }
 
     #[get("/middleware-state")]
+    #[middleware(ExtensionsTestMiddleware)]
     #[middleware(MwWithState)]
     async fn middleware_state(ctx: Context) -> Result<HttpResponse> {
         let port = ctx.extensions.get::<u16>().cloned().unwrap_or(0);
         let app_state = ctx.get_state::<Value>()?;
+        let message = ctx.extensions.get::<String>().cloned().unwrap_or_default();
 
         let json = json!({
             "port": port,
-            "key": app_state.get("key").and_then(Value::as_str).unwrap_or_default()
+            "key": app_state.get("key").and_then(Value::as_str).unwrap_or_default(),
+            "message": message
         });
 
         Ok(HttpResponse::Ok()
@@ -110,6 +117,7 @@ async fn middleware_state() {
 
     assert_eq!(data["port"], 8080);
     assert_eq!(data["key"], "value");
+    assert_eq!(data["message"], "test_extension");
 }
 
 #[tokio::test]

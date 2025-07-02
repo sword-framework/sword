@@ -23,6 +23,7 @@ pub struct Application {
 }
 
 impl Application {
+    /// Create a new instance of the `Application` builder.
     pub fn builder() -> Self {
         let state = SwordState::new();
         let router = Router::new().with_state(state.clone());
@@ -30,6 +31,8 @@ impl Application {
         Self { router, state }
     }
 
+    /// Register a controller in the application.
+    /// This method allows you to add a controller to the application's router.
     pub fn controller<R: RouterProvider>(self) -> Self {
         let controller_router = R::router(self.state.clone());
         let router = self.router.clone().merge(controller_router);
@@ -59,6 +62,13 @@ impl Application {
         }
     }
 
+    /// Register a state in the application.
+    /// This method allows you to add a shared state to the application's router.
+    /// The state can be any type that implements `Sync` and `Send`, and is
+    /// stored in the application's state.
+    ///
+    /// It's not necesary to use your state wrapped in `Arc`, as the `SwordState`
+    /// already does that for you.
     pub fn state<S: Sync + Send + 'static>(self, state: S) -> Self {
         let new_state = self.state.insert(state);
         let router = Router::new().with_state(new_state.clone());
@@ -69,6 +79,10 @@ impl Application {
         }
     }
 
+    /// Register a dependency injection module in the application.
+    /// This method allows you to add a Shaku module to the application's state.
+    /// Behind the scenes, it will register the module in the `SwordState` so you can
+    /// retrieve it later using the `get_dependency` method.
     pub fn di_module<M: Sync + Send + 'static>(self, module: M) -> Self {
         self.state(module)
     }

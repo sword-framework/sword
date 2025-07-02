@@ -3,20 +3,6 @@
 
 <h1>⚔️ Sword ⚔️</h1>
 <p><em>A prototype for a rust web framework</em></p>
-
----
-
-> **🚧 Prototype Status**
-> 
-> This is a **prototype** and **not production-ready**. It is intended for:
-> - 📚 **Educational purposes**
-> - 🔬 **Exploring web framework design**
-> - 🛠️ **Axum wrapper experimentation**
-> 
-> While it may scale well in the future, **it is not recommended for production use** at this stage.
-
----
-
 </div>
 
 ## ✨ Features
@@ -124,6 +110,9 @@ impl AppController {
 async fn main() {
     let app_state = AppState { db: db() };
 
+    // !Important: Set Application state before registering any controllers
+    // This allows controllers to access the shared state.
+
     Application::builder()
         .state(app_state)
         .controller::<AppController>()
@@ -145,9 +134,7 @@ impl Middleware for LoggingMiddleware {
     async fn handle(mut ctx: Context, next: Next) -> MiddlewareResult {
         println!("Request: {} {}", ctx.method(), ctx.uri());
         
-        // Add some data to extensions
         ctx.extensions.insert::<String>("middleware_data".to_string());
-
         Ok(next.run(ctx.into()).await)
     }
 }
@@ -234,7 +221,7 @@ async fn main() {
     let module = AppModule::builder().build();
 
     Application::builder()
-        .di_module(Arc::new(module))
+        .di_module(module)
         .controller::<UserController>()
         .run("0.0.0.0:8080")
         .await;
@@ -309,11 +296,7 @@ struct RoleMiddleware;
 
 impl MiddlewareWithConfig<Vec<&str>> for RoleMiddleware {
     async fn handle(roles: Vec<&str>, mut ctx: Context, next: Next) -> MiddlewareResult {
-        // Log the required roles
         println!("Required roles: {:?}", roles);
-        
-        // In a real application, you would validate the user's roles here
-        // For this example, we'll just add the roles to the context
         ctx.extensions.insert(roles);
 
         Ok(next.run(ctx.into()).await)
@@ -324,7 +307,6 @@ struct AuthenticationMiddleware;
 
 impl MiddlewareWithConfig<String> for AuthenticationMiddleware {
     async fn handle(secret: String, mut ctx: Context, next: Next) -> MiddlewareResult {
-        // In a real application, you would validate the JWT token here
         let auth_header = ctx.header("Authorization").unwrap_or("");
         
         if auth_header.is_empty() {
@@ -333,7 +315,6 @@ impl MiddlewareWithConfig<String> for AuthenticationMiddleware {
                 .into());
         }
 
-        // Store the secret in extensions for demonstration
         ctx.extensions.insert(secret);
         
         Ok(next.run(ctx.into()).await)
@@ -386,15 +367,139 @@ async fn main() {
 }
 ```
 
+### With Middleware Stacking
+
+```rust
+use serde_json::json;
+use sword::prelude::*;
+use sword::http::Result;
+
+struct LoggingMiddleware;
+
+impl Middleware for LoggingMiddleware {
+    async fn handle(mut ctx: Context, next: Next) -> MiddlewareResult {
+        println!("🔍 [LOGGING] Request: {} {}", ctx.method(), ctx.uri());
+        ctx.extensions.insert::<String>("logged".to_string());
+        
+        let result = next.run(ctx.into()).await;
+        println!("🔍 [LOGGING] Response completed");
+        Ok(result)
+    }
+}
+
+struct AuthMiddleware;
+
+impl Middleware for AuthMiddleware {
+    async fn handle(mut ctx: Context, next: Next) -> MiddlewareResult {
+        println!("🔐 [AUTH] Checking authentication...");
+        
+        let auth_header = ctx.header("Authorization").unwrap_or("");
+        if auth_header.is_empty() {
+            println!("🔐 [AUTH] No authorization header found");
+            return Ok(HttpResponse::Unauthorized()
+                .message("Authorization required")
+                .into());
+        }
+        
+        ctx.extensions.insert::<String>("authenticated".to_string());
+        println!("🔐 [AUTH] Authentication successful");
+        Ok(next.run(ctx.into()).await)
+    }
+}
+
+struct RoleMiddleware;
+
+impl MiddlewareWithConfig<&str> for RoleMiddleware {
+    async fn handle(required_role: &str, mut ctx: Context, next: Next) -> MiddlewareResult {
+        let user_role = ctx.header("X-User-Role").unwrap_or("guest");
+        
+        if user_role != required_role && required_role != "guest" {
+            return Ok(HttpResponse::Forbidden()
+                .message("Insufficient permissions")
+                .into());
+        }
+        
+        ctx.extensions.insert::<String>(format!("role:{}", user_role));
+
+        Ok(next.run(ctx.into()).await)
+    }
+}
+
+struct TimingMiddleware;
+
+impl Middleware for TimingMiddleware {
+    async fn handle(mut ctx: Context, next: Next) -> MiddlewareResult {
+        let start = std::time::Instant::now();
+        println!("⏱️  [TIMING] Request started");
+        
+        ctx.extensions.insert::<std::time::Instant>(start);
+        
+        let result = next.run(ctx.into()).await;
+        let duration = start.elapsed();
+        
+        println!("⏱️  [TIMING] Request completed in {:?}", duration);
+        Ok(result)
+    }
+}
+
+#[controller("/api")]
+struct StackedController {}
+
+#[controller_impl]
+impl StackedController {
+    #[get("/protected")]
+    #[middleware(LoggingMiddleware)]           // Executes 1st (outer)
+    #[middleware(TimingMiddleware)]            // Executes 2nd  
+    #[middleware(AuthMiddleware)]              // Executes 3rd
+    #[middleware(RoleMiddleware, config = "admin")] // Executes 4th (inner)
+    async fn protected_endpoint(ctx: Context) -> Result<HttpResponse> {
+        let logged = ctx.extensions.get::<String>().cloned().unwrap_or_default();
+        let role_info = ctx.extensions.get::<String>().cloned().unwrap_or_default();
+        
+        Ok(HttpResponse::Ok()
+            .data(json!({
+                "middleware_chain": [
+                    "LoggingMiddleware",
+                    "TimingMiddleware", 
+                    "AuthMiddleware",
+                    "RoleMiddleware"
+                ],
+                "logged": !logged.is_empty(),
+                "role": role_info
+            }))
+            .message("Protected endpoint accessed successfully"))
+    }
+
+    #[get("/public")]
+    #[middleware(LoggingMiddleware)]
+    #[middleware(TimingMiddleware)]
+    async fn public_endpoint(ctx: Context) -> Result<HttpResponse> {
+        Ok(HttpResponse::Ok()
+            .data(json!({
+                "message": "Public resource accessed",
+                "middleware_chain": ["LoggingMiddleware", "TimingMiddleware"]
+            })))
+    }
+}
+
+#[tokio::main]
+async fn main() {
+    Application::builder()
+        .controller::<StackedController>()
+        .run("0.0.0.0:8080")
+        .await;
+}
+```
+
 ## Currently working on
 - ✅📱 Add Application struct
 - ✅ 🏗️ Add Application Context
 - ✅ 🔒 Add Middleware support
 - ✅ 💉 Add Dependency Injection support based on `shaku` crate
+- [ ] ⚙️ Add config file support
 
 ## 📋 Roadmap
 
-- [ ] ⚙️ Add config file support
 - [ ] 📁 Add File - FormData support
 - [ ] 🧪 Add more tests
 - [ ] 📚 Add more documentation
