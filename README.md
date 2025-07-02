@@ -17,6 +17,21 @@
 
 ## 🛠️ Usage
 
+### Add to your `Cargo.toml`
+
+```toml
+[dependencies]
+sword = "0.1.3"
+
+# Additional dependencies for features
+
+# validation features:
+validator = { version = "0.20.0", features = ["derive"] }
+
+# dependency injection features:
+shaku = { version = "0.6.2", features = ["derive"] }
+```
+
 ### Basic web server 
 
 ```rust
