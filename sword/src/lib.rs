@@ -1,15 +1,12 @@
 pub mod prelude {
     pub use crate::application::Application;
     pub use crate::controller::{controller, controller_impl};
-    pub use crate::extract::State;
     pub use crate::http::{Context, HttpResponse, RequestMethods, ResponseBody, response};
     pub use crate::middleware::*;
     pub use crate::routing::*;
 }
 
 pub mod di;
-
-pub mod extract;
 pub mod http;
 
 mod validation;
@@ -38,7 +35,7 @@ pub mod __private {
     pub use axum::extract::Request as AxumRequest;
     pub use axum::extract::{FromRequest, FromRequestParts};
     pub use axum::middleware::Next as AxumNext;
-    pub use axum::middleware::from_fn_with_state;
+    pub use axum::middleware::from_fn_with_state as mw_with_state;
     pub use axum::response::IntoResponse;
     pub use axum::response::Response as AxumResponse;
     pub use axum::routing::{delete, get, patch, post, put};

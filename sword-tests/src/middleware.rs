@@ -69,7 +69,7 @@ impl TestController {
     }
 
     #[get("/role-test")]
-    #[middleware(RoleMiddleware)]
+    #[middleware(RoleMiddleware, config = vec!["admin", "user"])]
     async fn role_test(_: Context) -> HttpResponse {
         response!(200, { "message": "test passed" })
     }

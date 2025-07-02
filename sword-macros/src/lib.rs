@@ -1,4 +1,7 @@
 mod controller;
+mod utils;
+
+use crate::controller::implementation;
 use proc_macro::TokenStream;
 
 #[proc_macro_attribute]
@@ -38,7 +41,7 @@ pub fn controller(attr: TokenStream, item: TokenStream) -> TokenStream {
 
 #[proc_macro_attribute]
 pub fn controller_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
-    controller::expand_controller_impl(attr, item)
+    implementation::expand_controller_impl(attr, item)
 }
 
 #[proc_macro_attribute]

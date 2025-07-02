@@ -3,6 +3,8 @@ use std::sync::{Arc, OnceLock};
 use sword::prelude::*;
 use tokio::sync::RwLock;
 
+use sword::http::Result;
+
 type InMemoryDb = Arc<RwLock<Vec<String>>>;
 const IN_MEMORY_DB: OnceLock<InMemoryDb> = OnceLock::new();
 
@@ -23,17 +25,18 @@ struct AppController {}
 #[controller_impl]
 impl AppController {
     #[get("/data")]
-    async fn submit_data(state: State<AppState>, _: Request) -> HttpResponse {
-        let db = &state.db;
-        let count = db.read().await.len();
+    async fn submit_data(ctx: Context) -> Result<HttpResponse> {
+        let state = ctx.get_state::<AppState>()?;
+
+        let count = state.db.read().await.len();
         let message = format!("Current data count: {}", count);
 
-        db.write().await.push(message);
+        state.db.write().await.push(message);
 
-        HttpResponse::Ok().data(json!({
+        Ok(HttpResponse::Ok().data(json!({
             "count": count,
-            "current_data": db.read().await.clone(),
-        }))
+            "current_data": state.db.read().await.clone(),
+        })))
     }
 }
 
