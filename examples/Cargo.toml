@@ -5,23 +5,23 @@ edition = "2021"
 
 [[example]]
 name = "basic_web_server"
-path = "src/basic_web_server.rs"
+path = "basic_web_server/main.rs"
 
 [[example]]
 name = "data_validation"
-path = "src/data_validation.rs"
+path = "data_validation/main.rs"
 
 [[example]]
-name = "global_state"
-path = "src/global_state.rs"
+name = "shared_state"
+path = "shared_state/main.rs"
 
 [[example]]
-name = "di"
-path = "src/di.rs"
+name = "dependency_injection"
+path = "dependency_injection/main.rs"
 
 [[example]]
-name = "middleware"
-path = "src/middleware.rs"
+name = "middlewares"
+path = "middlewares/main.rs"
 
 [dependencies]
 sword = { path = "../sword" }
@@ -31,3 +31,4 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 validator = { version = "0.20.0", features = ["derive"] }
 shaku = "0.6.2"
+async-trait = "0.1.88"

@@ -1,5 +1,7 @@
-use sword::http::Result;
+use sword::http::Result as HttpResult;
 use sword::prelude::*;
+
+use serde_json::{json, Value};
 
 #[controller("/")]
 struct AppController {}
@@ -23,21 +25,26 @@ impl AppController {
     }
 
     #[post("/submit")]
-    async fn submit_data(ctx: Context) -> Result<HttpResponse> {
-        let body = ctx.body::<serde_json::Value>()?;
+    async fn submit_data(ctx: Context) -> HttpResult<HttpResponse> {
+        let body = ctx.body::<Value>()?;
 
         Ok(HttpResponse::Ok()
             .data(body)
             .message("Data submitted successfully"))
     }
+
+    #[get("/json")]
+    async fn get_json() -> HttpResponse {
+        HttpResponse::Ok().data(json!({ "foo": "bar" }))
+    }
 }
 
 #[tokio::main]
-async fn main() {
-    if false {
-        Application::builder()
-            .controller::<AppController>()
-            .run("0.0.0.0:8080")
-            .await;
-    }
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    Application::builder()
+        .controller::<AppController>()
+        .run("0.0.0.0:8080")
+        .await?;
+
+    Ok(())
 }
