@@ -2,6 +2,7 @@
 name = "examples"
 version = "0.1.0"
 edition = "2021"
+publish = false
 
 [[example]]
 name = "basic_web_server"

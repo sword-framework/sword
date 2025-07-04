@@ -3,6 +3,8 @@ name = "sword-tests"
 version = "0.1.0"
 edition = "2024"
 
+publish = false
+
 [dependencies]
 axum = "0.8.4"
 axum-test = "17.3.0"
