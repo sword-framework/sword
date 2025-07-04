@@ -8,7 +8,7 @@ pub fn format_validation_errors(e: &ValidationErrors) -> Value {
         err.message
             .as_ref()
             .map(ToString::to_string)
-            .unwrap_or_else(|| err.code.to_string())
+            .unwrap_or(err.code.to_string())
     };
 
     for (field, field_errors) in e.field_errors() {

@@ -103,7 +103,9 @@ impl Application {
 
         println!("Starting server on {addr}");
 
-        axum::serve(listener, router).await.unwrap();
+        axum::serve(listener, router)
+            .await
+            .map_err(|e| ApplicationError::ServerError { source: e })?;
 
         Ok(())
     }

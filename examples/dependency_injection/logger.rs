@@ -10,6 +10,6 @@ pub struct ConsoleLogger;
 
 impl Logger for ConsoleLogger {
     fn log(&self, message: &str) {
-        println!("Log: {}", message);
+        println!("Log: {message}");
     }
 }

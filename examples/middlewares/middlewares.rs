@@ -1,6 +1,8 @@
 use serde_json::Value;
 use sword::prelude::*;
 
+use sword::next;
+
 pub struct ExtensionsTestMiddleware;
 
 impl Middleware for ExtensionsTestMiddleware {
@@ -8,7 +10,7 @@ impl Middleware for ExtensionsTestMiddleware {
         ctx.extensions
             .insert::<String>("test_extension".to_string());
 
-        Ok(next.run(ctx.into()).await)
+        next!(ctx, next)
     }
 }
 
@@ -21,7 +23,7 @@ impl Middleware for MwWithState {
         ctx.extensions.insert::<u16>(8080);
         ctx.extensions.insert(app_state.clone());
 
-        Ok(next.run(ctx.into()).await)
+        next!(ctx, next)
     }
 }
 
@@ -30,6 +32,6 @@ pub struct RoleMiddleware;
 impl MiddlewareWithConfig<Vec<&str>> for RoleMiddleware {
     async fn handle(roles: Vec<&str>, ctx: Context, next: Next) -> MiddlewareResult {
         dbg!(&roles);
-        Ok(next.run(ctx.into()).await)
+        next!(ctx, next)
     }
 }

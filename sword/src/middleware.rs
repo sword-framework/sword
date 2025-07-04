@@ -21,3 +21,27 @@ pub trait MiddlewareWithConfig<C>: Send + Sync + 'static {
     fn handle(config: C, req: Context, next: Next)
     -> impl Future<Output = MiddlewareResult> + Send;
 }
+
+/// A macro to simplify the next middleware call in the middleware chain.
+/// It takes the current context and the next middleware in the chain,
+/// and returns a `Result` with the response of the next middleware.
+/// This macro is used to avoid boilerplate code in middleware implementations.
+/// It is used in the `handle` method of the `Middleware` trait.
+///
+/// # Example usage:
+/// ```rust
+/// use sword::prelude::*;
+///
+/// struct MyMiddleware;
+///
+/// impl Middleware for MyMiddleware {
+///     async fn handle(ctx: Context, next: Next) -> MiddlewareResult {
+///         next!(ctx, next)
+///     }
+/// }
+#[macro_export]
+macro_rules! next {
+    ($ctx:expr, $next:expr) => {
+        Ok($next.run($ctx.try_into()?).await)
+    };
+}

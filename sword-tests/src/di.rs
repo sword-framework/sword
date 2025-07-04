@@ -114,7 +114,7 @@ impl TestController {
         let logger = ctx.get_dependency::<TestModule, dyn Logger>()?;
 
         let count = counter_service.get_count();
-        logger.log(&format!("Counter accessed: {}", count));
+        logger.log(&format!("Counter accessed: {count}"));
 
         Ok(HttpResponse::Ok()
             .data(json!({ "count": count }))
@@ -133,7 +133,7 @@ impl TestController {
         let count = counter_service.get_count();
 
         ctx.get_dependency::<TestModule, dyn Logger>()?
-            .log(&format!("Counter incremented to: {}", count));
+            .log(&format!("Counter incremented to: {count}"));
 
         Ok(HttpResponse::Ok()
             .data(json!({ "count": count }))

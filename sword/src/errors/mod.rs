@@ -11,6 +11,11 @@ pub enum ApplicationError {
         #[source]
         source: std::io::Error,
     },
+    #[error("Failed to start server: {source}")]
+    ServerError {
+        #[source]
+        source: std::io::Error,
+    },
 }
 
 #[derive(Debug, Error)]

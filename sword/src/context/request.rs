@@ -277,8 +277,10 @@ impl Context {
 ///
 /// Allows converting a `Context` back to an Axum request,
 /// preserving headers, method, URI, body, and extensions.
-impl From<Context> for AxumRequest {
-    fn from(req: Context) -> Self {
+impl TryFrom<Context> for AxumRequest {
+    type Error = RequestError;
+
+    fn try_from(req: Context) -> Result<Self, Self::Error> {
         use axum::http::{HeaderName, HeaderValue};
 
         let mut builder = AxumRequest::builder().method(req.method).uri(req.uri);
@@ -292,10 +294,16 @@ impl From<Context> for AxumRequest {
         }
 
         let body = Body::from(req.body_bytes);
-        let mut request = builder.body(body).expect("Failed to build axum request");
+
+        let mut request = builder.body(body).map_err(|_| {
+            RequestError::ParseError(
+                "Failed to build axum request",
+                "Error building request".to_string(),
+            )
+        })?;
 
         *request.extensions_mut() = req.extensions;
 
-        request
+        Ok(request)
     }
 }

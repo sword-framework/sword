@@ -4,6 +4,7 @@ pub mod prelude {
     pub use crate::errors::{ApplicationError, RequestError, StateError};
     pub use crate::http::{Context, HttpResponse, ResponseBody};
     pub use crate::middleware::*;
+    pub use crate::next;
     pub use crate::routing::*;
 }
 

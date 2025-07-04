@@ -16,7 +16,7 @@ impl AppController {
         let state = ctx.get_state::<AppState>()?;
 
         let count = state.db.read().await.len();
-        let message = format!("Current data count: {}", count);
+        let message = format!("Current data count: {count}");
 
         state.db.write().await.push(message);
 
