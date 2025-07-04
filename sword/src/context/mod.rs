@@ -6,9 +6,10 @@ use axum::{
     body::Bytes,
     http::{Extensions, Method, Uri},
 };
+
 use shaku::{HasComponent, Interface, Module};
 
-use crate::{application::SwordState, http::errors::ContextError};
+use crate::{application::SwordState, errors::StateError};
 
 /// Context represents the incoming request context in the Sword framework.
 /// It contains request parameters, body bytes, HTTP method, headers, URI and more.
@@ -30,15 +31,14 @@ impl Context {
     /// Method to get the `T` type from the context state.
     /// This method will return an error if the type is not found in the state.
     /// The error can be converted automatically to a `HttpResponse` using `?` operator.`
-    pub fn get_state<T>(&self) -> Result<T, ContextError>
+    pub fn get_state<T>(&self) -> Result<Arc<T>, StateError>
     where
         T: Send + Sync + 'static + Clone,
     {
         let value = self
             .state
             .get::<T>()
-            .cloned()
-            .ok_or_else(|| ContextError::StateNotFound(std::any::type_name::<T>()))?;
+            .map_err(|_| StateError::TypeNotFound)?;
 
         Ok(value)
     }
@@ -49,7 +49,7 @@ impl Context {
     ///
     /// Parameter `M` is the module type that contains the dependency.
     /// Parameter `I` is the interface type that is being resolved. (must be a `dyn Interface`)
-    pub fn get_dependency<M, I>(&self) -> Result<Arc<I>, ContextError>
+    pub fn get_dependency<M, I>(&self) -> Result<Arc<I>, StateError>
     where
         M: Module + HasComponent<I> + Send + Sync + 'static,
         I: Interface + ?Sized + 'static,
@@ -57,7 +57,7 @@ impl Context {
         let module = self
             .state
             .get::<M>()
-            .ok_or_else(|| ContextError::DependencyNotFound(std::any::type_name::<I>()))?;
+            .map_err(|_| StateError::TypeNotFound)?;
 
         let interface = module.resolve();
 

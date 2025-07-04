@@ -1,7 +1,9 @@
+use std::ops::Deref;
+
 use axum_test::TestServer;
 use serde_json::{Value, json};
 
-use sword::http::Result;
+use sword::http::Result as HttpResult;
 use sword::prelude::*;
 
 #[controller("/test")]
@@ -10,21 +12,21 @@ struct TestController {}
 #[controller_impl]
 impl TestController {
     #[get("/state")]
-    async fn handler(ctx: Context) -> Result<HttpResponse> {
+    async fn handler(ctx: Context) -> HttpResult<HttpResponse> {
         let data = ctx.get_state::<Value>()?;
 
         Ok(HttpResponse::Ok()
-            .data(data)
+            .data(data.deref())
             .add_header("Content-Type", "application/json"))
     }
 }
 
 #[tokio::test]
-async fn test_state() {
+async fn test_state() -> Result<(), Box<dyn std::error::Error>> {
     let data = json!({ "key": "value" });
 
     let app = Application::builder()
-        .state(data)
+        .state(data)?
         .controller::<TestController>();
 
     let server = TestServer::new(app.router()).unwrap();
@@ -43,4 +45,6 @@ async fn test_state() {
     };
 
     assert_eq!(data.get("key").unwrap(), "value");
+
+    Ok(())
 }

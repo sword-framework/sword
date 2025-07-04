@@ -10,7 +10,8 @@ use validator::Validate;
 
 use crate::{
     application::SwordState,
-    http::{Context, HttpResponse, Result as HttpResult, errors::RequestError},
+    errors::RequestError,
+    http::{Context, HttpResponse, Result as HttpResult},
 };
 
 /// Implementation of `FromRequest` for `Context`.

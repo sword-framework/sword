@@ -10,7 +10,10 @@ use tokio::net::TcpListener;
 use tower_layer::Layer;
 use tower_service::Service;
 
-use crate::routing::RouterProvider;
+use crate::{
+    errors::{ApplicationError, StateError},
+    routing::RouterProvider,
+};
 
 mod state;
 
@@ -69,33 +72,40 @@ impl Application {
     ///
     /// It's not necesary to use your state wrapped in `Arc`, as the `SwordState`
     /// already does that for you.
-    pub fn state<S: Sync + Send + 'static>(self, state: S) -> Self {
-        let new_state = self.state.insert(state);
-        let router = Router::new().with_state(new_state.clone());
+    pub fn state<S: Sync + Send + 'static>(self, state: S) -> Result<Self, StateError> {
+        self.state.insert(state)?;
 
-        Self {
+        let router = Router::new().with_state(self.state.clone());
+
+        Ok(Self {
             router,
-            state: new_state,
-        }
+            state: self.state,
+        })
     }
 
     /// Register a dependency injection module in the application.
     /// This method allows you to add a Shaku module to the application's state.
     /// Behind the scenes, it will register the module in the `SwordState` so you can
     /// retrieve it later using the `get_dependency` method.
-    pub fn di_module<M: Sync + Send + 'static>(self, module: M) -> Self {
+    pub fn di_module<M: Sync + Send + 'static>(self, module: M) -> Result<Self, StateError> {
         self.state(module)
     }
 
-    pub async fn run(&self, addr: &str) {
-        let listener = match TcpListener::bind(&addr).await {
-            Ok(listener) => listener,
-            Err(e) => panic!("[x] Error - Failed to bind to address {addr}: {e}"),
-        };
+    pub async fn run(&self, addr: &str) -> Result<(), ApplicationError> {
+        let listener = TcpListener::bind(addr)
+            .await
+            .map_err(|e| ApplicationError::BindFailed {
+                address: addr.to_string(),
+                source: e,
+            })?;
 
         let router = self.router.clone();
 
+        println!("Starting server on {addr}");
+
         axum::serve(listener, router).await.unwrap();
+
+        Ok(())
     }
 
     pub fn router(&self) -> Router {

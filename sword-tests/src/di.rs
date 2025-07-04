@@ -4,7 +4,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use shaku::{Component, Interface, module};
-use sword::{http::Result, prelude::*};
+use sword::{http::Result as SwordResult, prelude::*};
 
 trait CounterService: Interface {
     fn get_count(&self) -> usize;
@@ -109,7 +109,7 @@ struct TestController {}
 #[controller_impl]
 impl TestController {
     #[get("/counter")]
-    async fn get_counter(ctx: Context) -> Result<HttpResponse> {
+    async fn get_counter(ctx: Context) -> SwordResult<HttpResponse> {
         let counter_service = ctx.get_dependency::<TestModule, dyn CounterService>()?;
         let logger = ctx.get_dependency::<TestModule, dyn Logger>()?;
 
@@ -122,7 +122,7 @@ impl TestController {
     }
 
     #[post("/counter/increment")]
-    async fn increment_counter(ctx: Context) -> Result<HttpResponse> {
+    async fn increment_counter(ctx: Context) -> SwordResult<HttpResponse> {
         ctx.get_dependency::<TestModule, dyn Logger>()?
             .log("Incrementing counter");
 
@@ -141,7 +141,7 @@ impl TestController {
     }
 
     #[post("/counter/add")]
-    async fn add_to_counter(ctx: Context) -> Result<HttpResponse> {
+    async fn add_to_counter(ctx: Context) -> SwordResult<HttpResponse> {
         #[derive(serde::Deserialize)]
         struct AddRequest {
             value: usize,
@@ -169,7 +169,7 @@ impl TestController {
     }
 
     #[get("/logs")]
-    async fn get_logs(ctx: Context) -> Result<HttpResponse> {
+    async fn get_logs(ctx: Context) -> SwordResult<HttpResponse> {
         let logger = ctx.get_dependency::<TestModule, dyn Logger>()?;
         let logs = logger.get_logs();
 
@@ -179,7 +179,7 @@ impl TestController {
     }
 
     #[post("/counter/reset")]
-    async fn reset_counter(ctx: Context) -> Result<HttpResponse> {
+    async fn reset_counter(ctx: Context) -> SwordResult<HttpResponse> {
         ctx.get_dependency::<TestModule, dyn Logger>()?
             .log("Resetting counter to 0");
 
@@ -193,11 +193,12 @@ impl TestController {
 }
 
 #[tokio::test]
-async fn test_dependency_injection_with_multiple_services() {
+async fn test_dependency_injection_with_multiple_services() -> Result<(), Box<dyn std::error::Error>>
+{
     let module = TestModule::builder().build();
 
     let app = Application::builder()
-        .di_module(module)
+        .di_module(module)?
         .controller::<TestController>();
 
     let server = TestServer::new(app.router()).unwrap();
@@ -253,14 +254,16 @@ async fn test_dependency_injection_with_multiple_services() {
     assert_eq!(final_response.status_code(), 200);
     let final_json = final_response.json::<ResponseBody>();
     assert_eq!(final_json.data.unwrap()["count"], 0);
+
+    Ok(())
 }
 
 #[tokio::test]
-async fn test_service_isolation_between_tests() {
+async fn test_service_isolation_between_tests() -> Result<(), Box<dyn std::error::Error>> {
     let module = TestModule::builder().build();
 
     let app = Application::builder()
-        .di_module(module)
+        .di_module(module)?
         .controller::<TestController>();
 
     let server = TestServer::new(app.router()).unwrap();
@@ -277,4 +280,6 @@ async fn test_service_isolation_between_tests() {
     let logs = logs_data["logs"].as_array().unwrap();
 
     assert_eq!(logs.len(), 1);
+
+    Ok(())
 }

@@ -1,20 +1,21 @@
 pub mod prelude {
     pub use crate::application::Application;
     pub use crate::controller::{controller, controller_impl};
+    pub use crate::errors::{ApplicationError, RequestError, StateError};
     pub use crate::http::{Context, HttpResponse, ResponseBody};
     pub use crate::middleware::*;
     pub use crate::routing::*;
 }
 
-pub mod http {
-    mod context;
-    mod errors;
+mod context;
 
+pub mod http {
+    pub use crate::context::Context;
     pub use axum_responses::http::*;
     pub use axum_responses::{Result, response};
-    pub use context::Context;
 }
 
+pub mod errors;
 mod validation;
 
 pub mod routing {

@@ -1,5 +1,5 @@
 use serde_json::{Value, json};
-use sword::http::Result;
+use sword::http::Result as HttpResult;
 use sword::prelude::*;
 
 struct ExtensionsTestMiddleware;
@@ -59,7 +59,7 @@ impl TestController {
     #[get("/middleware-state")]
     #[middleware(ExtensionsTestMiddleware)]
     #[middleware(MwWithState)]
-    async fn middleware_state(ctx: Context) -> Result<HttpResponse> {
+    async fn middleware_state(ctx: Context) -> HttpResult<HttpResponse> {
         let port = ctx.extensions.get::<u16>().cloned().unwrap_or(0);
         let app_state = ctx.get_state::<Value>()?;
         let message = ctx.extensions.get::<String>().cloned().unwrap_or_default();
@@ -83,7 +83,7 @@ impl TestController {
 }
 
 #[tokio::test]
-async fn extensions_mw_test() {
+async fn extensions_mw_test() -> Result<(), Box<dyn std::error::Error>> {
     let app = Application::builder().controller::<TestController>();
     let test = axum_test::TestServer::new(app.router()).unwrap();
     let response = test.get("/test/extensions-test").await;
@@ -96,12 +96,14 @@ async fn extensions_mw_test() {
     };
 
     assert_eq!(data["extension_value"], "test_extension");
+
+    Ok(())
 }
 
 #[tokio::test]
-async fn middleware_state() {
+async fn middleware_state() -> Result<(), Box<dyn std::error::Error>> {
     let app = Application::builder()
-        .state(json!({ "key": "value" }))
+        .state(json!({ "key": "value" }))?
         .controller::<TestController>();
 
     let test = axum_test::TestServer::new(app.router()).unwrap();
@@ -118,6 +120,8 @@ async fn middleware_state() {
     assert_eq!(data["port"], 8080);
     assert_eq!(data["key"], "value");
     assert_eq!(data["message"], "test_extension");
+
+    Ok(())
 }
 
 #[tokio::test]
