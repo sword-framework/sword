@@ -20,9 +20,7 @@ pub fn expand_controller_impl(_: TokenStream, item: TokenStream) -> TokenStream 
             for attr in &function.attrs {
                 if attr.path().is_ident("middleware") {
                     match attr.parse_args::<MiddlewareArgs>() {
-                        Ok(args) => {
-                            middlewares.push(args);
-                        }
+                        Ok(args) => middlewares.push(args),
                         Err(e) => {
                             emit_error!(attr, "Invalid middleware syntax: {}", e);
                             continue;
@@ -44,35 +42,10 @@ pub fn expand_controller_impl(_: TokenStream, item: TokenStream) -> TokenStream 
                 };
 
                 for mw in middlewares.iter().rev() {
-                    let mw_path = &mw.path;
-                    let mw_config = &mw.config;
-
-                    match mw_config {
-                        Some(config) => {
-                            handler = quote! {
-                                #handler.layer(
-                                    ::sword::__private::mw_with_state(
-                                        app_state.clone(),
-                                        |ctx: ::sword::http::Context, next: ::sword::middleware::Next| async move {
-                                            <#mw_path>::handle(#config, ctx, next).await
-                                        }
-                                    )
-                                )
-                            };
-                        }
-                        None => {
-                            handler = quote! {
-                                #handler.layer(
-                                    ::sword::__private::mw_with_state(
-                                        app_state.clone(),
-                                        |ctx: ::sword::http::Context, next: ::sword::middleware::Next| async move {
-                                            <#mw_path>::handle(ctx, next).await
-                                        }
-                                    )
-                                )
-                            };
-                        }
-                    }
+                    let mw_tokens = proc_macro2::TokenStream::from(mw);
+                    handler = quote! {
+                        #handler.layer(#mw_tokens)
+                    };
                 }
 
                 let route = quote! {
@@ -84,25 +57,23 @@ pub fn expand_controller_impl(_: TokenStream, item: TokenStream) -> TokenStream 
         }
     }
 
-    generate_router_impl(struct_self, input.clone(), routes)
-}
-
-fn generate_router_impl(
-    struct_self: &syn::Type,
-    input: ItemImpl,
-    routes: Vec<proc_macro2::TokenStream>,
-) -> TokenStream {
     let expanded = quote! {
         #input
 
         impl ::sword::routing::RouterProvider for #struct_self {
             fn router(app_state: ::sword::application::SwordState) -> ::sword::routing::Router {
-                let base_router = ::sword::routing::Router::new()
-                    #(#routes)*;
 
-                ::sword::routing::Router::new()
-                    .nest(#struct_self::prefix(), base_router)
-                    .with_state(app_state)
+                let base_router = ::sword::routing::Router::new()
+                    #(#routes)*
+                    .with_state(app_state.clone());
+
+                let pre_impl_router = #struct_self::pre_impl_router(app_state.clone());
+
+                let a = pre_impl_router.merge(base_router);
+
+                dbg!(&a);
+
+                a
             }
         }
     };
