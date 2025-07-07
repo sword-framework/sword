@@ -21,7 +21,7 @@
 
 ```toml
 [dependencies]
-sword = "0.1.4"
+sword = "0.1.5"
 
 # Additional dependencies for features
 
