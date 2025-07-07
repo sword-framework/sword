@@ -21,7 +21,7 @@
 
 ```toml
 [dependencies]
-sword = "0.1.3"
+sword = "0.1.4"
 
 # Additional dependencies for features
 
@@ -37,7 +37,7 @@ async-trait = "0.1.88"
 
 ```rust
 use sword::prelude::*;
-use sword::http::Result;
+use sword::http::Result as HttpResult;
 
 #[controller("/")]
 struct AppController {}
@@ -61,7 +61,7 @@ impl AppController {
     }
 
     #[post("/submit")]
-    async fn submit_data(ctx: Context) -> Result<HttpResponse> {
+    async fn submit_data(ctx: Context) -> HttpResult<HttpResponse> {
         let body = ctx.body::<serde_json::Value>()?;
 
         Ok(HttpResponse::Ok()
@@ -71,78 +71,21 @@ impl AppController {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Application::builder()
         .controller::<AppController>()
         .run("0.0.0.0:8080")
-        .await;
+        .await?;
+
+    Ok(())
 }
 ```
-
-### With State Management
-
-```rust
-use serde_json::json;
-use std::sync::{Arc, OnceLock};
-use sword::prelude::*;
-use sword::http::Result;
-use tokio::sync::RwLock;
-
-type InMemoryDb = Arc<RwLock<Vec<String>>>;
-const IN_MEMORY_DB: OnceLock<InMemoryDb> = OnceLock::new();
-
-fn db() -> Arc<RwLock<Vec<String>>> {
-    IN_MEMORY_DB
-        .get_or_init(|| Arc::new(RwLock::new(Vec::new())))
-        .clone()
-}
-
-#[derive(Clone)]
-struct AppState {
-    db: InMemoryDb,
-}
-
-#[controller("/api")]
-struct AppController {}
-
-#[controller_impl]
-impl AppController {
-    #[get("/data")]
-    async fn get_data(ctx: Context) -> Result<HttpResponse> {
-        let state = ctx.get_state::<AppState>()?;
-        let count = state.db.read().await.len();
-        let message = format!("Current data count: {}", count);
-
-        state.db.write().await.push(message);
-
-        Ok(HttpResponse::Ok().data(json!({
-            "count": count,
-            "current_data": state.db.read().await.clone(),
-        })))
-    }
-}
-
-#[tokio::main]
-async fn main() {
-    let app_state = AppState { db: db() };
-
-    // !Important: Set Application state before registering any controllers
-    // This allows controllers to access the shared state.
-
-    Application::builder()
-        .state(app_state)
-        .controller::<AppController>()
-        .run("0.0.0.0:8080")
-        .await;
-}
-```
-
 ### With Middleware
 
 ```rust
 use serde_json::json;
 use sword::prelude::*;
-use sword::http::Result;
+use sword::http::Result as HttpResult;
 
 struct LoggingMiddleware;
 
@@ -151,7 +94,8 @@ impl Middleware for LoggingMiddleware {
         println!("Request: {} {}", ctx.method(), ctx.uri());
         
         ctx.extensions.insert::<String>("middleware_data".to_string());
-        Ok(next.run(ctx.into()).await)
+
+        next!(ctx, next)
     }
 }
 
@@ -162,7 +106,7 @@ struct AppController {}
 impl AppController {
     #[get("/hello")]
     #[middleware(LoggingMiddleware)]
-    async fn hello(ctx: Context) -> Result<HttpResponse> {
+    async fn hello(ctx: Context) -> HttpResult<HttpResponse> {
         let middleware_data = ctx.extensions
             .get::<String>()
             .cloned()
@@ -176,11 +120,13 @@ impl AppController {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Application::builder()
         .controller::<AppController>()
         .run("0.0.0.0:8080")
-        .await;
+        .await?;
+
+    Ok(())
 }
 ```
 
@@ -189,7 +135,7 @@ async fn main() {
 ```rust
 use serde::{Deserialize, Serialize};
 use sword::prelude::*;
-use sword::http::Result;
+use sword::http::Result as HttpResult;
 use validator::Validate;
 
 #[derive(Serialize, Deserialize, Validate)]
@@ -214,7 +160,7 @@ struct UserController {}
 #[controller_impl]
 impl UserController {
     #[get("/")]
-    async fn get_users(ctx: Context) -> Result<HttpResponse> {
+    async fn get_users(ctx: Context) -> HttpResult<HttpResponse> {
         let query = ctx.validated_query::<UserQuery>()?;
         
         Ok(HttpResponse::Ok()
@@ -223,7 +169,7 @@ impl UserController {
     }
 
     #[post("/")]
-    async fn create_user(ctx: Context) -> Result<HttpResponse> {
+    async fn create_user(ctx: Context) -> HttpResult<HttpResponse> {
         let user = ctx.validated_body::<CreateUserRequest>()?;
 
         Ok(HttpResponse::Ok()
@@ -233,13 +179,16 @@ impl UserController {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Application::builder()
         .controller::<UserController>()
         .run("0.0.0.0:8080")
-        .await;
+        .await?;
 }
 ```
+
+## More Examples
+See the [examples directory](./examples) for more advanced usage.
 
 ## Currently working on
 - ✅📱 Add Application struct

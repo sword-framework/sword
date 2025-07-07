@@ -8,4 +8,4 @@ test:
     cargo test --workspace
 
 release LEVEL="patch":
-    cargo release {{LEVEL}} --workspace --no-confirm
+    cargo release {{LEVEL}} --workspace --no-confirm --no-publish --execute
