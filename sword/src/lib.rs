@@ -46,5 +46,8 @@ pub mod __private {
     pub use axum::middleware::from_fn_with_state as mw_with_state;
     pub use axum::response::IntoResponse;
     pub use axum::response::Response as AxumResponse;
-    pub use axum::routing::{delete, get, patch, post, put};
+    pub use axum::routing::{
+        delete as axum_delete_fn, get as axum_get_fn, patch as axum_patch_fn, post as axum_post_fn,
+        put as axum_put_fn,
+    };
 }

@@ -1,5 +1,5 @@
 use super::middleware::MiddlewareArgs;
-use crate::utils::*;
+use crate::{controller::middleware::expand_middleware_args, utils::*};
 
 use proc_macro::TokenStream;
 use proc_macro_error::emit_error;
@@ -37,12 +37,24 @@ pub fn expand_controller_impl(_: TokenStream, item: TokenStream) -> TokenStream 
                 let route_path = get_attr_http_route(http_attr);
                 let method_name = &function.sig.ident;
 
+                let routing_fn = match http_ident.to_string().as_str() {
+                    "get" => quote! { axum_get_fn },
+                    "post" => quote! { axum_post_fn },
+                    "put" => quote! { axum_put_fn },
+                    "patch" => quote! { axum_patch_fn },
+                    "delete" => quote! { axum_delete_fn },
+                    _ => {
+                        emit_error!(http_attr, "Unsupported HTTP method: {}", http_ident);
+                        continue;
+                    }
+                };
+
                 let mut handler = quote! {
-                    ::sword::__private::#http_ident(#struct_self::#method_name)
+                    ::sword::__private::#routing_fn(#struct_self::#method_name)
                 };
 
                 for mw in middlewares.iter().rev() {
-                    let mw_tokens = proc_macro2::TokenStream::from(mw);
+                    let mw_tokens = expand_middleware_args(mw);
                     handler = quote! {
                         #handler.layer(#mw_tokens)
                     };
@@ -67,13 +79,15 @@ pub fn expand_controller_impl(_: TokenStream, item: TokenStream) -> TokenStream 
                     #(#routes)*
                     .with_state(app_state.clone());
 
-                let pre_impl_router = #struct_self::pre_impl_router(app_state.clone());
+                let router_with_global_mw = #struct_self::apply_global_middlewares(base_router, app_state);
 
-                let a = pre_impl_router.merge(base_router);
-
-                dbg!(&a);
-
-                a
+                let prefix = #struct_self::prefix();
+                if prefix == "/" {
+                    router_with_global_mw
+                } else {
+                    ::sword::routing::Router::new()
+                        .nest(prefix, router_with_global_mw)
+                }
             }
         }
     };

@@ -206,12 +206,12 @@ async fn test_dependency_injection_with_multiple_services() -> Result<(), Box<dy
     let get_response = server.get("/api/counter").await;
     assert_eq!(get_response.status_code(), 200);
     let get_json = get_response.json::<ResponseBody>();
-    assert_eq!(get_json.data.unwrap()["count"], 0);
+    assert_eq!(get_json.data["count"], 0);
 
     let increment_response = server.post("/api/counter/increment").await;
     assert_eq!(increment_response.status_code(), 200);
     let increment_json = increment_response.json::<ResponseBody>();
-    assert_eq!(increment_json.data.unwrap()["count"], 1);
+    assert_eq!(increment_json.data["count"], 1);
 
     let add_response = server
         .post("/api/counter/add")
@@ -219,14 +219,14 @@ async fn test_dependency_injection_with_multiple_services() -> Result<(), Box<dy
         .await;
     assert_eq!(add_response.status_code(), 200);
     let add_json = add_response.json::<ResponseBody>();
-    let add_data = add_json.data.unwrap();
+    let add_data = add_json.data;
     assert_eq!(add_data["count"], 6);
     assert_eq!(add_data["added"], 5);
 
     let logs_response = server.get("/api/logs").await;
     assert_eq!(logs_response.status_code(), 200);
     let logs_json = logs_response.json::<ResponseBody>();
-    let logs_data = logs_json.data.unwrap();
+    let logs_data = logs_json.data;
     let logs = logs_data["logs"].as_array().unwrap();
 
     assert_eq!(logs.len(), 4);
@@ -248,12 +248,12 @@ async fn test_dependency_injection_with_multiple_services() -> Result<(), Box<dy
     let reset_response = server.post("/api/counter/reset").await;
     assert_eq!(reset_response.status_code(), 200);
     let reset_json = reset_response.json::<ResponseBody>();
-    assert_eq!(reset_json.data.unwrap()["count"], 0);
+    assert_eq!(reset_json.data["count"], 0);
 
     let final_response = server.get("/api/counter").await;
     assert_eq!(final_response.status_code(), 200);
     let final_json = final_response.json::<ResponseBody>();
-    assert_eq!(final_json.data.unwrap()["count"], 0);
+    assert_eq!(final_json.data["count"], 0);
 
     Ok(())
 }
@@ -271,12 +271,12 @@ async fn test_service_isolation_between_tests() -> Result<(), Box<dyn std::error
     let count_response = server.get("/api/counter").await;
     assert_eq!(count_response.status_code(), 200);
     let count_json = count_response.json::<ResponseBody>();
-    assert_eq!(count_json.data.unwrap()["count"], 0);
+    assert_eq!(count_json.data["count"], 0);
 
     let logs_response = server.get("/api/logs").await;
     assert_eq!(logs_response.status_code(), 200);
     let logs_json = logs_response.json::<ResponseBody>();
-    let logs_data = logs_json.data.unwrap();
+    let logs_data = logs_json.data;
     let logs = logs_data["logs"].as_array().unwrap();
 
     assert_eq!(logs.len(), 1);

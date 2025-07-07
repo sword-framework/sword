@@ -40,11 +40,7 @@ async fn test_state() -> Result<(), Box<dyn std::error::Error>> {
 
     let json = response.json::<ResponseBody>();
 
-    let Some(data) = json.data else {
-        panic!("Expected data in response");
-    };
-
-    assert_eq!(data.get("key").unwrap(), "value");
+    assert_eq!(json.data.get("key").unwrap(), "value");
 
     Ok(())
 }

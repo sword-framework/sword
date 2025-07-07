@@ -36,29 +36,25 @@ impl Parse for MiddlewareArgs {
     }
 }
 
-impl From<&MiddlewareArgs> for TokenStream {
-    fn from(args: &MiddlewareArgs) -> Self {
-        let MiddlewareArgs { path, config } = args;
+pub fn expand_middleware_args(args: &MiddlewareArgs) -> TokenStream {
+    let MiddlewareArgs { path, config } = args;
 
-        let expanded = match config {
-            Some(config) => quote! {
-                ::sword::__private::mw_with_state(
-                    app_state.clone(),
-                    |ctx: ::sword::http::Context, next: ::sword::middleware::Next| async move {
-                        <#path>::handle(#config, ctx, next).await
-                    }
-                )
-            },
-            None => quote! {
-                ::sword::__private::mw_with_state(
-                    app_state.clone(),
-                    |ctx: ::sword::http::Context, next: ::sword::middleware::Next| async move {
-                        <#path>::handle(ctx, next).await
-                    }
-                )
-            },
-        };
-
-        TokenStream::from(expanded)
+    match config {
+        Some(config) => quote! {
+            ::sword::__private::mw_with_state(
+                app_state.clone(),
+                |ctx: ::sword::http::Context, next: ::sword::middleware::Next| async move {
+                    <#path>::handle(#config, ctx, next).await
+                }
+            )
+        },
+        None => quote! {
+            ::sword::__private::mw_with_state(
+                app_state.clone(),
+                |ctx: ::sword::http::Context, next: ::sword::middleware::Next| async move {
+                    <#path>::handle(ctx, next).await
+                }
+            )
+        },
     }
 }

@@ -1,6 +1,6 @@
 use serde_json::{Value, json};
 use sword::http::Result as HttpResult;
-use sword::{next, prelude::*};
+use sword::prelude::*;
 
 struct ExtensionsTestMiddleware;
 
@@ -8,6 +8,8 @@ impl Middleware for ExtensionsTestMiddleware {
     async fn handle(mut ctx: Context, nxt: Next) -> MiddlewareResult {
         ctx.extensions
             .insert::<String>("test_extension".to_string());
+
+        println!("DEBERÍA EJECUTARSE PRIMERO");
 
         next!(ctx, nxt)
     }
@@ -22,7 +24,7 @@ impl Middleware for MwWithState {
         ctx.extensions.insert::<u16>(8080);
         ctx.extensions.insert(app_state.clone());
 
-        println!("2");
+        println!("Debe ejecutarse segundo");
 
         next!(ctx, nxt)
     }
@@ -33,22 +35,21 @@ struct RoleMiddleware;
 impl MiddlewareWithConfig<Vec<&str>> for RoleMiddleware {
     async fn handle(roles: Vec<&str>, ctx: Context, nxt: Next) -> MiddlewareResult {
         dbg!(&roles);
+        println!("Debe ejecutarse segundo");
 
         next!(ctx, nxt)
     }
 }
 
 #[controller("/test")]
+#[middleware(ExtensionsTestMiddleware)]
 struct TestController {}
 
 #[controller_impl]
 impl TestController {
     #[get("/extensions-test")]
-    #[middleware(ExtensionsTestMiddleware)]
     async fn extensions_test(ctx: Context) -> HttpResponse {
         let extension_value = ctx.extensions.get::<String>();
-
-        println!("1");
 
         HttpResponse::Ok()
             .message("Test controller response with extensions")
@@ -58,7 +59,6 @@ impl TestController {
     }
 
     #[get("/middleware-state")]
-    #[middleware(ExtensionsTestMiddleware)]
     #[middleware(MwWithState)]
     async fn middleware_state(ctx: Context) -> HttpResult<HttpResponse> {
         let port = ctx.extensions.get::<u16>().cloned().unwrap_or(0);

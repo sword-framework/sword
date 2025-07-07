@@ -6,7 +6,7 @@ use proc_macro_error::emit_error;
 use quote::quote;
 use syn::{ItemStruct, LitStr, parse_macro_input};
 
-use crate::controller::middleware::MiddlewareArgs;
+use crate::controller::middleware::{MiddlewareArgs, expand_middleware_args};
 
 pub fn expand_controller(attr: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as ItemStruct);
@@ -20,7 +20,7 @@ pub fn expand_controller(attr: TokenStream, item: TokenStream) -> TokenStream {
     for attr in &input.attrs {
         if attr.path().is_ident("middleware") {
             match attr.parse_args::<MiddlewareArgs>() {
-                Ok(args) => route_middlewares.push(proc_macro2::TokenStream::from(&args)),
+                Ok(args) => route_middlewares.push(expand_middleware_args(&args)),
                 Err(e) => emit_error!("Failed to parse middleware arguments: {}", e),
             }
         }
@@ -34,17 +34,14 @@ pub fn expand_controller(attr: TokenStream, item: TokenStream) -> TokenStream {
                 #router_prefix_str
             }
 
-            fn pre_impl_router(app_state: ::sword::application::SwordState) -> ::sword::routing::Router {
-                let mut router = ::sword::routing::Router::new();
+            fn apply_global_middlewares(router: ::sword::routing::Router, app_state: ::sword::application::SwordState) -> ::sword::routing::Router {
+                let mut result = router;
 
                 #(
-                    router = router.layer(#route_middlewares);
+                    result = result.layer(#route_middlewares);
                 )*
 
-                let with_prefix = ::sword::routing::Router::new()
-                    .nest(#struct_name::prefix(), router);
-
-                with_prefix.with_state(app_state)
+                result
             }
         }
     };

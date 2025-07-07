@@ -70,16 +70,12 @@ async fn unvalidated_query_test() {
 
     let json = response.json::<ResponseBody>();
 
-    let Some(data) = json.data else {
-        panic!("Expected data in response");
-    };
-
     assert_eq!(200_u16, response.status_code().as_u16());
-    assert!(data.get("page").is_some());
-    assert!(data.get("limit").is_some());
+    assert!(json.data.get("page").is_some());
+    assert!(json.data.get("limit").is_some());
 
-    assert_eq!(data.get("page").unwrap(), "1".parse::<u32>().unwrap());
-    assert_eq!(data.get("limit").unwrap(), "5".parse::<u32>().unwrap());
+    assert_eq!(json.data.get("page").unwrap(), "1".parse::<u32>().unwrap());
+    assert_eq!(json.data.get("limit").unwrap(), "5".parse::<u32>().unwrap());
 }
 
 #[tokio::test]
@@ -91,16 +87,12 @@ async fn validated_query_test() {
 
     let json = response.json::<ResponseBody>();
 
-    let Some(data) = json.data else {
-        panic!("Expected data in response");
-    };
-
     assert_eq!(200_u16, response.status_code().as_u16());
-    assert!(data.get("page").is_some());
-    assert!(data.get("limit").is_some());
+    assert!(json.data.get("page").is_some());
+    assert!(json.data.get("limit").is_some());
 
-    assert_eq!(data.get("page").unwrap(), "1".parse::<u32>().unwrap());
-    assert_eq!(data.get("limit").unwrap(), "5".parse::<u32>().unwrap());
+    assert_eq!(json.data.get("page").unwrap(), "1".parse::<u32>().unwrap());
+    assert_eq!(json.data.get("limit").unwrap(), "5".parse::<u32>().unwrap());
 }
 
 #[tokio::test]
@@ -114,15 +106,11 @@ async fn validated_query_error_test() {
 
     assert_eq!(400_u16, response.status_code().as_u16());
 
-    let Some(data) = json.data else {
-        panic!("Expected validation errors in response");
-    };
+    assert!(json.data.get("type").is_some());
+    assert_eq!(json.data.get("type").unwrap(), "ValidationError");
+    assert!(json.data.get("errors").is_some());
 
-    assert!(data.get("type").is_some());
-    assert_eq!(data.get("type").unwrap(), "ValidationError");
-    assert!(data.get("errors").is_some());
-
-    let errors = data.get("errors").unwrap().as_array().unwrap();
+    let errors = json.data.get("errors").unwrap().as_array().unwrap();
 
     assert_eq!(errors.len(), 1);
 

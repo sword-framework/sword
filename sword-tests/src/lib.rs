@@ -12,3 +12,6 @@ mod state;
 
 #[cfg(test)]
 mod di;
+
+#[cfg(test)]
+mod top_level_middleware;
