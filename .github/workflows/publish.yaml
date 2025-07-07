@@ -17,8 +17,11 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Publish crates
+      - name: Install cargo-release
+        run: cargo install cargo-release
+
+      - name: Publish crates with cargo-release
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
         run: |
-          cargo publish --workspace --no-verify --token ${{ secrets.CRATES_IO_TOKEN }}
+          cargo release publish --workspace --no-confirm --execute
