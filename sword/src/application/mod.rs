@@ -15,6 +15,8 @@ use crate::{
     web::RouterProvider,
 };
 
+#[allow(dead_code)]
+mod config;
 mod state;
 
 pub use state::SwordState;

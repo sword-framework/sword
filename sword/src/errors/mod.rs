@@ -39,3 +39,13 @@ pub enum RequestError {
     #[error("Request body is too large")]
     BodyTooLarge,
 }
+
+#[derive(Debug, Error)]
+pub enum ConfigError {
+    #[error("Failed to parse configuration: {0}")]
+    ParseError(String),
+    #[error("Configuration key '{0}' not found")]
+    KeyNotFound(String),
+    #[error("Configuration value for key '{0}' is invalid: {1}")]
+    InvalidValue(String, String),
+}

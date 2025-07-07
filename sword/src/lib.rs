@@ -2,6 +2,22 @@ mod context;
 mod middleware;
 mod validation;
 
+#[allow(dead_code)]
+pub mod layers {
+    use serde::de::DeserializeOwned;
+
+    pub(crate) mod cors;
+    pub(crate) mod logger;
+
+    pub trait LayerProvider<C>
+    where
+        C: DeserializeOwned,
+    {
+        fn layer();
+        fn config() -> C;
+    }
+}
+
 pub mod prelude {
     pub use crate::application::Application;
     pub use crate::errors::{ApplicationError, RequestError, StateError};

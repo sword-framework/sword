@@ -24,12 +24,13 @@ sword-macros = { path = "../sword-macros", version = "0.1.4" }
 
 validator = { version = "0.20.0", features = ["derive"] }
 
-# config = "0.15.11"
-# shellexpand = "3.1.1"
+config = "0.15.11"
+shellexpand = "3.1.1"
 
 tower-layer = "0.3.3"
 tower-service = "0.3.3"
-shaku = "0.6.2"
+tower-http = { version = "0.6.6", features = ["trace", "cors"] }
 
+shaku = "0.6.2"
 thiserror = "2.0.12"
 

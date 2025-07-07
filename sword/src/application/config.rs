@@ -25,15 +25,12 @@ impl Config {
         }
 
         let contents = std::fs::read_to_string(toml_path).map_err(|e| {
-            config::ConfigError::Message(format!("Failed to read config file: {}", e))
+            config::ConfigError::Message(format!("Failed to read config file: {e}"))
         })?;
 
         let expanded = shellexpand::env(&contents)
             .map_err(|e| {
-                config::ConfigError::Message(format!(
-                    "Failed to expand environment variables: {}",
-                    e
-                ))
+                config::ConfigError::Message(format!("Failed to expand environment variables: {e}"))
             })?
             .into_owned();
 
