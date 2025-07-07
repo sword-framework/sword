@@ -481,7 +481,7 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 
 [[package]]
 name = "examples"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "async-trait",
  "serde",
@@ -1559,7 +1559,7 @@ checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 
 [[package]]
 name = "sword"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "axum",
  "axum_responses",
@@ -1580,7 +1580,7 @@ dependencies = [
 
 [[package]]
 name = "sword-macros"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
@@ -1591,7 +1591,7 @@ dependencies = [
 
 [[package]]
 name = "sword-tests"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "axum",
  "axum-test",
