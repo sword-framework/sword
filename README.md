@@ -37,7 +37,7 @@ async-trait = "0.1.88"
 
 ```rust
 use sword::prelude::*;
-use sword::http::Result as HttpResult;
+use sword::web::HttpResult;
 
 #[controller("/")]
 struct AppController {}
@@ -85,7 +85,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ```rust
 use serde_json::json;
 use sword::prelude::*;
-use sword::http::Result as HttpResult;
+use sword::HttpResult;
 
 struct LoggingMiddleware;
 
@@ -135,7 +135,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ```rust
 use serde::{Deserialize, Serialize};
 use sword::prelude::*;
-use sword::http::Result as HttpResult;
+use sword::HttpResult;
 use validator::Validate;
 
 #[derive(Serialize, Deserialize, Validate)]
