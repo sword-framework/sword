@@ -1,6 +1,6 @@
 use serde_json::{json, Value};
-use sword::http::Result as SwordResult;
 use sword::prelude::*;
+use sword::web::HttpResult;
 
 mod middlewares;
 use middlewares::*;
@@ -8,7 +8,7 @@ use middlewares::*;
 #[controller("/test")]
 struct TestController {}
 
-#[controller_impl]
+#[routes]
 impl TestController {
     #[get("/extensions-test")]
     #[middleware(ExtensionsTestMiddleware)]
@@ -24,7 +24,7 @@ impl TestController {
 
     #[get("/middleware-state")]
     #[middleware(MwWithState)]
-    async fn middleware_state(ctx: Context) -> SwordResult<HttpResponse> {
+    async fn middleware_state(ctx: Context) -> HttpResult<HttpResponse> {
         let port = ctx.extensions.get::<u16>().cloned().unwrap_or(0);
         let app_state = ctx.get_state::<Value>()?;
 

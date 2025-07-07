@@ -1,14 +1,14 @@
 pub use crate::__private::AxumNext as Next;
 use crate::__private::AxumResponse;
 
-use crate::http::{Context, Result};
+use crate::web::{Context, HttpResult};
 use std::future::Future;
 
 pub use sword_macros::middleware;
 
 /// MiddlewareResult is the result type returned by middleware handlers.
 /// It is a `Result` that contains an axum native Response in both success and error cases.
-pub type MiddlewareResult = Result<AxumResponse>;
+pub type MiddlewareResult = HttpResult<AxumResponse>;
 
 /// Trait for build middlewares that can be used in the application.
 pub trait Middleware: Send + Sync + 'static {

@@ -1,12 +1,12 @@
-use sword::http::Result as HttpResult;
 use sword::prelude::*;
+use sword::web::HttpResult;
 
 use serde_json::{json, Value};
 
 #[controller("/")]
 struct AppController {}
 
-#[controller_impl]
+#[routes]
 impl AppController {
     #[get("/")]
     async fn get_data() -> HttpResponse {

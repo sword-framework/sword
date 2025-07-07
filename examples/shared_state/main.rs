@@ -1,15 +1,16 @@
 use serde_json::json;
+
 use sword::prelude::*;
+use sword::web::HttpResult;
 
 mod state;
-use sword::http::Result as HttpResult;
 
 use crate::state::{db, AppState};
 
 #[controller("/api")]
 struct AppController {}
 
-#[controller_impl]
+#[routes]
 impl AppController {
     #[get("/data")]
     async fn submit_data(ctx: Context) -> HttpResult<HttpResponse> {

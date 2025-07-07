@@ -39,8 +39,14 @@ pub fn controller(attr: TokenStream, item: TokenStream) -> TokenStream {
     controller::expand_controller(attr, item)
 }
 
+#[deprecated(since = "0.1.5", note = "Use `#[routes]` instead")]
 #[proc_macro_attribute]
 pub fn controller_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
+    implementation::expand_controller_impl(attr, item)
+}
+
+#[proc_macro_attribute]
+pub fn routes(attr: TokenStream, item: TokenStream) -> TokenStream {
     implementation::expand_controller_impl(attr, item)
 }
 

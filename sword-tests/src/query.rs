@@ -2,8 +2,8 @@ use std::sync::{Arc, OnceLock};
 
 use axum_test::TestServer;
 use serde::{Deserialize, Serialize};
-use sword::http::Result;
 use sword::prelude::*;
+use sword::web::HttpResult;
 use validator::Validate;
 
 pub static APP: OnceLock<Arc<TestServer>> = OnceLock::new();
@@ -40,10 +40,10 @@ struct ValidableQueryData {
 #[controller("/users")]
 pub struct UserController {}
 
-#[controller_impl]
+#[routes]
 impl UserController {
     #[get("/simple-query")]
-    async fn get_users(ctx: Context) -> Result<HttpResponse> {
+    async fn get_users(ctx: Context) -> HttpResult<HttpResponse> {
         let query: QueryData = ctx.query()?;
 
         Ok(HttpResponse::Ok()
@@ -52,7 +52,7 @@ impl UserController {
     }
 
     #[get("/validate-query")]
-    async fn get_users_with_validation(ctx: Context) -> Result<HttpResponse> {
+    async fn get_users_with_validation(ctx: Context) -> HttpResult<HttpResponse> {
         let query: ValidableQueryData = ctx.validated_query()?;
 
         Ok(HttpResponse::Ok()
@@ -63,7 +63,7 @@ impl UserController {
 
 #[tokio::test]
 async fn unvalidated_query_test() {
-    use sword::http::ResponseBody;
+    use sword::web::ResponseBody;
 
     let app = test_server();
     let response = app.get("/users/simple-query?page=1&limit=5").await;
@@ -80,7 +80,7 @@ async fn unvalidated_query_test() {
 
 #[tokio::test]
 async fn validated_query_test() {
-    use sword::http::ResponseBody;
+    use sword::web::ResponseBody;
 
     let app = test_server();
     let response = app.get("/users/validate-query?page=1&limit=5").await;
@@ -97,7 +97,7 @@ async fn validated_query_test() {
 
 #[tokio::test]
 async fn validated_query_error_test() {
-    use sword::http::ResponseBody;
+    use sword::web::ResponseBody;
 
     let app = test_server();
     let response = app.get("/users/validate-query?page=1001&limit=5").await;

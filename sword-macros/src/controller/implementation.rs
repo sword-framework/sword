@@ -72,10 +72,10 @@ pub fn expand_controller_impl(_: TokenStream, item: TokenStream) -> TokenStream 
     let expanded = quote! {
         #input
 
-        impl ::sword::routing::RouterProvider for #struct_self {
-            fn router(app_state: ::sword::application::SwordState) -> ::sword::routing::Router {
+        impl ::sword::web::RouterProvider for #struct_self {
+            fn router(app_state: ::sword::application::SwordState) -> ::sword::__private::AxumRouter {
 
-                let base_router = ::sword::routing::Router::new()
+                let base_router = ::sword::__private::AxumRouter::new()
                     #(#routes)*
                     .with_state(app_state.clone());
 
@@ -85,7 +85,7 @@ pub fn expand_controller_impl(_: TokenStream, item: TokenStream) -> TokenStream 
                 if prefix == "/" {
                     router_with_global_mw
                 } else {
-                    ::sword::routing::Router::new()
+                    ::sword::__private::AxumRouter::new()
                         .nest(prefix, router_with_global_mw)
                 }
             }

@@ -3,13 +3,13 @@ use std::ops::Deref;
 use axum_test::TestServer;
 use serde_json::{Value, json};
 
-use sword::http::Result as HttpResult;
 use sword::prelude::*;
+use sword::web::HttpResult;
 
 #[controller("/test")]
 struct TestController {}
 
-#[controller_impl]
+#[routes]
 impl TestController {
     #[get("/state")]
     async fn handler(ctx: Context) -> HttpResult<HttpResponse> {

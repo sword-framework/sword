@@ -1,23 +1,23 @@
 mod schemas;
 
-use sword::http::Result as SwordResult;
 use sword::prelude::*;
+use sword::web::HttpResult;
 
 use schemas::{MyBody, MyQuery};
 
 #[controller("/")]
 struct AppController {}
 
-#[controller_impl]
+#[routes]
 impl AppController {
     #[get("/hello")]
-    async fn hello(ctx: Context) -> SwordResult<HttpResponse> {
+    async fn hello(ctx: Context) -> HttpResult<HttpResponse> {
         let query = ctx.validated_query::<MyQuery>()?;
         Ok(HttpResponse::Ok().data(query))
     }
 
     #[post("/submit")]
-    async fn submit_data(ctx: Context) -> SwordResult<HttpResponse> {
+    async fn submit_data(ctx: Context) -> HttpResult<HttpResponse> {
         let body = ctx.validated_body::<MyBody>()?;
 
         Ok(HttpResponse::Ok()

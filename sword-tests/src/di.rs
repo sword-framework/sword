@@ -4,7 +4,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use shaku::{Component, Interface, module};
-use sword::{http::Result as SwordResult, prelude::*};
+use sword::{prelude::*, web::HttpResult};
 
 trait CounterService: Interface {
     fn get_count(&self) -> usize;
@@ -106,10 +106,10 @@ module! {
 #[controller("/api")]
 struct TestController {}
 
-#[controller_impl]
+#[routes]
 impl TestController {
     #[get("/counter")]
-    async fn get_counter(ctx: Context) -> SwordResult<HttpResponse> {
+    async fn get_counter(ctx: Context) -> HttpResult<HttpResponse> {
         let counter_service = ctx.get_dependency::<TestModule, dyn CounterService>()?;
         let logger = ctx.get_dependency::<TestModule, dyn Logger>()?;
 
@@ -122,7 +122,7 @@ impl TestController {
     }
 
     #[post("/counter/increment")]
-    async fn increment_counter(ctx: Context) -> SwordResult<HttpResponse> {
+    async fn increment_counter(ctx: Context) -> HttpResult<HttpResponse> {
         ctx.get_dependency::<TestModule, dyn Logger>()?
             .log("Incrementing counter");
 
@@ -141,7 +141,7 @@ impl TestController {
     }
 
     #[post("/counter/add")]
-    async fn add_to_counter(ctx: Context) -> SwordResult<HttpResponse> {
+    async fn add_to_counter(ctx: Context) -> HttpResult<HttpResponse> {
         #[derive(serde::Deserialize)]
         struct AddRequest {
             value: usize,
@@ -169,7 +169,7 @@ impl TestController {
     }
 
     #[get("/logs")]
-    async fn get_logs(ctx: Context) -> SwordResult<HttpResponse> {
+    async fn get_logs(ctx: Context) -> HttpResult<HttpResponse> {
         let logger = ctx.get_dependency::<TestModule, dyn Logger>()?;
         let logs = logger.get_logs();
 
@@ -179,7 +179,7 @@ impl TestController {
     }
 
     #[post("/counter/reset")]
-    async fn reset_counter(ctx: Context) -> SwordResult<HttpResponse> {
+    async fn reset_counter(ctx: Context) -> HttpResult<HttpResponse> {
         ctx.get_dependency::<TestModule, dyn Logger>()?
             .log("Resetting counter to 0");
 

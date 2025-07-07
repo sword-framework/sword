@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use sword::{http::Result, prelude::*};
+use sword::{prelude::*, web::HttpResult};
 use validator::Validate;
 
 use crate::{database::DataRepository, logger::Logger, AppModule};
@@ -18,10 +18,10 @@ struct IncommingUser {
 #[controller("/users")]
 pub struct UserController {}
 
-#[controller_impl]
+#[routes]
 impl UserController {
     #[get("/")]
-    async fn get_users(ctx: Context) -> Result<HttpResponse> {
+    async fn get_users(ctx: Context) -> HttpResult<HttpResponse> {
         let repository = ctx.get_dependency::<AppModule, dyn DataRepository>()?;
         let users = repository.get_data().await;
 
@@ -32,7 +32,7 @@ impl UserController {
     }
 
     #[post("/")]
-    async fn add_user(ctx: Context) -> Result<HttpResponse> {
+    async fn add_user(ctx: Context) -> HttpResult<HttpResponse> {
         let user: IncommingUser = ctx.validated_body()?;
         let repository = ctx.get_dependency::<AppModule, dyn DataRepository>()?;
 

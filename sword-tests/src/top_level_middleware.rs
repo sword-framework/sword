@@ -1,6 +1,6 @@
 use serde_json::{Value, json};
-use sword::http::Result as HttpResult;
 use sword::prelude::*;
+use sword::web::HttpResult;
 
 struct ExtensionsTestMiddleware;
 
@@ -45,7 +45,7 @@ impl MiddlewareWithConfig<Vec<&str>> for RoleMiddleware {
 #[middleware(ExtensionsTestMiddleware)]
 struct TestController {}
 
-#[controller_impl]
+#[routes]
 impl TestController {
     #[get("/extensions-test")]
     async fn extensions_test(ctx: Context) -> HttpResponse {

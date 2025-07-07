@@ -11,7 +11,7 @@ use validator::Validate;
 use crate::{
     application::SwordState,
     errors::RequestError,
-    http::{Context, HttpResponse, Result as HttpResult},
+    web::{Context, HttpResponse, HttpResult},
 };
 
 /// Implementation of `FromRequest` for `Context`.

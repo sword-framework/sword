@@ -3,7 +3,7 @@ use sword::prelude::*;
 #[controller("/test")]
 struct TestController {}
 
-#[controller_impl]
+#[routes]
 impl TestController {
     #[get("/hello")]
     async fn hello() -> HttpResponse {
@@ -16,7 +16,7 @@ impl TestController {
 #[controller("/second")]
 struct SecondTestController {}
 
-#[controller_impl]
+#[routes]
 impl SecondTestController {
     #[get("/greet")]
     async fn greet() -> HttpResponse {

@@ -12,7 +12,7 @@ use tower_service::Service;
 
 use crate::{
     errors::{ApplicationError, StateError},
-    routing::RouterProvider,
+    web::RouterProvider,
 };
 
 mod state;
