@@ -3,7 +3,7 @@ name: Release Crates
 on:
   push:
     tags:
-      - "v*"
+      - "*-v*"
 
 jobs:
   publish:
