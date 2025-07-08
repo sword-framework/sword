@@ -42,7 +42,7 @@ use sword::web::HttpResult;
 #[controller("/")]
 struct AppController {}
 
-#[controller_impl]
+#[routes]
 impl AppController {
     #[get("/")]
     async fn get_data() -> HttpResponse {
@@ -102,7 +102,7 @@ impl Middleware for LoggingMiddleware {
 #[controller("/api")]
 struct AppController {}
 
-#[controller_impl]
+#[routes]
 impl AppController {
     #[get("/hello")]
     #[middleware(LoggingMiddleware)]
@@ -157,7 +157,7 @@ struct CreateUserRequest {
 #[controller("/users")]
 struct UserController {}
 
-#[controller_impl]
+#[routes]
 impl UserController {
     #[get("/")]
     async fn get_users(ctx: Context) -> HttpResult<HttpResponse> {
