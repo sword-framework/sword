@@ -38,7 +38,7 @@ impl SwordConfig {
         })
     }
 
-    pub(crate) fn get<T: DeserializeOwned + ConfigItem>(&self) -> Result<T, ConfigError> {
+    pub fn get<T: DeserializeOwned + ConfigItem>(&self) -> Result<T, ConfigError> {
         let config_item = match self.inner.get(T::toml_key()) {
             Some(value) => value,
             None => return Err(ConfigError::KeyNotFound(T::toml_key().to_string())),

@@ -1,12 +1,13 @@
 use axum_responses::http::HttpResponse;
 use serde_json::json;
 
-use crate::errors::ConfigError;
-
 use super::{RequestError, StateError};
+use crate::errors::{ConfigError, display_error_chain};
 
 impl From<RequestError> for HttpResponse {
     fn from(error: RequestError) -> HttpResponse {
+        display_error_chain(&error);
+
         match error {
             RequestError::ParseError(message, details) => {
                 HttpResponse::BadRequest().message(message).data(json!({
@@ -38,6 +39,8 @@ impl From<RequestError> for HttpResponse {
 
 impl From<StateError> for HttpResponse {
     fn from(error: StateError) -> Self {
+        display_error_chain(&error);
+
         match error {
             StateError::TypeNotFound => HttpResponse::InternalServerError()
                 .message("Service configuration error")
@@ -63,6 +66,8 @@ impl From<StateError> for HttpResponse {
 
 impl From<ConfigError> for HttpResponse {
     fn from(error: ConfigError) -> Self {
+        display_error_chain(&error);
+
         match error {
             ConfigError::DeserializeError(message) => HttpResponse::InternalServerError()
                 .message("Configuration error")

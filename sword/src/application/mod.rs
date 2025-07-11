@@ -6,6 +6,7 @@ use axum::{
     routing::{Route, Router},
 };
 
+use axum_responses::http::HttpResponse;
 use serde::Deserialize;
 use tokio::net::TcpListener;
 use tower_layer::Layer;
@@ -13,7 +14,7 @@ use tower_service::Service;
 
 use crate::{
     application::config::{ConfigItem, SwordConfig},
-    errors::{ApplicationError, StateError},
+    errors::{ApplicationError, StateError, display_error_chain},
     web::RouterProvider,
 };
 
@@ -27,11 +28,11 @@ pub use sword_macros::config as config_macro;
 pub struct Application {
     router: Router,
     state: SwordState,
-    config: SwordConfig,
+    pub config: SwordConfig,
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct ServerConfig {
+pub struct ApplicationConfig {
     pub host: String,
     pub port: u16,
 }
@@ -39,7 +40,9 @@ pub struct ServerConfig {
 impl Application {
     pub fn builder() -> Result<Self, ApplicationError> {
         let state = SwordState::new();
-        let config = SwordConfig::new()?;
+        let config = SwordConfig::new().inspect_err(|e| {
+            display_error_chain(&e);
+        })?;
 
         state.insert(config.clone()).unwrap();
 
@@ -113,7 +116,7 @@ impl Application {
     }
 
     pub async fn run(&self) -> Result<(), ApplicationError> {
-        let server_conf = self.config.get::<ServerConfig>()?;
+        let server_conf = self.config.get::<ApplicationConfig>()?;
         let addr = format!("{}:{}", server_conf.host, server_conf.port);
 
         let listener =
@@ -124,7 +127,9 @@ impl Application {
                     source: e,
                 })?;
 
-        let router = self.router.clone();
+        let router = self.router.clone().fallback(async || {
+            HttpResponse::NotFound().message("The requested resource was not found")
+        });
 
         println!("Starting server on {addr}");
 
@@ -140,7 +145,7 @@ impl Application {
     }
 }
 
-impl ConfigItem for ServerConfig {
+impl ConfigItem for ApplicationConfig {
     fn toml_key() -> &'static str {
         "application"
     }

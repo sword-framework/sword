@@ -1,7 +1,10 @@
 use serde_json::Value;
 use thiserror::Error;
 
+pub mod display;
 mod mappers;
+
+pub use display::{display_error_chain, format_error_with_sources};
 
 #[derive(Debug, Error)]
 pub enum ApplicationError {
