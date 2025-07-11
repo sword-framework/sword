@@ -197,7 +197,7 @@ async fn test_dependency_injection_with_multiple_services() -> Result<(), Box<dy
 {
     let module = TestModule::builder().build();
 
-    let app = Application::builder()
+    let app = Application::builder()?
         .di_module(module)?
         .controller::<TestController>();
 
@@ -262,7 +262,7 @@ async fn test_dependency_injection_with_multiple_services() -> Result<(), Box<dy
 async fn test_service_isolation_between_tests() -> Result<(), Box<dyn std::error::Error>> {
     let module = TestModule::builder().build();
 
-    let app = Application::builder()
+    let app = Application::builder()?
         .di_module(module)?
         .controller::<TestController>();
 

@@ -27,10 +27,10 @@ impl AppController {
 }
 
 #[tokio::main]
-async fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
-    Application::builder()
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    Application::builder()?
         .controller::<AppController>()
-        .run("0.0.0.0:8080")
+        .run()
         .await?;
 
     Ok(())

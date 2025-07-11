@@ -9,13 +9,14 @@ use validator::Validate;
 pub static APP: OnceLock<Arc<TestServer>> = OnceLock::new();
 
 #[cfg(test)]
-fn test_server() -> Arc<TestServer> {
+fn test_server() -> Result<Arc<TestServer>, Box<dyn std::error::Error>> {
     use sword::application::Application;
 
-    let app = Application::builder().controller::<UserController>();
+    let app = Application::builder()?.controller::<UserController>();
 
-    APP.get_or_init(|| Arc::new(TestServer::new(app.router()).unwrap()))
-        .clone()
+    Ok(APP
+        .get_or_init(|| Arc::new(TestServer::new(app.router()).unwrap()))
+        .clone())
 }
 
 #[derive(Deserialize, Serialize)]
@@ -62,10 +63,10 @@ impl UserController {
 }
 
 #[tokio::test]
-async fn unvalidated_query_test() {
+async fn unvalidated_query_test() -> Result<(), Box<dyn std::error::Error>> {
     use sword::web::ResponseBody;
 
-    let app = test_server();
+    let app = test_server()?;
     let response = app.get("/users/simple-query?page=1&limit=5").await;
 
     let json = response.json::<ResponseBody>();
@@ -76,13 +77,15 @@ async fn unvalidated_query_test() {
 
     assert_eq!(json.data.get("page").unwrap(), "1".parse::<u32>().unwrap());
     assert_eq!(json.data.get("limit").unwrap(), "5".parse::<u32>().unwrap());
+
+    Ok(())
 }
 
 #[tokio::test]
-async fn validated_query_test() {
+async fn validated_query_test() -> Result<(), Box<dyn std::error::Error>> {
     use sword::web::ResponseBody;
 
-    let app = test_server();
+    let app = test_server()?;
     let response = app.get("/users/validate-query?page=1&limit=5").await;
 
     let json = response.json::<ResponseBody>();
@@ -93,13 +96,15 @@ async fn validated_query_test() {
 
     assert_eq!(json.data.get("page").unwrap(), "1".parse::<u32>().unwrap());
     assert_eq!(json.data.get("limit").unwrap(), "5".parse::<u32>().unwrap());
+
+    Ok(())
 }
 
 #[tokio::test]
-async fn validated_query_error_test() {
+async fn validated_query_error_test() -> Result<(), Box<dyn std::error::Error>> {
     use sword::web::ResponseBody;
 
-    let app = test_server();
+    let app = test_server()?;
     let response = app.get("/users/validate-query?page=1001&limit=5").await;
 
     let json = response.json::<ResponseBody>();
@@ -123,4 +128,6 @@ async fn validated_query_error_test() {
         error.get("message").unwrap(),
         "Page must be between 1 and 1000"
     );
+
+    Ok(())
 }

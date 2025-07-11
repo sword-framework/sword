@@ -7,9 +7,16 @@ use axum::{
     http::{Extensions, Method, Uri},
 };
 
+use serde::de::DeserializeOwned;
 use shaku::{HasComponent, Interface, Module};
 
-use crate::{application::SwordState, errors::StateError};
+use crate::{
+    application::{
+        SwordState,
+        config::{ConfigItem, SwordConfig},
+    },
+    errors::{ConfigError, StateError},
+};
 
 /// Context represents the incoming request context in the Sword framework.
 /// It contains request parameters, body bytes, HTTP method, headers, URI and more.
@@ -62,5 +69,14 @@ impl Context {
         let interface = module.resolve();
 
         Ok(interface)
+    }
+
+    pub fn config<T: DeserializeOwned + ConfigItem>(&self) -> Result<T, ConfigError> {
+        let config = self
+            .state
+            .get::<SwordConfig>()
+            .map_err(|e| ConfigError::GetConfigError(e.to_string()))?;
+
+        config.get::<T>()
     }
 }

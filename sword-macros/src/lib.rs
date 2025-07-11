@@ -1,3 +1,4 @@
+mod config;
 mod controller;
 mod utils;
 
@@ -54,4 +55,9 @@ pub fn routes(attr: TokenStream, item: TokenStream) -> TokenStream {
 pub fn middleware(attr: TokenStream, item: TokenStream) -> TokenStream {
     let _ = attr;
     item
+}
+
+#[proc_macro_attribute]
+pub fn config(attr: TokenStream, item: TokenStream) -> TokenStream {
+    config::expand_config_struct(attr, item)
 }

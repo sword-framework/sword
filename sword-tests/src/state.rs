@@ -25,7 +25,7 @@ impl TestController {
 async fn test_state() -> Result<(), Box<dyn std::error::Error>> {
     let data = json!({ "key": "value" });
 
-    let app = Application::builder()
+    let app = Application::builder()?
         .state(data)?
         .controller::<TestController>();
 

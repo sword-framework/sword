@@ -41,9 +41,9 @@ impl AppController {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    Application::builder()
+    Application::builder()?
         .controller::<AppController>()
-        .run("0.0.0.0:8080")
+        .run()
         .await?;
 
     Ok(())

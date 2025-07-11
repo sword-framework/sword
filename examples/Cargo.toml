@@ -6,23 +6,27 @@ publish = false
 
 [[example]]
 name = "basic_web_server"
-path = "basic_web_server/main.rs"
+path = "src/basic_web_server/main.rs"
 
 [[example]]
 name = "data_validation"
-path = "data_validation/main.rs"
+path = "src/data_validation/main.rs"
 
 [[example]]
 name = "shared_state"
-path = "shared_state/main.rs"
+path = "src/shared_state/main.rs"
 
 [[example]]
 name = "dependency_injection"
-path = "dependency_injection/main.rs"
+path = "src/dependency_injection/main.rs"
 
 [[example]]
 name = "middlewares"
-path = "middlewares/main.rs"
+path = "src/middlewares/main.rs"
+
+[[example]]
+name = "config-file"
+path = "src/config_file/main.rs"
 
 [dependencies]
 sword = { path = "../sword" }

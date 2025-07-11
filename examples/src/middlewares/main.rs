@@ -1,4 +1,5 @@
 use serde_json::{json, Value};
+
 use sword::prelude::*;
 use sword::web::HttpResult;
 
@@ -48,9 +49,9 @@ impl TestController {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    Application::builder()
+    Application::builder()?
         .controller::<TestController>()
-        .run("")
+        .run()
         .await?;
 
     Ok(())

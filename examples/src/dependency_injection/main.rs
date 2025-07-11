@@ -20,10 +20,10 @@ module! {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let module = AppModule::builder().build();
 
-    Application::builder()
+    Application::builder()?
         .state(module)?
         .controller::<UserController>()
-        .run("0.0.0.0:8080")
+        .run()
         .await?;
 
     Ok(())

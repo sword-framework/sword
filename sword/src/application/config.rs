@@ -1,53 +1,59 @@
-use std::path::Path;
+use std::{fs::read_to_string, path::Path, str::FromStr, sync::Arc};
 
-use config::{Config as Cfg, File};
-use serde::Deserialize;
+use serde::de::{DeserializeOwned, IntoDeserializer};
+use shellexpand::env as expand_env;
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct ServerConfig {
-    pub host: String,
-    pub port: u16,
+use toml::Table;
+
+use crate::errors::ConfigError;
+
+#[derive(Debug, Clone)]
+pub struct SwordConfig {
+    inner: Arc<Table>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct Config {
-    pub server: ServerConfig,
+pub trait ConfigItem {
+    fn toml_key() -> &'static str;
 }
 
-impl Config {
-    pub fn new() -> Result<Self, config::ConfigError> {
-        let toml_path = Path::new("config/config.toml");
+impl SwordConfig {
+    pub(crate) fn new() -> Result<Self, ConfigError> {
+        let path = Path::new("config/config.toml");
 
-        if !toml_path.exists() {
-            return Err(config::ConfigError::Message(
-                "Configuration file not found".to_string(),
-            ));
+        if !path.exists() {
+            return Err(ConfigError::FileNotFound("config/toml"));
         }
 
-        let contents = std::fs::read_to_string(toml_path).map_err(|e| {
-            config::ConfigError::Message(format!("Failed to read config file: {e}"))
-        })?;
+        let content = read_to_string(path).map_err(ConfigError::ReadError)?;
 
-        let expanded = shellexpand::env(&contents)
-            .map_err(|e| {
-                config::ConfigError::Message(format!("Failed to expand environment variables: {e}"))
-            })?
+        let expanded = expand_env(&content)
+            .map_err(|e| ConfigError::InterpolationError(e.to_string()))?
             .into_owned();
 
-        Cfg::builder()
-            .add_source(File::from_str(&expanded, config::FileFormat::Toml))
-            .build()?
-            .try_deserialize()
+        let table =
+            Table::from_str(&expanded).map_err(|e| ConfigError::ParseError(e.to_string()))?;
+
+        Ok(Self {
+            inner: Arc::new(table),
+        })
+    }
+
+    pub(crate) fn get<T: DeserializeOwned + ConfigItem>(&self) -> Result<T, ConfigError> {
+        let config_item = match self.inner.get(T::toml_key()) {
+            Some(value) => value,
+            None => return Err(ConfigError::KeyNotFound(T::toml_key().to_string())),
+        };
+
+        let value = toml::Value::into_deserializer(config_item.clone());
+
+        T::deserialize(value).map_err(|e| ConfigError::DeserializeError(e.to_string()))
     }
 }
 
-impl Default for Config {
+impl Default for SwordConfig {
     fn default() -> Self {
         Self {
-            server: ServerConfig {
-                host: "127.0.0.1".to_string(),
-                port: 8080,
-            },
+            inner: Arc::new(Table::new()),
         }
     }
 }

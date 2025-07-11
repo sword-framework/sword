@@ -16,3 +16,9 @@ pub fn db() -> Arc<RwLock<Vec<String>>> {
 pub struct AppState {
     pub db: InMemoryDb,
 }
+
+impl AppState {
+    pub fn new() -> Self {
+        Self { db: db() }
+    }
+}

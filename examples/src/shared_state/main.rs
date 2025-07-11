@@ -5,7 +5,7 @@ use sword::web::HttpResult;
 
 mod state;
 
-use crate::state::{db, AppState};
+use crate::state::AppState;
 
 #[controller("/api")]
 struct AppController {}
@@ -30,12 +30,12 @@ impl AppController {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let app_state = AppState { db: db() };
+    let app_state = AppState::new();
 
-    Application::builder()
+    Application::builder()?
         .state(app_state)?
         .controller::<AppController>()
-        .run("0.0.0.0:8080")
+        .run()
         .await?;
 
     Ok(())

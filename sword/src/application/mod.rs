@@ -6,17 +6,19 @@ use axum::{
     routing::{Route, Router},
 };
 
+use serde::Deserialize;
 use tokio::net::TcpListener;
 use tower_layer::Layer;
 use tower_service::Service;
 
 use crate::{
+    application::config::{ConfigItem, SwordConfig},
     errors::{ApplicationError, StateError},
+    layers::cors::Cors,
     web::RouterProvider,
 };
 
-#[allow(dead_code)]
-mod config;
+pub mod config;
 mod state;
 
 pub use state::SwordState;
@@ -25,15 +27,33 @@ pub use state::SwordState;
 pub struct Application {
     router: Router,
     state: SwordState,
+    config: SwordConfig,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct ServerConfig {
+    pub host: String,
+    pub port: u16,
 }
 
 impl Application {
-    /// Create a new instance of the `Application` builder.
-    pub fn builder() -> Self {
+    pub fn builder() -> Result<Self, ApplicationError> {
         let state = SwordState::new();
-        let router = Router::new().with_state(state.clone());
+        let config = SwordConfig::new()?;
 
-        Self { router, state }
+        let cors = Cors::new(&config)?;
+
+        let mut router = Router::new().with_state(state.clone());
+
+        if cors.config.enabled {
+            router = router.layer(cors.layer);
+        }
+
+        Ok(Self {
+            router,
+            state,
+            config,
+        })
     }
 
     /// Register a controller in the application.
@@ -45,6 +65,7 @@ impl Application {
         Self {
             router,
             state: self.state,
+            config: self.config,
         }
     }
 
@@ -64,6 +85,7 @@ impl Application {
         Self {
             router,
             state: self.state,
+            config: self.config,
         }
     }
 
@@ -82,6 +104,7 @@ impl Application {
         Ok(Self {
             router,
             state: self.state,
+            config: self.config,
         })
     }
 
@@ -93,13 +116,17 @@ impl Application {
         self.state(module)
     }
 
-    pub async fn run(&self, addr: &str) -> Result<(), ApplicationError> {
-        let listener = TcpListener::bind(addr)
-            .await
-            .map_err(|e| ApplicationError::BindFailed {
-                address: addr.to_string(),
-                source: e,
-            })?;
+    pub async fn run(&self) -> Result<(), ApplicationError> {
+        let server_conf = self.config.get::<ServerConfig>()?;
+        let addr = format!("{}:{}", server_conf.host, server_conf.port);
+
+        let listener =
+            TcpListener::bind(&addr)
+                .await
+                .map_err(|e| ApplicationError::BindFailed {
+                    address: addr.to_string(),
+                    source: e,
+                })?;
 
         let router = self.router.clone();
 
@@ -114,5 +141,11 @@ impl Application {
 
     pub fn router(&self) -> Router {
         self.router.clone()
+    }
+}
+
+impl ConfigItem for ServerConfig {
+    fn toml_key() -> &'static str {
+        "application"
     }
 }

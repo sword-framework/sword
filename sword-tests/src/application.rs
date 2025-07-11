@@ -27,8 +27,8 @@ impl SecondTestController {
 }
 
 #[tokio::test]
-async fn test_application() {
-    let app = Application::builder()
+async fn test_application() -> Result<(), Box<dyn std::error::Error>> {
+    let app = Application::builder()?
         .controller::<TestController>()
         .controller::<SecondTestController>();
 
@@ -39,4 +39,6 @@ async fn test_application() {
 
     let second_response = test.get("/second/greet").await;
     assert_eq!(second_response.status_code(), 200);
+
+    Ok(())
 }
