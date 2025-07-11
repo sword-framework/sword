@@ -1,6 +1,8 @@
 use axum_responses::http::HttpResponse;
 use serde_json::json;
 
+use crate::errors::ConfigError;
+
 use super::{RequestError, StateError};
 
 impl From<RequestError> for HttpResponse {
@@ -54,6 +56,32 @@ impl From<StateError> for HttpResponse {
                 .data(json!({
                     "type": "InternalError",
                     "message": "An unexpected internal error occurred"
+                })),
+        }
+    }
+}
+
+impl From<ConfigError> for HttpResponse {
+    fn from(error: ConfigError) -> Self {
+        match error {
+            ConfigError::DeserializeError(message) => HttpResponse::InternalServerError()
+                .message("Configuration error")
+                .data(json!({
+                    "type": "ConfigError",
+                    "message": message
+                })),
+            ConfigError::KeyNotFound(key) => HttpResponse::InternalServerError()
+                .message("Configuration error")
+                .data(json!({
+                    "type": "ConfigError",
+                    "message": format!("Key '{}' not found in configuration", key)
+                })),
+
+            _ => HttpResponse::InternalServerError()
+                .message("Configuration error")
+                .data(json!({
+                    "type": "ConfigError",
+                    "message": "An error occurred while processing the app configuration"
                 })),
         }
     }

@@ -55,8 +55,12 @@ pub enum ConfigError {
     InterpolationError(String),
     #[error("Configuration key '{0}' not found")]
     KeyNotFound(String),
-    #[error("Configuration value for key '{0}' is invalid: {1}")]
-    InvalidValue(String, String),
+    #[error("Configuration value for key '{key}' is invalid: {value}. Reason: {reason}")]
+    InvalidValue {
+        key: String,
+        value: String,
+        reason: String,
+    },
     #[error("Failed to build configuration: {0}")]
     BuildError(String),
     #[error("Failed to deserialize configuration: {0}")]
@@ -65,7 +69,4 @@ pub enum ConfigError {
     ParseError(String),
     #[error("Error getting configuration from application state: {0}")]
     GetConfigError(String),
-
-    #[error("Failed to convert configuration: {0}")]
-    CorsError(#[from] crate::layers::cors::CorsError),
 }

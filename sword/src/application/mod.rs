@@ -14,7 +14,6 @@ use tower_service::Service;
 use crate::{
     application::config::{ConfigItem, SwordConfig},
     errors::{ApplicationError, StateError},
-    layers::cors::Cors,
     web::RouterProvider,
 };
 
@@ -22,6 +21,7 @@ pub mod config;
 mod state;
 
 pub use state::SwordState;
+pub use sword_macros::config as config_macro;
 
 #[derive(Debug, Clone)]
 pub struct Application {
@@ -41,13 +41,9 @@ impl Application {
         let state = SwordState::new();
         let config = SwordConfig::new()?;
 
-        let cors = Cors::new(&config)?;
+        state.insert(config.clone()).unwrap();
 
-        let mut router = Router::new().with_state(state.clone());
-
-        if cors.config.enabled {
-            router = router.layer(cors.layer);
-        }
+        let router = Router::new().with_state(state.clone());
 
         Ok(Self {
             router,

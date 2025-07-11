@@ -3,14 +3,14 @@ mod middleware;
 mod validation;
 
 pub mod prelude {
-    pub use crate::application::Application;
+    pub use crate::application::config::ConfigItem;
+    pub use crate::application::{Application, ServerConfig, config_macro as config};
     pub use crate::errors::{ApplicationError, RequestError, StateError};
     pub use crate::web::*;
 }
 
 pub mod application;
 pub mod errors;
-pub mod layers;
 
 pub mod web {
     pub use axum_responses::Result as HttpResult;

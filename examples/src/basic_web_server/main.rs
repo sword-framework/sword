@@ -1,7 +1,15 @@
+use serde::Deserialize;
+
 use sword::prelude::*;
 use sword::web::HttpResult;
 
 use serde_json::{json, Value};
+
+#[derive(Deserialize, Debug)]
+#[config(key = "my-custom-section")]
+pub struct MyConfig {
+    custom_key: String,
+}
 
 #[controller("/")]
 struct AppController {}
@@ -27,6 +35,14 @@ impl AppController {
     #[post("/submit")]
     async fn submit_data(ctx: Context) -> HttpResult<HttpResponse> {
         let body = ctx.body::<Value>()?;
+        let custom_config = ctx.config::<MyConfig>()?;
+
+        println!("custom_config key: {:?}", custom_config.custom_key);
+
+        println!(
+            "Received data: {:?}, Custom Config: {:?}",
+            body, custom_config
+        );
 
         Ok(HttpResponse::Ok()
             .data(body)
