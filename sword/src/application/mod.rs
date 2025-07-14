@@ -2,6 +2,7 @@ use std::convert::Infallible;
 
 use axum::{
     extract::Request as AxumRequest,
+    middleware::Next,
     response::IntoResponse,
     routing::{Route, Router},
 };
@@ -13,9 +14,11 @@ use tower_layer::Layer;
 use tower_service::Service;
 
 use crate::{
+    __private::mw_with_state,
     application::config::{ConfigItem, SwordConfig},
-    errors::{ApplicationError, StateError, display_error_chain},
-    web::RouterProvider,
+    errors::{ApplicationError, RequestError, StateError},
+    next,
+    web::{Context, MiddlewareResult, RouterProvider},
 };
 
 pub mod config;
@@ -23,6 +26,8 @@ mod state;
 
 pub use state::SwordState;
 pub use sword_macros::config as config_macro;
+
+const NO_BODY_METHODS: [&str; 4] = ["GET", "DELETE", "HEAD", "OPTIONS"];
 
 #[derive(Debug, Clone)]
 pub struct Application {
@@ -35,18 +40,23 @@ pub struct Application {
 pub struct ApplicationConfig {
     pub host: String,
     pub port: u16,
+    #[serde(deserialize_with = "utils::deserialize_body_limit")]
+    pub body_limit: usize,
 }
 
 impl Application {
     pub fn builder() -> Result<Self, ApplicationError> {
         let state = SwordState::new();
-        let config = SwordConfig::new().inspect_err(|e| {
-            display_error_chain(&e);
-        })?;
+        let config = SwordConfig::new()?;
 
         state.insert(config.clone()).unwrap();
 
-        let router = Router::new().with_state(state.clone());
+        let router = Router::new()
+            .layer(mw_with_state(
+                state.clone(),
+                Application::content_type_check,
+            ))
+            .with_state(state.clone());
 
         Ok(Self {
             router,
@@ -127,11 +137,22 @@ impl Application {
                     source: e,
                 })?;
 
-        let router = self.router.clone().fallback(async || {
+        let mut router = self.router.clone().fallback(async || {
             HttpResponse::NotFound().message("The requested resource was not found")
         });
 
-        println!("Starting server on {addr}");
+        router = router.layer(mw_with_state(
+            self.state.clone(),
+            Application::content_type_check,
+        ));
+
+        let ascii_logo = "\n▪──────── ⚔ S W O R D ⚔ ────────▪\n";
+
+        println!("{ascii_logo}");
+        println!("Starting Application ...");
+        println!("Host: {}", server_conf.host);
+        println!("Port: {}", server_conf.port);
+        println!("{ascii_logo}");
 
         axum::serve(listener, router)
             .await
@@ -143,10 +164,59 @@ impl Application {
     pub fn router(&self) -> Router {
         self.router.clone()
     }
+
+    async fn content_type_check(ctx: Context, next: Next) -> MiddlewareResult {
+        let method = ctx.method().as_str();
+        let content_type = ctx.header("Content-Type").unwrap_or_default();
+
+        dbg!(&ctx.headers());
+
+        if NO_BODY_METHODS.contains(&method) {
+            return next!(ctx, next);
+        }
+
+        if content_type != "application/json" && !content_type.contains("multipart/form-data") {
+            return Err(RequestError::InvalidContentType(
+                "Only application/json and multipart/form-data content types are supported.",
+            )
+            .into());
+        }
+
+        next!(ctx, next)
+    }
 }
 
 impl ConfigItem for ApplicationConfig {
     fn toml_key() -> &'static str {
         "application"
+    }
+}
+
+mod utils {
+    use std::str::FromStr;
+
+    use byte_unit::Byte;
+    use regex::Regex;
+    use serde::{Deserialize, Deserializer};
+
+    pub fn deserialize_body_limit<'de, D>(deserializer: D) -> Result<usize, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let body_limit: String = Deserialize::deserialize(deserializer)?;
+        let regex = Regex::new(r"(?i)^\s*(\d+(?:\.\d+)?)\s*(b|kb|mb|gb)?\s*$").map_err(|_| {
+            serde::de::Error::custom("Invalid body limit format. Expected a number followed by an optional unit (b, kb, mb, gb).")
+        })?;
+
+        if !regex.is_match(&body_limit) {
+            return Err(serde::de::Error::custom(
+                "Invalid body limit format. Expected a number followed by an optional unit (b, kb, mb, gb).",
+            ));
+        }
+
+        let bytes = Byte::from_str(&body_limit)
+            .map_err(|_| serde::de::Error::custom("Failed to parse body limit"))?;
+
+        Ok(bytes.as_u64() as usize)
     }
 }

@@ -1,10 +1,7 @@
 use serde_json::Value;
 use thiserror::Error;
 
-pub mod display;
 mod mappers;
-
-pub use display::{display_error_chain, format_error_with_sources};
 
 #[derive(Debug, Error)]
 pub enum ApplicationError {
@@ -46,6 +43,8 @@ pub enum RequestError {
     BodyIsEmpty(&'static str),
     #[error("Request body is too large")]
     BodyTooLarge,
+    #[error("Invalid content type: {0}")]
+    InvalidContentType(&'static str),
 }
 
 #[derive(Debug, Error)]

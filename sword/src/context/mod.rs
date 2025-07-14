@@ -24,6 +24,7 @@ use crate::{
 /// Also contains the state of the application, which can be used to store and retrieve
 /// shared data across the application, such as database connections, configuration settings,
 /// and other application state.
+#[derive(Debug, Clone)]
 pub struct Context {
     params: HashMap<String, String>,
     body_bytes: Bytes,

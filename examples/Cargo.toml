@@ -32,8 +32,12 @@ path = "src/config_file/main.rs"
 name = "tower_middlewares"
 path = "src/tower_middlewares/main.rs"
 
+[[example]]
+name = "multipart"
+path = "src/multipart/main.rs"
+
 [dependencies]
-axum = { version = "0.8.4", features = ["macros"] }
+axum = { version = "0.8.4", features = ["macros", "multipart"] }
 tower-http = { version = "0.6.6", features = ["trace", "cors"] }
 
 tracing = "0.1.41"

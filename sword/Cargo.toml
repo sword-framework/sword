@@ -33,4 +33,6 @@ tower-http = { version = "0.6.6", features = ["trace", "cors"] }
 
 shaku = "0.6.2"
 thiserror = "2.0.12"
+regex = "1.11.1"
+byte-unit = "5.1.6"
 

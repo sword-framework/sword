@@ -1,5 +1,5 @@
 <div align="center">
-<img src="https://pillan.inf.uct.cl/~lrevillod/images/sword-logo.webp" alt="Sword Logo" width="200">
+<img src="https://pillan.inf.uct.cl/~lrevillod/images/sword-logo.png" alt="Sword Logo" width="200">
 
 <h1>⚔️ Sword ⚔️</h1>
 <p><em>A prototype for a rust web framework</em></p>
@@ -21,12 +21,16 @@
 
 ```toml
 [dependencies]
-sword = "0.1.5"
+sword = "0.1.6"
 
 # Additional dependencies for features
 
 # validation features:
 validator = { version = "0.20.0", features = ["derive"] }
+
+# JSON handling features:
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
 
 # dependency injection features:
 shaku = { version = "0.6.2", features = ["derive"] }
@@ -195,13 +199,11 @@ See the [examples directory](./examples) for more advanced usage.
 - ✅ 🏗️ Add Application Context
 - ✅ 🔒 Add Middleware support
 - ✅ 💉 Add Dependency Injection support based on `shaku` crate
-- [ ] ⚙️ Add config file support
+- ✅ ⚙️ Add config file support
 
 ## 📋 Roadmap
 
 - [ ] 📁 Add File - FormData support
-- [ ] 🧪 Add more tests
-- [ ] 📚 Add more documentation
-- [ ] 🛠️ CLI Command line interface for code-generation (templates)
+- [ ] 🛠️ CLI Command line interface for code-generation (templates) and application runner
 
 

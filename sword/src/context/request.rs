@@ -1,16 +1,18 @@
 use std::{collections::HashMap, str::FromStr};
 
 use axum::{
-    body::{Body, Bytes, to_bytes},
+    body::{Body, to_bytes},
     extract::{FromRef, FromRequest, OptionalFromRequestParts, Path, Request as AxumRequest},
     http::Method,
 };
+
 use serde::de::DeserializeOwned;
 use validator::Validate;
 
 use crate::{
-    application::SwordState,
+    application::{SwordState, config::SwordConfig},
     errors::RequestError,
+    prelude::ApplicationConfig,
     web::{Context, HttpResponse, HttpResult},
 };
 
@@ -36,9 +38,19 @@ where
             params.extend(path_params.0);
         }
 
-        let body_bytes = to_bytes(body, usize::MAX)
-            .await
-            .unwrap_or_else(|_| Bytes::new());
+        let state = SwordState::from_ref(state);
+        let config = state.get::<SwordConfig>()?;
+        let body_limit = config
+            .get::<ApplicationConfig>()
+            .map(|app_config| app_config.body_limit)
+            .unwrap_or(usize::MAX);
+
+        let body_bytes = to_bytes(body, body_limit).await.map_err(|err| {
+            RequestError::ParseError(
+                "Failed to read request body",
+                format!("Error reading body: {err}"),
+            )
+        })?;
 
         let mut headers = HashMap::new();
 
@@ -47,8 +59,6 @@ where
                 headers.insert(key.to_string(), value_str.to_string());
             }
         }
-
-        let state = SwordState::from_ref(state);
 
         Ok(Self {
             params,
@@ -88,7 +98,9 @@ impl Context {
     /// # Returns
     /// `Some(&str)` with the header value if it exists, `None` if not found.
     pub fn header(&self, key: &str) -> Option<&str> {
-        self.headers.get(key).map(|value| value.as_str())
+        self.headers
+            .get(&key.to_lowercase())
+            .map(|value| value.as_str())
     }
 
     /// Gets an immutable reference to all request headers.
@@ -167,9 +179,7 @@ impl Context {
     /// can be automatically converted to an `HttpResponse` using the `?` operator.
     pub fn body<T: DeserializeOwned>(&self) -> Result<T, RequestError> {
         if self.body_bytes.is_empty() {
-            return Err(RequestError::BodyIsEmpty(
-                "Invalid call, request body is empty",
-            ));
+            return Err(RequestError::BodyIsEmpty("Request body is empty"));
         }
 
         serde_json::from_slice(&self.body_bytes).map_err(|err| {

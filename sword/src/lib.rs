@@ -6,9 +6,7 @@ pub mod prelude {
     pub use crate::application::config::ConfigItem;
     pub use crate::application::{Application, ApplicationConfig, config_macro as config};
 
-    pub use crate::errors::{
-        ApplicationError, RequestError, StateError, display_error_chain, format_error_with_sources,
-    };
+    pub use crate::errors::{ApplicationError, RequestError, StateError};
 
     pub use crate::web::*;
 }
