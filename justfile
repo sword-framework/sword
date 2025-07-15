@@ -15,3 +15,9 @@ example NAME="basic_web_server":
 
 release LEVEL="patch":
     cargo release {{LEVEL}} --workspace --no-confirm --no-publish --execute
+
+build:
+    cargo build --workspace --all-targets
+
+build-release:
+    cargo build --workspace --release --all-targets

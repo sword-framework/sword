@@ -1,16 +1,7 @@
 [application]
 host = "0.0.0.0"
 port = 8080
-body_limit = "1mb"
-
-# [cors]
-# enabled = true
-# max_age = 3600
-# allow_credentials = false
-# allowed_http_headers = ["Authorization", "Content-Type"]
-# allowed_http_methods = ["*"]
-# allowed_origins = ["http://localhost:8080", "http://example.com"]
-# expose_headers = []
 
 [my-custom-section]
 custom_key = "value"
+env_user = "${USER:default_value}"

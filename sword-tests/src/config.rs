@@ -1,3 +1,5 @@
+use std::process::Command;
+
 use serde::{Deserialize, Serialize};
 use sword::prelude::*;
 use sword::web::HttpResult;
@@ -6,6 +8,7 @@ use sword::web::HttpResult;
 #[config(key = "my-custom-section")]
 struct MyConfig {
     custom_key: String,
+    env_user: String,
 }
 
 #[controller("/test")]
@@ -26,7 +29,6 @@ impl TestController {
 #[tokio::test]
 async fn test_application() -> Result<(), Box<dyn std::error::Error>> {
     let app = Application::builder()?.controller::<TestController>();
-
     let test = axum_test::TestServer::new(app.router()).unwrap();
 
     let response = test.get("/test/hello").await;
@@ -36,6 +38,17 @@ async fn test_application() -> Result<(), Box<dyn std::error::Error>> {
 
     let expected = MyConfig {
         custom_key: "value".to_string(),
+        env_user: Command::new("sh")
+            .arg("-c")
+            .arg("echo $USER")
+            .output()
+            .expect("Failed to get environment variable")
+            .stdout
+            .into_iter()
+            .map(|b| b as char)
+            .collect::<String>()
+            .trim()
+            .to_string(),
     };
 
     assert_eq!(json_body.data["custom_key"], expected.custom_key);

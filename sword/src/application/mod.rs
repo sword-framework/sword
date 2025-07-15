@@ -8,7 +8,7 @@ use axum::{
 };
 
 use axum_responses::http::HttpResponse;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tokio::net::TcpListener;
 use tower_layer::Layer;
 use tower_service::Service;
@@ -36,7 +36,7 @@ pub struct Application {
     pub config: SwordConfig,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct ApplicationConfig {
     pub host: String,
     pub port: u16,
