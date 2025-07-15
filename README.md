@@ -200,10 +200,11 @@ See the [examples directory](./examples) for more advanced usage.
 - ✅ 🔒 Add Middleware support
 - ✅ 💉 Add Dependency Injection support based on `shaku` crate
 - ✅ ⚙️ Add config file support
+- ✅ 📁 Add File - FormData support
 
 ## 📋 Roadmap
 
-- [ ] 📁 Add File - FormData support
 - [ ] 🛠️ CLI Command line interface for code-generation (templates) and application runner
-
-
+- [ ] 📦 Add more built-in middleware under tower layers
+- [ ] 📚 Add better error trace and display on console
+- [ ] 🧪 Improve the multipart axum/multer base system 

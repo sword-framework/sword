@@ -10,9 +10,8 @@ use serde::de::DeserializeOwned;
 use validator::Validate;
 
 use crate::{
-    application::{SwordState, config::SwordConfig},
+    application::SwordState,
     errors::RequestError,
-    prelude::ApplicationConfig,
     web::{Context, HttpResponse, HttpResult},
 };
 
@@ -39,13 +38,15 @@ where
         }
 
         let state = SwordState::from_ref(state);
-        let config = state.get::<SwordConfig>()?;
-        let body_limit = config
-            .get::<ApplicationConfig>()
-            .map(|app_config| app_config.body_limit)
-            .unwrap_or(usize::MAX);
+        // let config = state.get::<SwordConfig>()?;
+        // let body_limit = config
+        //     .get::<ApplicationConfig>()
+        //     .map(|app_config| app_config.body_limit)
+        //     .unwrap_or(usize::MAX);
 
-        let body_bytes = to_bytes(body, body_limit).await.map_err(|err| {
+        // println!("loading context with body limit: {body_limit}");
+
+        let body_bytes = to_bytes(body, usize::MAX).await.map_err(|err| {
             RequestError::ParseError(
                 "Failed to read request body",
                 format!("Error reading body: {err}"),

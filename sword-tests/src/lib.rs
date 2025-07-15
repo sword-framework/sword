@@ -18,3 +18,6 @@ mod top_level_middleware;
 
 #[cfg(test)]
 mod config;
+
+#[cfg(test)]
+mod multipart;

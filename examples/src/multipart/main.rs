@@ -3,7 +3,11 @@ use serde::{Deserialize, Serialize};
 use sword::prelude::*;
 use sword::web::HttpResult;
 
+mod http_logger;
+
 use serde_json::json;
+
+use crate::http_logger::HttpLogger;
 
 #[derive(Deserialize, Debug, Serialize)]
 #[config(key = "my-custom-section")]
@@ -30,8 +34,11 @@ impl AppController {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    println!("Running multipart example");
+
     Application::builder()?
         .controller::<AppController>()
+        .layer(HttpLogger::new().layer)
         .run()
         .await?;
 

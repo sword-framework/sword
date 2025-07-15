@@ -40,8 +40,6 @@ pub struct Application {
 pub struct ApplicationConfig {
     pub host: String,
     pub port: u16,
-    #[serde(deserialize_with = "utils::deserialize_body_limit")]
-    pub body_limit: usize,
 }
 
 impl Application {
@@ -169,8 +167,6 @@ impl Application {
         let method = ctx.method().as_str();
         let content_type = ctx.header("Content-Type").unwrap_or_default();
 
-        dbg!(&ctx.headers());
-
         if NO_BODY_METHODS.contains(&method) {
             return next!(ctx, next);
         }
@@ -192,31 +188,33 @@ impl ConfigItem for ApplicationConfig {
     }
 }
 
-mod utils {
-    use std::str::FromStr;
+// mod utils {
+//     use std::str::FromStr;
 
-    use byte_unit::Byte;
-    use regex::Regex;
-    use serde::{Deserialize, Deserializer};
+//     use byte_unit::Byte;
+//     use regex::Regex;
+//     use serde::{Deserialize, Deserializer};
 
-    pub fn deserialize_body_limit<'de, D>(deserializer: D) -> Result<usize, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let body_limit: String = Deserialize::deserialize(deserializer)?;
-        let regex = Regex::new(r"(?i)^\s*(\d+(?:\.\d+)?)\s*(b|kb|mb|gb)?\s*$").map_err(|_| {
-            serde::de::Error::custom("Invalid body limit format. Expected a number followed by an optional unit (b, kb, mb, gb).")
-        })?;
+//     pub fn deserialize_body_limit<'de, D>(deserializer: D) -> Result<usize, D::Error>
+//     where
+//         D: Deserializer<'de>,
+//     {
+//         let body_limit: String = Deserialize::deserialize(deserializer)?;
+//         let regex = Regex::new(r"(?i)^\s*(\d+(?:\.\d+)?)\s*(b|kb|mb|gb)?\s*$").map_err(|_| {
+//             serde::de::Error::custom("Invalid body limit format. Expected a number followed by an optional unit (b, kb, mb, gb).")
+//         })?;
 
-        if !regex.is_match(&body_limit) {
-            return Err(serde::de::Error::custom(
-                "Invalid body limit format. Expected a number followed by an optional unit (b, kb, mb, gb).",
-            ));
-        }
+//         if !regex.is_match(&body_limit) {
+//             return Err(serde::de::Error::custom(
+//                 "Invalid body limit format. Expected a number followed by an optional unit (b, kb, mb, gb).",
+//             ));
+//         }
 
-        let bytes = Byte::from_str(&body_limit)
-            .map_err(|_| serde::de::Error::custom("Failed to parse body limit"))?;
+//         let bytes = Byte::from_str(&body_limit)
+//             .map_err(|_| serde::de::Error::custom("Failed to parse body limit"))?;
 
-        Ok(bytes.as_u64() as usize)
-    }
-}
+//         println!("Parsed body limit: {}", bytes);
+
+//         Ok(bytes.as_u64() as usize)
+//     }
+// }

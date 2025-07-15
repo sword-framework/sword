@@ -1,3 +1,4 @@
+pub mod multipart;
 pub mod request;
 
 use std::{collections::HashMap, sync::Arc};
