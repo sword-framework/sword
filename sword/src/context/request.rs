@@ -186,29 +186,40 @@ impl Context {
         })
     }
 
-    /// Deserializes the query parameters (query string) to a specific type.
+    /// Deserializes the query parameters (query string) to a specific type, returning `None` if no query parameters exist.
+    ///
+    /// Query parameters in HTTP are inherently optional, so this method always returns an `Option<T>`.
+    /// This allows for ergonomic usage with the `?` operator followed by `unwrap_or_default()`.
     ///
     /// # Type Parameters
     /// * `T` - The type to deserialize the query parameters to. Must implement `DeserializeOwned`.
     ///
     /// # Returns
-    /// `Ok(T)` with the deserialized instance if the parameters are valid,
-    /// `Err(RequestError)` if there's no query string or it cannot be deserialized. This error
-    ///  can be automatically converted to an `HttpResponse` using the `?` operator.
-    pub fn query<T: DeserializeOwned>(&self) -> Result<T, RequestError> {
-        let query_str = self.uri.query();
-
-        let Some(query_str) = query_str else {
-            return Err(RequestError::ParseError(
-                "Invalid query parameters",
-                "Failed to parse - query string is empty".to_string(),
-            ));
+    /// `Ok(Some(T))` with the deserialized instance if query parameters exist and are valid,
+    /// `Ok(None)` if no query parameters are present,
+    /// `Err(RequestError)` if query parameters exist but cannot be deserialized.
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// // Using with a struct that implements Default
+    /// let query: QueryParams = ctx.query()?.unwrap_or_default();
+    ///
+    /// // Or using pattern matching
+    /// match ctx.query::<QueryParams>()? {
+    ///     Some(query) => println!("Got query: {:?}", query),
+    ///     None => println!("No query parameters provided"),
+    /// }
+    /// ```
+    pub fn query<T: DeserializeOwned>(&self) -> Result<Option<T>, RequestError> {
+        let query_str = match self.uri.query() {
+            Some(q) if !q.is_empty() => q,
+            _ => return Ok(None),
         };
 
-        serde_qs::from_str(query_str).map_err(|_| {
+        serde_qs::from_str(query_str).map(Some).map_err(|_| {
             RequestError::ParseError(
                 "Invalid request query",
-                "Failed to parse request query to required type.".to_string(),
+                "Failed to parse request query to required type.".into(),
             )
         })
     }
@@ -242,70 +253,10 @@ impl Context {
         Ok(body)
     }
 
-    /// Deserializes and validates the query parameters using validation rules.
-    ///
-    /// # Type Parameters
-    /// * `T` - The type to deserialize and validate. Must implement `DeserializeOwned` and `Validate`.
-    ///
-    /// # Returns
-    /// `Ok(T)` with the deserialized and validated instance,
-    /// `Err(RequestError)` if there are deserialization or validation errors.
-    ///
-    /// # Errors
-    /// - `RequestError::ParseError` if there's no query string or it cannot be parsed.
-    /// - `RequestError::ValidationError` if the data doesn't pass validation rules.
-    pub fn validated_query<T>(&self) -> Result<T, RequestError>
-    where
-        T: DeserializeOwned + Validate,
-    {
-        let query = self.query::<T>()?;
-
-        query.validate().map_err(|error| {
-            RequestError::ValidationError(
-                "Invalid request query",
-                crate::validation::format_validation_errors(&error),
-            )
-        })?;
-
-        Ok(query)
-    }
-
-    /// Deserializes the query parameters (query string) to a specific type, returning `None` if no query parameters exist.
-    ///
-    /// This is a more lenient version of `query()` that doesn't fail when the query string is empty.
-    /// The signature allows for ergonomic usage with the `?` operator followed by `unwrap_or_default()`.
-    ///
-    /// # Type Parameters
-    /// * `T` - The type to deserialize the query parameters to. Must implement `DeserializeOwned`.
-    ///
-    /// # Returns
-    /// `Ok(Some(T))` with the deserialized instance if query parameters exist and are valid,
-    /// `Ok(None)` if no query parameters are present,
-    /// `Err(RequestError)` if query parameters exist but cannot be deserialized.
-    ///
-    /// # Example
-    /// ```rust,ignore
-    /// // Assuming you have a QueryParams struct that implements Default
-    /// let query: QueryParams = ctx.query_optional()?.unwrap_or_default();
-    /// ```
-    pub fn query_optional<T: DeserializeOwned>(&self) -> Result<Option<T>, RequestError> {
-        let query_str = match self.uri.query() {
-            Some(q) if !q.is_empty() => q,
-            _ => return Ok(None),
-        };
-
-        serde_qs::from_str(query_str).map(Some).map_err(|_| {
-            RequestError::ParseError(
-                "Invalid request query",
-                "Failed to parse request query to required type.".into(),
-            )
-        })
-    }
-
     /// Deserializes and validates the query parameters using validation rules, returning `None` if no query parameters exist.
     ///
-    /// This is a more lenient version of `validated_query()` that doesn't fail when the query string is empty.
-    /// The signature allows for ergonomic usage with the `?` operator followed by `unwrap_or_default()`.
+    /// Query parameters in HTTP are inherently optional, so this method always returns an `Option<T>`.
+    /// This allows for ergonomic usage with the `?` operator followed by `unwrap_or_default()`.
     ///
     /// # Type Parameters
     /// * `T` - The type to deserialize and validate. Must implement `DeserializeOwned` and `Validate`.
@@ -315,16 +266,26 @@ impl Context {
     /// `Ok(None)` if no query parameters are present,
     /// `Err(RequestError)` if query parameters exist but fail deserialization or validation.
     ///
+    /// # Errors
+    /// - `RequestError::ParseError` if query parameters cannot be parsed.
+    /// - `RequestError::ValidationError` if the data doesn't pass validation rules.
+    ///
     /// # Example
     /// ```rust,ignore
-    /// // Assuming you have a QueryParams struct that implements Default and Validate
-    /// let query: QueryParams = ctx.validated_query_optional()?.unwrap_or_default();
+    /// // Using with a struct that implements Default and Validate
+    /// let query: QueryParams = ctx.validated_query()?.unwrap_or_default();
+    ///
+    /// // Or using pattern matching
+    /// match ctx.validated_query::<QueryParams>()? {
+    ///     Some(query) => println!("Got valid query: {:?}", query),
+    ///     None => println!("No query parameters provided"),
+    /// }
     /// ```
-    pub fn validated_query_optional<T>(&self) -> Result<Option<T>, RequestError>
+    pub fn validated_query<T>(&self) -> Result<Option<T>, RequestError>
     where
         T: DeserializeOwned + Validate,
     {
-        match self.query_optional::<T>()? {
+        match self.query::<T>()? {
             Some(query) => {
                 query.validate().map_err(|error| {
                     RequestError::ValidationError(
@@ -335,7 +296,6 @@ impl Context {
 
                 Ok(Some(query))
             }
-
             None => Ok(None),
         }
     }

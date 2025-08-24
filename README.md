@@ -22,8 +22,7 @@
 ```toml
 [dependencies]
 sword = "0.1.6"
-
-# Additional dependencies for features
+tokio = { version = "1.47.1", features = ["full"] }
 
 # validation features:
 validator = { version = "0.20.0", features = ["derive"] }
@@ -32,7 +31,7 @@ validator = { version = "0.20.0", features = ["derive"] }
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
 
-# dependency injection features:
+# OPTIONAL: If you want to use dependency injection features
 shaku = { version = "0.6.2", features = ["derive"] }
 async-trait = "0.1.88"
 ```
@@ -142,13 +141,18 @@ use sword::prelude::*;
 use sword::web::HttpResult;
 use validator::Validate;
 
-#[derive(Serialize, Deserialize, Validate)]
+#[derive(Serialize, Deserialize, Validate, Default)]
 struct UserQuery {
     #[validate(range(message = "Page must be between 1 and 1000", min = 1, max = 1000))]
+    #[serde(default = "default_page")]
     page: u32,
     #[validate(range(message = "Limit must be between 1 and 100", min = 1, max = 100))]
+    #[serde(default = "default_limit")]
     limit: u32,
 }
+
+fn default_page() -> u32 { 1 }
+fn default_limit() -> u32 { 10 }
 
 #[derive(Serialize, Deserialize, Validate)]
 struct CreateUserRequest {
@@ -165,7 +169,7 @@ struct UserController {}
 impl UserController {
     #[get("/")]
     async fn get_users(ctx: Context) -> HttpResult<HttpResponse> {
-        let query = ctx.validated_query::<UserQuery>()?;
+        let query = ctx.validated_query::<UserQuery>()?.unwrap_or_default();
         
         Ok(HttpResponse::Ok()
             .data(format!("Page: {}, Limit: {}", query.page, query.limit))
@@ -184,7 +188,7 @@ impl UserController {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    Application::builder()
+    Application::builder()?
         .controller::<UserController>()
         .run("0.0.0.0:8080")
         .await?;

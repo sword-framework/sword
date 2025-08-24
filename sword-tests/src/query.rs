@@ -59,7 +59,7 @@ pub struct UserController {}
 impl UserController {
     #[get("/simple-query")]
     async fn get_users(ctx: Context) -> HttpResult<HttpResponse> {
-        let query: QueryData = ctx.query()?;
+        let query: Option<QueryData> = ctx.query()?;
 
         Ok(HttpResponse::Ok()
             .data(query)
@@ -68,7 +68,7 @@ impl UserController {
 
     #[get("/validate-query")]
     async fn get_users_with_validation(ctx: Context) -> HttpResult<HttpResponse> {
-        let query: ValidableQueryData = ctx.validated_query()?;
+        let query: Option<ValidableQueryData> = ctx.validated_query()?;
 
         Ok(HttpResponse::Ok()
             .data(query)
@@ -76,9 +76,8 @@ impl UserController {
     }
 
     #[get("/ergonomic-optional-query")]
-    async fn get_users_with_ergonomic_optional_query(ctx: Context) -> HttpResult<HttpResponse> {
-        // Usando la nueva API ergonómica: Result<Option<T>, RequestError>
-        let query: OptionalQueryData = ctx.query_optional()?.unwrap_or_default();
+    async fn get_users_with_ergonomic_query(ctx: Context) -> HttpResult<HttpResponse> {
+        let query: OptionalQueryData = ctx.query()?.unwrap_or_default();
 
         Ok(HttpResponse::Ok()
             .data(query)
@@ -90,7 +89,7 @@ impl UserController {
         ctx: Context,
     ) -> HttpResult<HttpResponse> {
         // Usando la nueva API ergonómica para validación: Result<Option<T>, RequestError>
-        let query: DefaultValidableQueryData = ctx.validated_query_optional()?.unwrap_or_default();
+        let query: DefaultValidableQueryData = ctx.validated_query()?.unwrap_or_default();
 
         Ok(HttpResponse::Ok()
             .data(query)
@@ -100,7 +99,7 @@ impl UserController {
     #[get("/pattern-match-query")]
     async fn get_users_with_pattern_match(ctx: Context) -> HttpResult<HttpResponse> {
         // También se puede usar pattern matching de forma ergonómica
-        match ctx.query_optional::<OptionalQueryData>()? {
+        match ctx.query::<OptionalQueryData>()? {
             Some(query) => Ok(HttpResponse::Ok()
                 .data(query)
                 .message("Users retrieved with query parameters")),

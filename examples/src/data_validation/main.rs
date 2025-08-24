@@ -12,8 +12,12 @@ struct AppController {}
 impl AppController {
     #[get("/hello")]
     async fn hello(ctx: Context) -> HttpResult<HttpResponse> {
-        let query = ctx.validated_query::<MyQuery>()?;
-        Ok(HttpResponse::Ok().data(query))
+        match ctx.validated_query::<MyQuery>()? {
+            Some(query) => Ok(HttpResponse::Ok()
+                .data(query)
+                .message("Hello with query parameters")),
+            None => Ok(HttpResponse::Ok().message("Hello without query parameters")),
+        }
     }
 
     #[post("/submit")]
