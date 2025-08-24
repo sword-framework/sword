@@ -194,6 +194,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ## More Examples
 See the [examples directory](./examples) for more advanced usage.
 
+In the case of use hot reloading, you need to install `dioxus-cli`:
+
+```bash
+cargo install --git https://github.com/DioxusLabs/dioxus.git dioxus-cli
+```
+
+Then run the server with:
+
+```bash
+dx serve --hot-patch --example hot_reloading
+```
+
 ## Currently working on
 - ✅📱 Add Application struct
 - ✅ 🏗️ Add Application Context
@@ -201,6 +213,7 @@ See the [examples directory](./examples) for more advanced usage.
 - ✅ 💉 Add Dependency Injection support based on `shaku` crate
 - ✅ ⚙️ Add config file support
 - ✅ 📁 Add File - FormData support
+- ✅ 🔥 Add Hot Reloading support
 
 ## 📋 Roadmap
 
