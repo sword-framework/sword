@@ -31,6 +31,8 @@ pub mod web {
     }
 }
 
+pub use sword_macros::main;
+
 #[doc(hidden)]
 pub mod __private {
     pub use axum::extract::{FromRequest, FromRequestParts, Request as AxumRequest};

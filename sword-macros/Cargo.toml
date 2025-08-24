@@ -10,6 +10,10 @@ categories = ["web-programming::http-server", "web-programming"]
 readme = "../README.md"
 license-file = "../LICENSE"
 
+[features]
+default = []
+hot_reloading = []
+
 [lib]
 proc-macro = true
 
