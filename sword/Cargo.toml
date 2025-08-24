@@ -4,7 +4,7 @@ version = "0.1.6"
 edition = "2024"
 authors = ["Luciano Revillod <lrevillod2022@alu.uct.cl>"]
 description = "Axum based web framework prototype"
-repository = "https://github.com/MrRevillod/sword"
+repository = "https://github.com/sword-framework/sword"
 keywords = ["web", "framework", "axum", "http", "async"]
 categories = ["web-programming::http-server", "web-programming"]
 readme = "../README.md"
@@ -33,4 +33,3 @@ tower-http = { version = "0.6.6", features = ["trace", "cors"] }
 
 shaku = "0.6.2"
 thiserror = "2.0.12"
-
