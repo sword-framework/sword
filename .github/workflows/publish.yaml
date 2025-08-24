@@ -1,27 +1,50 @@
-name: Release Crates
+name: Publish
 
 on:
-  push:
-    tags:
-      - "*-v*"
   workflow_dispatch:
+    inputs:
+      version_bump:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+        - patch
+        - minor
+        - major
+      msg:
+        required: false
+
+env:
+  CARGO_TERM_COLOR: always
 
 jobs:
   publish:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
+      
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
-
-      - name: Install cargo-release
-        run: cargo install cargo-release
-
-      - name: Publish crates with cargo-release
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
+      
+      - name: Install cargo-workspaces
+        run: cargo install cargo-workspaces
+      
+      - name: Build
+        run: cargo build --workspace --verbose
+      
+      - name: Run tests
+        run: cargo test --workspace --verbose
+      
+      - name: Prepare workspace for publish
         run: |
-          cargo release publish --workspace --no-confirm --execute
+          # Copiar README a los subdirectorios que lo necesiten
+          cp README.md ./sword/
+          cp README.md ./sword-macros/
+      
+      - name: Bump version and publish
+        run: |
+          # Actualizar versiones automáticamente y publicar
+          cargo ws version ${{ github.event.inputs.version_bump }} --all --force '*' --no-git-commit
+          cargo ws publish --token=${{secrets.CRATES_IO_TOKEN}} --allow-dirty
