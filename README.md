@@ -139,3 +139,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ## More Examples
 See the [examples directory](./examples) for more advanced usage.
+
+## Hot reloading
+
+In the case of use hot reloading, you need to install `dioxus-cli`:
+
+```bash
+cargo install --git https://github.com/DioxusLabs/dioxus.git dioxus-cli
+```
+
+Then run the server with:
+
+```bash
+dx serve --hot-patch --example hot_reloading
+```
+
