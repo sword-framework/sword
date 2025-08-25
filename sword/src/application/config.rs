@@ -1,8 +1,6 @@
-use std::{env, fs::read_to_string, path::Path, str::FromStr, sync::Arc};
-
 use regex::Regex;
 use serde::de::{DeserializeOwned, IntoDeserializer};
-
+use std::{env, fs::read_to_string, path::Path, str::FromStr, sync::Arc};
 use toml::Table;
 
 use crate::errors::ConfigError;

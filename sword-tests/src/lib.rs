@@ -1,23 +1,18 @@
 #[cfg(test)]
-mod query;
+mod request {
+    mod multipart;
+    mod query;
+}
 
 #[cfg(test)]
-mod application;
+mod middlewares {
+    mod controller_level;
+    mod handler_level;
+}
 
 #[cfg(test)]
-mod middleware;
-
-#[cfg(test)]
-mod state;
-
-#[cfg(test)]
-mod di;
-
-#[cfg(test)]
-mod top_level_middleware;
-
-#[cfg(test)]
-mod config;
-
-#[cfg(test)]
-mod multipart;
+mod application {
+    mod config;
+    mod di;
+    mod state;
+}

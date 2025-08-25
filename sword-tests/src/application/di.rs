@@ -110,8 +110,8 @@ struct TestController {}
 impl TestController {
     #[get("/counter")]
     async fn get_counter(ctx: Context) -> HttpResult<HttpResponse> {
-        let counter_service = ctx.get_dependency::<TestModule, dyn CounterService>()?;
-        let logger = ctx.get_dependency::<TestModule, dyn Logger>()?;
+        let counter_service = ctx.di::<TestModule, dyn CounterService>()?;
+        let logger = ctx.di::<TestModule, dyn Logger>()?;
 
         let count = counter_service.get_count();
         logger.log(&format!("Counter accessed: {count}"));
@@ -123,16 +123,16 @@ impl TestController {
 
     #[post("/counter/increment")]
     async fn increment_counter(ctx: Context) -> HttpResult<HttpResponse> {
-        ctx.get_dependency::<TestModule, dyn Logger>()?
+        ctx.di::<TestModule, dyn Logger>()?
             .log("Incrementing counter");
 
-        let counter_service = ctx.get_dependency::<TestModule, dyn CounterService>()?;
+        let counter_service = ctx.di::<TestModule, dyn CounterService>()?;
 
         counter_service.increment();
 
         let count = counter_service.get_count();
 
-        ctx.get_dependency::<TestModule, dyn Logger>()?
+        ctx.di::<TestModule, dyn Logger>()?
             .log(&format!("Counter incremented to: {count}"));
 
         Ok(HttpResponse::Ok()
@@ -148,8 +148,8 @@ impl TestController {
         }
 
         let body: AddRequest = ctx.body()?;
-        let logger = ctx.get_dependency::<TestModule, dyn Logger>()?;
-        let counter_service = ctx.get_dependency::<TestModule, dyn CounterService>()?;
+        let logger = ctx.di::<TestModule, dyn Logger>()?;
+        let counter_service = ctx.di::<TestModule, dyn CounterService>()?;
 
         counter_service.add(body.value);
 
@@ -170,7 +170,7 @@ impl TestController {
 
     #[get("/logs")]
     async fn get_logs(ctx: Context) -> HttpResult<HttpResponse> {
-        let logger = ctx.get_dependency::<TestModule, dyn Logger>()?;
+        let logger = ctx.di::<TestModule, dyn Logger>()?;
         let logs = logger.get_logs();
 
         Ok(HttpResponse::Ok()
@@ -180,11 +180,10 @@ impl TestController {
 
     #[post("/counter/reset")]
     async fn reset_counter(ctx: Context) -> HttpResult<HttpResponse> {
-        ctx.get_dependency::<TestModule, dyn Logger>()?
+        ctx.di::<TestModule, dyn Logger>()?
             .log("Resetting counter to 0");
 
-        ctx.get_dependency::<TestModule, dyn CounterService>()?
-            .reset();
+        ctx.di::<TestModule, dyn CounterService>()?.reset();
 
         Ok(HttpResponse::Ok()
             .data(json!({ "count": 0 }))

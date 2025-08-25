@@ -1,6 +1,11 @@
 [application]
 host = "0.0.0.0"
 port = 8080
+body_limit = "10MB"
+allowed_mime_types = [
+    "image/png", 
+    "application/pdf", 
+]
 
 [my-custom-section]
 custom_key = "custom_value"

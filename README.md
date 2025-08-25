@@ -2,18 +2,19 @@
 <img src="https://pillan.inf.uct.cl/~lrevillod/images/sword-logo.png" alt="Sword Logo" width="200">
 
 <h1>⚔️ Sword ⚔️</h1>
-<p><em>A prototype for a rust web framework</em></p>
+<p><em>Rust web framework</em></p>
 </div>
 
 ## ✨ Features
 
 - 🛣️ **Macro-based routing** - Clean and intuitive route definitions
-- 🔍 **Complex query parameters** - Ready for advanced parameter handling
 - 📄 **JSON-first design** - Built with JSON formats as priority
 - ✅ **Built-in validation** - Support with `serde` and `validator` crates
 - 🌐 **RFC-compliant HTTP responses** - Using `axum_responses` crate
-- 💡 **Express-Like** - It provides a `Context` object with utility methods for request handling
-- 💉 **Dependency Injection** - Built-in DI support using `shaku` crate
+- � **Express-Like** - It provides a `Context` object with utility methods for request handling
+- �💉 **Dependency Injection** - Built-in DI support using `shaku` crate
+- 🧩 **Middleware support** - Easily add middleware to routes or controllers
+- 🚀 **Asynchronous by default** - Built on top of `axum` and `tokio`
 
 ## 🛠️ Usage
 
@@ -21,15 +22,15 @@
 
 ```toml
 [dependencies]
-sword = "0.1.6"
+sword = "0.1.7"
 tokio = { version = "1.47.1", features = ["full"] }
 
 # validation features:
 validator = { version = "0.20.0", features = ["derive"] }
 
 # JSON handling features:
-serde = { version = "1.0.219", features = ["derive"] }
-serde_json = "1.0.140"
+serde = { version = "*", features = ["derive"] }
+serde_json = "*"
 
 # OPTIONAL: If you want to use dependency injection features
 shaku = { version = "0.6.2", features = ["derive"] }
@@ -75,7 +76,7 @@ impl AppController {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    Application::builder()
+    Application::builder()?
         .controller::<AppController>()
         .run("0.0.0.0:8080")
         .await?;
@@ -124,7 +125,7 @@ impl AppController {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    Application::builder()
+    Application::builder()?
         .controller::<AppController>()
         .run("0.0.0.0:8080")
         .await?;
@@ -133,82 +134,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-### With Data Validation
-
-```rust
-use serde::{Deserialize, Serialize};
-use sword::prelude::*;
-use sword::web::HttpResult;
-use validator::Validate;
-
-#[derive(Serialize, Deserialize, Validate, Default)]
-struct UserQuery {
-    #[validate(range(message = "Page must be between 1 and 1000", min = 1, max = 1000))]
-    #[serde(default = "default_page")]
-    page: u32,
-    #[validate(range(message = "Limit must be between 1 and 100", min = 1, max = 100))]
-    #[serde(default = "default_limit")]
-    limit: u32,
-}
-
-fn default_page() -> u32 { 1 }
-fn default_limit() -> u32 { 10 }
-
-#[derive(Serialize, Deserialize, Validate)]
-struct CreateUserRequest {
-    #[validate(length(min = 1, message = "Name must not be empty"))]
-    name: String,
-    #[validate(email(message = "Invalid email format"))]
-    email: String,
-}
-
-#[controller("/users")]
-struct UserController {}
-
-#[routes]
-impl UserController {
-    #[get("/")]
-    async fn get_users(ctx: Context) -> HttpResult<HttpResponse> {
-        let query = ctx.validated_query::<UserQuery>()?.unwrap_or_default();
-        
-        Ok(HttpResponse::Ok()
-            .data(format!("Page: {}, Limit: {}", query.page, query.limit))
-            .message("Users retrieved successfully"))
-    }
-
-    #[post("/")]
-    async fn create_user(ctx: Context) -> HttpResult<HttpResponse> {
-        let user = ctx.validated_body::<CreateUserRequest>()?;
-
-        Ok(HttpResponse::Ok()
-            .data(user)
-            .message("User created successfully"))
-    }
-}
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    Application::builder()?
-        .controller::<UserController>()
-        .run("0.0.0.0:8080")
-        .await?;
-}
-```
+## Known Issues
+- Body size limit errors return a `400 Bad Request` instead of `413 Payload Too Large. It will be fixed in future releases.
 
 ## More Examples
 See the [examples directory](./examples) for more advanced usage.
-
-## Currently working on
-- ✅📱 Add Application struct
-- ✅ 🏗️ Add Application Context
-- ✅ 🔒 Add Middleware support
-- ✅ 💉 Add Dependency Injection support based on `shaku` crate
-- ✅ ⚙️ Add config file support
-- ✅ 📁 Add File - FormData support
-
-## 📋 Roadmap
-
-- [ ] 🛠️ CLI Command line interface for code-generation (templates) and application runner
-- [ ] 📦 Add more built-in middleware under tower layers
-- [ ] 📚 Add better error trace and display on console
-- [ ] 🧪 Improve the multipart axum/multer base system 

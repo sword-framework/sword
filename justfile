@@ -4,11 +4,11 @@ fmt:
 lint:
     cargo clippy --workspace --all-targets -- -D warnings
 
-test:
-    cargo test --workspace
+test entity="":
+    cargo test {{entity}}
 
-test-log:
-    cargo test --workspace -- --nocapture
+test-log entity="":
+    cargo test {{entity}} -- --nocapture
 
 example NAME="basic_web_server":
     cd examples && cargo run --example {{NAME}}

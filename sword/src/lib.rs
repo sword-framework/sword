@@ -1,5 +1,5 @@
 mod context;
-mod middleware;
+mod middlewares;
 mod validation;
 
 pub mod prelude {
@@ -7,7 +7,6 @@ pub mod prelude {
     pub use crate::application::{Application, ApplicationConfig, config_macro as config};
 
     pub use crate::errors::{ApplicationError, RequestError, StateError};
-
     pub use crate::web::*;
 }
 
@@ -19,7 +18,8 @@ pub mod web {
     pub use axum_responses::http::*;
 
     pub use crate::context::Context;
-    pub use crate::middleware::*;
+    pub use crate::context::multipart::MultipartField;
+    pub use crate::middlewares::*;
     pub use crate::next;
 
     pub use sword_macros::{controller, delete, get, patch, post, put, routes};
