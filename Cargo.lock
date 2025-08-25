@@ -1922,7 +1922,7 @@ dependencies = [
 
 [[package]]
 name = "sword"
-version = "0.1.6"
+version = "0.1.7"
 dependencies = [
  "axum",
  "axum_responses",
@@ -1945,7 +1945,7 @@ dependencies = [
 
 [[package]]
 name = "sword-macros"
-version = "0.1.6"
+version = "0.1.7"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
