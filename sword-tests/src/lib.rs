@@ -16,3 +16,6 @@ mod application {
     mod di;
     mod state;
 }
+
+#[cfg(test)]
+pub mod utils;
