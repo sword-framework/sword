@@ -26,10 +26,10 @@ pub fn expand_controller_impl(_: TokenStream, item: TokenStream) -> TokenStream 
                             continue;
                         }
                     }
-                } else if let Some(ident) = attr.path().get_ident() {
-                    if HTTP_METHODS.contains(&ident.to_string().as_str()) {
-                        http_meta = Some((attr, ident.clone()));
-                    }
+                } else if let Some(ident) = attr.path().get_ident()
+                    && HTTP_METHODS.contains(&ident.to_string().as_str())
+                {
+                    http_meta = Some((attr, ident.clone()));
                 }
             }
 

@@ -51,15 +51,15 @@ impl Context {
                 )
             })?;
 
-            if file_name.is_some() {
-                if let Some(kind) = infer::get(&data) {
-                    let mime_type = kind.mime_type().to_string();
+            if file_name.is_some()
+                && let Some(kind) = infer::get(&data)
+            {
+                let mime_type = kind.mime_type().to_string();
 
-                    if !allowed_mime_types.contains(&mime_type) {
-                        return Err(RequestError::UnsupportedMediaType(format!(
-                            "MIME type \"{mime_type}\" is not allowed",
-                        )));
-                    }
+                if !allowed_mime_types.contains(&mime_type) {
+                    return Err(RequestError::UnsupportedMediaType(format!(
+                        "MIME type \"{mime_type}\" is not allowed",
+                    )));
                 }
             }
 
