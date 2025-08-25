@@ -3,7 +3,7 @@ use axum::{
     extract::{FromRequest, Multipart},
 };
 
-use crate::{errors::RequestError, web::Context};
+use crate::{errors::RequestError, prelude::ApplicationConfig, web::Context};
 
 #[derive(Debug)]
 pub struct MultipartField {
@@ -24,6 +24,15 @@ impl Context {
                 )
             })?;
 
+        let allowed_mime_types = self
+            .config::<ApplicationConfig>()
+            .map_err(|e| {
+                eprintln!("Error retrieving application config: {e}");
+                RequestError::InternalError("Failed to retrieve application config".to_string())
+            })?
+            .allowed_mime_types
+            .clone();
+
         let mut fields = Vec::new();
 
         while let Some(field) = multipart.next_field().await.map_err(|err| {
@@ -41,6 +50,18 @@ impl Context {
                     format!("Error reading bytes: {err}"),
                 )
             })?;
+
+            if file_name.is_some()
+                && let Some(kind) = infer::get(&data)
+            {
+                let mime_type = kind.mime_type().to_string();
+
+                if !allowed_mime_types.contains(&mime_type) {
+                    return Err(RequestError::UnsupportedMediaType(format!(
+                        "MIME type \"{mime_type}\" is not allowed",
+                    )));
+                }
+            }
 
             fields.push(MultipartField {
                 name,

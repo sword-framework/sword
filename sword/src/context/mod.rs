@@ -58,7 +58,7 @@ impl Context {
     ///
     /// Parameter `M` is the module type that contains the dependency.
     /// Parameter `I` is the interface type that is being resolved. (must be a `dyn Interface`)
-    pub fn get_dependency<M, I>(&self) -> Result<Arc<I>, StateError>
+    pub fn di<M, I>(&self) -> Result<Arc<I>, StateError>
     where
         M: Module + HasComponent<I> + Send + Sync + 'static,
         I: Interface + ?Sized + 'static,

@@ -29,7 +29,7 @@ impl From<RequestError> for HttpResponse {
                 .message("Request payload too large")
                 .data(json!({
                     "type": "PayloadTooLarge",
-                    "message": "The request body exceeds the maximum allowed size"
+                    "message": "The request body exceeds the maximum allowed size by the server"
                 })),
             RequestError::InvalidContentType(message) => HttpResponse::UnsupportedMediaType()
                 .message("Invalid content type")
@@ -37,6 +37,18 @@ impl From<RequestError> for HttpResponse {
                     "type": "InvalidContentType",
                     "message": message
                 })),
+
+            RequestError::UnsupportedMediaType(message) => HttpResponse::UnsupportedMediaType()
+                .message("Unsupported media type")
+                .data(json!({
+                    "type": "UnsupportedMediaType",
+                    "message": message
+                })),
+
+            RequestError::InternalError(message) => {
+                eprintln!("Internal server error: {message}");
+                HttpResponse::InternalServerError().message("Internal server error")
+            }
         }
     }
 }

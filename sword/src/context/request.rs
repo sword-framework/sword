@@ -10,8 +10,9 @@ use serde::de::DeserializeOwned;
 use validator::Validate;
 
 use crate::{
-    application::SwordState,
+    application::{SwordState, config::SwordConfig},
     errors::RequestError,
+    prelude::ApplicationConfig,
     web::{Context, HttpResponse, HttpResult},
 };
 
@@ -38,15 +39,14 @@ where
         }
 
         let state = SwordState::from_ref(state);
-        // let config = state.get::<SwordConfig>()?;
-        // let body_limit = config
-        //     .get::<ApplicationConfig>()
-        //     .map(|app_config| app_config.body_limit)
-        //     .unwrap_or(usize::MAX);
 
-        // println!("loading context with body limit: {body_limit}");
+        let body_limit = state
+            .get::<SwordConfig>()?
+            .get::<ApplicationConfig>()
+            .map(|app_config| app_config.body_limit)
+            .unwrap_or(usize::MAX);
 
-        let body_bytes = to_bytes(body, usize::MAX).await.map_err(|err| {
+        let body_bytes = to_bytes(body, body_limit).await.map_err(|err| {
             RequestError::ParseError(
                 "Failed to read request body",
                 format!("Error reading body: {err}"),
@@ -150,14 +150,9 @@ impl Context {
         if let Some(value) = self.params.get(key) {
             let Ok(param) = value.parse::<T>() else {
                 let message = "Invalid parameter type";
-                let details = format!(
-                    "Failed to parse parameter '{}': expected type '{}', got '{}'",
-                    key,
-                    std::any::type_name::<T>(),
-                    value
-                );
+                let details = "Failed to parse parameter to the required type";
 
-                return Err(RequestError::ParseError(message, details));
+                return Err(RequestError::ParseError(message, details.into()));
             };
 
             return Ok(param);
@@ -183,45 +178,48 @@ impl Context {
             return Err(RequestError::BodyIsEmpty("Request body is empty"));
         }
 
-        serde_json::from_slice(&self.body_bytes).map_err(|err| {
+        serde_json::from_slice(&self.body_bytes).map_err(|_| {
             let message = "Invalid request body";
-            let details = format!(
-                "Failed to parse request body to type '{}': {}",
-                std::any::type_name::<T>(),
-                err
-            );
+            let details = "Failed to parse request body to the required type.";
 
-            RequestError::ParseError(message, details)
+            RequestError::ParseError(message, details.into())
         })
     }
 
-    /// Deserializes the query parameters (query string) to a specific type.
+    /// Deserializes the query parameters (query string) to a specific type, returning `None` if no query parameters exist.
+    ///
+    /// Query parameters in HTTP are inherently optional, so this method always returns an `Option<T>`.
+    /// This allows for ergonomic usage with the `?` operator followed by `unwrap_or_default()`.
     ///
     /// # Type Parameters
     /// * `T` - The type to deserialize the query parameters to. Must implement `DeserializeOwned`.
     ///
     /// # Returns
-    /// `Ok(T)` with the deserialized instance if the parameters are valid,
-    /// `Err(RequestError)` if there's no query string or it cannot be deserialized. This error
-    ///  can be automatically converted to an `HttpResponse` using the `?` operator.
-    pub fn query<T: DeserializeOwned>(&self) -> Result<T, RequestError> {
-        let query_str = self.uri.query();
-
-        let Some(query_str) = query_str else {
-            return Err(RequestError::ParseError(
-                "Invalid query parameters",
-                "Failed to parse - query string is empty".to_string(),
-            ));
+    /// `Ok(Some(T))` with the deserialized instance if query parameters exist and are valid,
+    /// `Ok(None)` if no query parameters are present,
+    /// `Err(RequestError)` if query parameters exist but cannot be deserialized.
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// // Using with a struct that implements Default
+    /// let query: QueryParams = ctx.query()?.unwrap_or_default();
+    ///
+    /// // Or using pattern matching
+    /// match ctx.query::<QueryParams>()? {
+    ///     Some(query) => println!("Got query: {:?}", query),
+    ///     None => println!("No query parameters provided"),
+    /// }
+    /// ```
+    pub fn query<T: DeserializeOwned>(&self) -> Result<Option<T>, RequestError> {
+        let query_str = match self.uri.query() {
+            Some(q) if !q.is_empty() => q,
+            _ => return Ok(None),
         };
 
-        serde_qs::from_str(query_str).map_err(|err| {
+        serde_qs::from_str(query_str).map(Some).map_err(|_| {
             RequestError::ParseError(
                 "Invalid request query",
-                format!(
-                    "Failed to parse request query to type '{}': {}",
-                    std::any::type_name::<T>(),
-                    err
-                ),
+                "Failed to parse request query to required type.".into(),
             )
         })
     }
@@ -255,32 +253,51 @@ impl Context {
         Ok(body)
     }
 
-    /// Deserializes and validates the query parameters using validation rules.
+    /// Deserializes and validates the query parameters using validation rules, returning `None` if no query parameters exist.
+    ///
+    /// Query parameters in HTTP are inherently optional, so this method always returns an `Option<T>`.
+    /// This allows for ergonomic usage with the `?` operator followed by `unwrap_or_default()`.
     ///
     /// # Type Parameters
     /// * `T` - The type to deserialize and validate. Must implement `DeserializeOwned` and `Validate`.
     ///
     /// # Returns
-    /// `Ok(T)` with the deserialized and validated instance,
-    /// `Err(RequestError)` if there are deserialization or validation errors.
+    /// `Ok(Some(T))` with the deserialized and validated instance if query parameters exist and are valid,
+    /// `Ok(None)` if no query parameters are present,
+    /// `Err(RequestError)` if query parameters exist but fail deserialization or validation.
     ///
     /// # Errors
-    /// - `RequestError::ParseError` if there's no query string or it cannot be parsed.
+    /// - `RequestError::ParseError` if query parameters cannot be parsed.
     /// - `RequestError::ValidationError` if the data doesn't pass validation rules.
-    pub fn validated_query<T>(&self) -> Result<T, RequestError>
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// // Using with a struct that implements Default and Validate
+    /// let query: QueryParams = ctx.validated_query()?.unwrap_or_default();
+    ///
+    /// // Or using pattern matching
+    /// match ctx.validated_query::<QueryParams>()? {
+    ///     Some(query) => println!("Got valid query: {:?}", query),
+    ///     None => println!("No query parameters provided"),
+    /// }
+    /// ```
+    pub fn validated_query<T>(&self) -> Result<Option<T>, RequestError>
     where
         T: DeserializeOwned + Validate,
     {
-        let query = self.query::<T>()?;
+        match self.query::<T>()? {
+            Some(query) => {
+                query.validate().map_err(|error| {
+                    RequestError::ValidationError(
+                        "Invalid request query",
+                        crate::validation::format_validation_errors(&error),
+                    )
+                })?;
 
-        query.validate().map_err(|error| {
-            RequestError::ValidationError(
-                "Invalid request query",
-                crate::validation::format_validation_errors(&error),
-            )
-        })?;
-
-        Ok(query)
+                Ok(Some(query))
+            }
+            None => Ok(None),
+        }
     }
 }
 

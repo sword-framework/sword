@@ -44,7 +44,13 @@ pub enum RequestError {
     #[error("Request body is too large")]
     BodyTooLarge,
     #[error("Invalid content type: {0}")]
-    InvalidContentType(&'static str),
+    InvalidContentType(String),
+
+    #[error("Unsupported media type: {0}")]
+    UnsupportedMediaType(String),
+
+    #[error("Internal server error: {0}")]
+    InternalError(String),
 }
 
 #[derive(Debug, Error)]

@@ -98,7 +98,7 @@ pub fn config(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///
 /// To use the multi-threaded runtime, the macro can be configured using
 ///
-/// ```
+/// ```rust,ignore
 /// #[tokio::main(flavor = "multi_thread", worker_threads = 10)]
 /// # async fn main() {}
 /// ```
@@ -114,7 +114,7 @@ pub fn config(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// To use the single-threaded runtime known as the `current_thread` runtime,
 /// the macro can be configured using
 ///
-/// ```
+/// ```rust,ignore
 /// #[tokio::main(flavor = "current_thread")]
 /// # async fn main() {}
 /// ```
@@ -127,7 +127,7 @@ pub fn config(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///
 /// ### Using the multi-thread runtime
 ///
-/// ```rust
+/// ```ignore
 /// #[tokio::main]
 /// async fn main() {
 ///     println!("Hello world");
@@ -136,7 +136,7 @@ pub fn config(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///
 /// Equivalent code not using `#[tokio::main]`
 ///
-/// ```rust
+/// ```ignore
 /// fn main() {
 ///     tokio::runtime::Builder::new_multi_thread()
 ///         .enable_all()
@@ -152,7 +152,7 @@ pub fn config(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///
 /// The basic scheduler is single-threaded.
 ///
-/// ```rust
+/// ```ignore
 /// #[tokio::main(flavor = "current_thread")]
 /// async fn main() {
 ///     println!("Hello world");
@@ -161,7 +161,7 @@ pub fn config(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///
 /// Equivalent code not using `#[tokio::main]`
 ///
-/// ```rust
+/// ```ignore
 /// fn main() {
 ///     tokio::runtime::Builder::new_current_thread()
 ///         .enable_all()
@@ -175,7 +175,7 @@ pub fn config(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///
 /// ### Set number of worker threads
 ///
-/// ```rust
+/// ```ignore
 /// #[tokio::main(worker_threads = 2)]
 /// async fn main() {
 ///     println!("Hello world");
@@ -184,7 +184,7 @@ pub fn config(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///
 /// Equivalent code not using `#[tokio::main]`
 ///
-/// ```rust
+/// ```ignore
 /// fn main() {
 ///     tokio::runtime::Builder::new_multi_thread()
 ///         .worker_threads(2)
@@ -199,7 +199,7 @@ pub fn config(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///
 /// ### Configure the runtime to start with time paused
 ///
-/// ```rust
+/// ```ignore
 /// #[tokio::main(flavor = "current_thread", start_paused = true)]
 /// async fn main() {
 ///     println!("Hello world");
@@ -208,7 +208,7 @@ pub fn config(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///
 /// Equivalent code not using `#[tokio::main]`
 ///
-/// ```rust
+/// ```ignore
 /// fn main() {
 ///     tokio::runtime::Builder::new_current_thread()
 ///         .enable_all()
@@ -225,7 +225,7 @@ pub fn config(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///
 /// ### Rename package
 ///
-/// ```rust
+/// ```ignore
 /// use tokio as tokio1;
 ///
 /// #[tokio1::main(crate = "tokio1")]
@@ -236,7 +236,7 @@ pub fn config(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///
 /// Equivalent code not using `#[tokio::main]`
 ///
-/// ```rust
+/// ```ignore
 /// use tokio as tokio1;
 ///
 /// fn main() {
@@ -257,7 +257,7 @@ pub fn config(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///
 /// This option is only compatible with the `current_thread` runtime.
 ///
-/// ```no_run
+/// ```no_run, ignore
 /// # #![allow(unknown_lints, unexpected_cfgs)]
 /// #[cfg(tokio_unstable)]
 /// #[tokio::main(flavor = "current_thread", unhandled_panic = "shutdown_runtime")]
@@ -272,7 +272,7 @@ pub fn config(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///
 /// Equivalent code not using `#[tokio::main]`
 ///
-/// ```no_run
+/// ```no_run, ignore
 /// # #![allow(unknown_lints, unexpected_cfgs)]
 /// #[cfg(tokio_unstable)]
 /// fn main() {
