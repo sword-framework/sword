@@ -2,11 +2,12 @@ use std::{collections::HashMap, str::FromStr};
 
 use axum::{
     body::{Body, to_bytes},
-    extract::{FromRef, FromRequest, OptionalFromRequestParts, Path, Request as AxumRequest},
+    extract::{FromRef, FromRequest, Path, Query, Request as AxumRequest},
     http::Method,
 };
 
 use serde::de::DeserializeOwned;
+use serde_json::Value;
 use validator::Validate;
 
 use crate::{
@@ -31,8 +32,11 @@ where
         let (mut parts, body) = req.into_parts();
 
         let mut params = HashMap::new();
-        let path_result =
-            Path::<HashMap<String, String>>::from_request_parts(&mut parts, &()).await;
+
+        let path_result = {
+            use axum::extract::OptionalFromRequestParts;
+            Path::<HashMap<String, String>>::from_request_parts(&mut parts, &()).await
+        };
 
         if let Ok(Some(path_params)) = path_result {
             params.extend(path_params.0);
@@ -61,6 +65,15 @@ where
             }
         }
 
+        let query = {
+            use axum::extract::FromRequestParts;
+            let Query(query) = Query::<Value>::from_request_parts(&mut parts, &())
+                .await
+                .unwrap_or(Query(Value::Null));
+
+            query
+        };
+
         Ok(Self {
             params,
             body_bytes,
@@ -69,6 +82,7 @@ where
             uri: parts.uri,
             extensions: parts.extensions,
             state,
+            query,
         })
     }
 }
@@ -211,17 +225,18 @@ impl Context {
     /// }
     /// ```
     pub fn query<T: DeserializeOwned>(&self) -> Result<Option<T>, RequestError> {
-        let query_str = match self.uri.query() {
-            Some(q) if !q.is_empty() => q,
-            _ => return Ok(None),
-        };
+        if self.query.is_null() {
+            return Ok(None);
+        }
 
-        serde_qs::from_str(query_str).map(Some).map_err(|_| {
-            RequestError::ParseError(
-                "Invalid request query",
-                "Failed to parse request query to required type.".into(),
-            )
-        })
+        let value = serde_json::from_value::<T>(self.query.clone()).map_err(|_| {
+            let message = "Invalid query parameters";
+            let details = "Failed to parse query parameters to the required type.";
+
+            RequestError::ParseError(message, details.into())
+        })?;
+
+        Ok(Some(value))
     }
 
     /// Deserializes and validates the request body using validation rules.
