@@ -13,8 +13,27 @@ pub struct MultipartField {
     pub data: Bytes,
 }
 
+#[derive(Debug)]
+pub struct MultipartData {
+    fields: Vec<MultipartField>,
+}
+
+impl MultipartData {
+    pub(crate) fn new(fields: Vec<MultipartField>) -> Self {
+        Self { fields }
+    }
+
+    pub fn fields(&self) -> &Vec<MultipartField> {
+        &self.fields
+    }
+
+    pub fn into_fields(self) -> Vec<MultipartField> {
+        self.fields
+    }
+}
+
 impl Context {
-    pub async fn multipart(&self) -> Result<Vec<MultipartField>, RequestError> {
+    pub async fn multipart(&self) -> Result<MultipartData, RequestError> {
         let mut multipart = Multipart::from_request(self.clone().try_into()?, &())
             .await
             .map_err(|err| {
@@ -71,6 +90,6 @@ impl Context {
             });
         }
 
-        Ok(fields)
+        Ok(MultipartData::new(fields))
     }
 }

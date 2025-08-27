@@ -42,6 +42,7 @@ pub struct ApplicationConfig {
     #[serde(deserialize_with = "deserialize_size")]
     pub body_limit: usize,
 
+    #[cfg(feature = "multipart")]
     pub allowed_mime_types: Vec<String>,
 }
 
@@ -52,22 +53,14 @@ impl Application {
 
         state.insert(config.clone()).unwrap();
 
+        let mut router = Router::new().with_state(state.clone());
+
         if cfg!(test) {
-            let router = Router::new()
-                .layer(mw_with_state(
-                    state.clone(),
-                    middlewares::content_type_check,
-                ))
-                .with_state(state.clone());
-
-            return Ok(Self {
-                router,
-                state,
-                config,
-            });
+            router = router.layer(mw_with_state(
+                state.clone(),
+                middlewares::content_type_check,
+            ));
         }
-
-        let router = Router::new().with_state(state.clone());
 
         Ok(Self {
             router,

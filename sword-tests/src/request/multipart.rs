@@ -18,7 +18,7 @@ impl TestController {
         let form = ctx.multipart().await?;
         let mut fields: Vec<String> = Vec::new();
 
-        for field in form.iter() {
+        for field in form.fields() {
             fields.push(field.name.clone().unwrap_or("unknown".to_string()));
         }
 

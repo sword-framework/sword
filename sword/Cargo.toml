@@ -10,10 +10,13 @@ categories = ["web-programming::http-server", "web-programming"]
 readme = "../README.md"
 license-file = "../LICENSE"
 
+[features]
+multipart = ["axum/multipart"]
+
 [dependencies]
 tokio = { version = "1.45.1" }
 
-axum = { version = "0.8.4", features = ["multipart"] }
+axum = { version = "0.8.4" }
 axum_responses = "0.4.2"
 
 serde = "1.0.219"

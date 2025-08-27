@@ -1,7 +1,7 @@
-pub mod multipart;
 pub mod request;
 
-use std::{collections::HashMap, sync::Arc};
+#[cfg(feature = "multipart")]
+pub mod multipart;
 
 use axum::{
     body::Bytes,
@@ -10,6 +10,7 @@ use axum::{
 
 use serde::de::DeserializeOwned;
 use shaku::{HasComponent, Interface, Module};
+use std::{collections::HashMap, sync::Arc};
 
 use crate::{
     application::{
