@@ -9,7 +9,7 @@ publish = false
 axum = "0.8.4"
 axum-test = "17.3.0"
 
-sword = { path = "../sword" }
+sword = { path = "../sword", features = ["multipart"] }
 
 tokio = { version = "1.45.1", features = ["macros", "rt-multi-thread"] }
 serde = { version = "1.0.219", features = ["derive"] }

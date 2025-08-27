@@ -16,16 +16,16 @@ pub mod errors;
 pub mod web {
     pub use axum_responses::Result as HttpResult;
     pub use axum_responses::http::*;
+    pub use sword_macros::{controller, delete, get, patch, post, put, routes};
 
     pub use crate::context::Context;
-    pub use crate::context::multipart::MultipartField;
     pub use crate::middlewares::*;
     pub use crate::next;
 
-    pub use sword_macros::{controller, delete, get, patch, post, put, routes};
+    #[cfg(feature = "multipart")]
+    pub use crate::context::multipart::MultipartField;
 
     use crate::application::SwordState;
-
     pub trait RouterProvider {
         fn router(state: SwordState) -> axum::routing::Router;
     }
