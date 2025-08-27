@@ -4,7 +4,6 @@ members = [
     "sword-tests",
     "sword-macros",
     "sword",
-    "examples",
 ]
 
-exclude = ["sword-tests", "examples"]
+exclude = ["sword-tests"]
