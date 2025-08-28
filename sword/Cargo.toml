@@ -24,6 +24,10 @@ axum_responses = "0.4.2"
 toml = "0.9.0"
 serde = "1.0.219"
 serde_json = "1.0.140"
+serde_urlencoded = "0.7.1"
+form_urlencoded = "1.2.2"
+serde_path_to_error = "0.1.17"
+byte-unit = "5.1.6"
 
 sword-macros = { path = "../sword-macros", version = "0.1.6" }
 
@@ -37,9 +41,9 @@ tower-http = { version = "0.6.6" }
 
 shaku = "0.6.2"
 thiserror = "2.0.12"
-byte-unit = "5.1.6"
 
 # Hot Reload dependencies
 
 subsecond = { git = "https://github.com/DioxusLabs/dioxus.git", optional = true, package = "subsecond" }
 dioxus-devtools = { git = "https://github.com/DioxusLabs/dioxus.git", features = [ "serve" ], optional = true, package = "dioxus-devtools" }
+

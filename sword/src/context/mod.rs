@@ -9,7 +9,6 @@ use axum::{
 };
 
 use serde::de::DeserializeOwned;
-use serde_json::Value;
 use shaku::{HasComponent, Interface, Module};
 use std::{collections::HashMap, sync::Arc};
 
@@ -35,7 +34,6 @@ pub struct Context {
     headers: HashMap<String, String>,
     uri: Uri,
     state: SwordState,
-    query: Value,
     pub extensions: Extensions,
 }
 
