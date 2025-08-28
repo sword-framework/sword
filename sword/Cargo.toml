@@ -35,9 +35,10 @@ infer = "0.19.0"
 regex = "1.11.1"
 validator = { version = "0.20.0", features = ["derive"] }
 
+tower = "0.5.2"
 tower-layer = "0.3.3"
 tower-service = "0.3.3"
-tower-http = { version = "0.6.6" }
+tower-http = { version = "0.6.6", features = ["limit"]}
 
 shaku = "0.6.2"
 thiserror = "2.0.12"
@@ -46,4 +47,5 @@ thiserror = "2.0.12"
 
 subsecond = { git = "https://github.com/DioxusLabs/dioxus.git", optional = true, package = "subsecond" }
 dioxus-devtools = { git = "https://github.com/DioxusLabs/dioxus.git", features = [ "serve" ], optional = true, package = "dioxus-devtools" }
+http-body-util = "0.1.3"
 

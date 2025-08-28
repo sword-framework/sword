@@ -9,7 +9,8 @@ use axum::{
 use axum_responses::http::HttpResponse;
 use byte_unit::Byte;
 use serde::{Deserialize, Serialize};
-use tokio::net::TcpListener;
+use tokio::net::TcpListener as Listener;
+use tower_http::limit::RequestBodyLimitLayer;
 use tower_layer::Layer;
 use tower_service::Service;
 
@@ -17,8 +18,7 @@ use crate::{
     __private::mw_with_state,
     application::config::{ConfigItem, SwordConfig},
     errors::{ApplicationError, StateError},
-    middlewares,
-    web::RouterProvider,
+    web::{RouterProvider, content_type_check},
 };
 
 pub mod config;
@@ -51,15 +51,15 @@ impl Application {
         let state = SwordState::new();
         let config = SwordConfig::new()?;
 
+        let app_config = config.get::<ApplicationConfig>()?;
+
         state.insert(config.clone()).unwrap();
 
         let mut router = Router::new().with_state(state.clone());
 
         if cfg!(test) {
-            router = router.layer(mw_with_state(
-                state.clone(),
-                middlewares::content_type_check,
-            ));
+            router = router.layer(mw_with_state(state.clone(), content_type_check));
+            router = router.layer(RequestBodyLimitLayer::new(app_config.body_limit));
         }
 
         Ok(Self {
@@ -130,28 +130,26 @@ impl Application {
     }
 
     pub async fn run(&self) -> Result<(), ApplicationError> {
-        let server_conf = self.config.get::<ApplicationConfig>()?;
-        let addr = format!("{}:{}", server_conf.host, server_conf.port);
+        let config = self.config.get::<ApplicationConfig>()?;
+        let addr = format!("{}:{}", config.host, config.port);
 
-        let listener =
-            TcpListener::bind(&addr)
-                .await
-                .map_err(|e| ApplicationError::BindFailed {
-                    address: addr.to_string(),
-                    source: e,
-                })?;
+        let listener = Listener::bind(&addr)
+            .await
+            .map_err(|e| ApplicationError::BindFailed {
+                address: addr.to_string(),
+                source: e,
+            })?;
 
-        let router = self.router.clone().fallback(async || {
-            HttpResponse::NotFound().message("The requested resource was not found")
-        });
+        let router = self
+            .router
+            .clone()
+            .layer(mw_with_state(self.state.clone(), content_type_check))
+            .layer(RequestBodyLimitLayer::new(config.body_limit))
+            .fallback(async || {
+                HttpResponse::NotFound().message("The requested resource was not found")
+            });
 
-        let ascii_logo = "\n▪──────── ⚔ S W O R D ⚔ ────────▪\n";
-
-        println!("{ascii_logo}");
-        println!("Starting Application ...");
-        println!("Host: {}", server_conf.host);
-        println!("Port: {}", server_conf.port);
-        println!("{ascii_logo}");
+        self.display(&config);
 
         axum::serve(listener, router)
             .await
@@ -162,6 +160,15 @@ impl Application {
 
     pub fn router(&self) -> Router {
         self.router.clone()
+    }
+
+    pub fn display(&self, config: &ApplicationConfig) {
+        let ascii_logo = "\n▪──────── ⚔ S W O R D ⚔ ────────▪\n";
+        println!("{ascii_logo}");
+        println!("Starting Application ...");
+        println!("Host: {}", config.host);
+        println!("Port: {}", config.port);
+        println!("{ascii_logo}");
     }
 }
 

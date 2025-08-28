@@ -6,6 +6,7 @@ use axum::{
     http::Method,
 };
 
+use http_body_util::LengthLimitError;
 use serde::de::DeserializeOwned;
 use validator::Validate;
 
@@ -50,6 +51,12 @@ where
             .unwrap_or(usize::MAX);
 
         let body_bytes = to_bytes(body, body_limit).await.map_err(|err| {
+            if let Some(source) = std::error::Error::source(&err) {
+                if source.is::<LengthLimitError>() {
+                    return RequestError::BodyTooLarge;
+                }
+            }
+
             RequestError::ParseError(
                 "Failed to read request body",
                 format!("Error reading body: {err}"),

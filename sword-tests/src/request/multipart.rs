@@ -46,14 +46,11 @@ async fn exceed_limit() -> Result<(), Box<dyn std::error::Error>> {
 
     let json = response.json::<ResponseBody>();
 
-    assert_eq!(response.status_code(), 400);
+    assert_eq!(response.status_code(), 413);
 
-    assert_eq!(
-        json.data["details"],
-        "Error reading body: length limit exceeded".to_string()
-    );
+    assert_eq!(json.message, "Request payload too large".into());
+    assert_eq!(json.data["type"], "PayloadTooLarge");
 
-    // File is automatically cleaned up when temp_file goes out of scope
     Ok(())
 }
 
@@ -78,16 +75,13 @@ async fn body_limit_exactly_at_limit() -> Result<(), Box<dyn std::error::Error>>
 
     let response = test.post("/multipart").multipart(form).await;
 
-    // Should succeed as it's right at the limit
     assert_eq!(response.status_code(), 200);
     let json = response.json::<ResponseBody>();
     assert_eq!(json.message, "Hello, Multipart!".into());
 
-    // File is automatically cleaned up when temp_file goes out of scope
     Ok(())
 }
 
-/// Tests that a file just under the body limit is accepted.
 #[tokio::test]
 async fn body_limit_just_under_limit() -> Result<(), Box<dyn std::error::Error>> {
     let app = Application::builder()?.controller::<TestController>();
@@ -107,16 +101,13 @@ async fn body_limit_just_under_limit() -> Result<(), Box<dyn std::error::Error>>
 
     let response = test.post("/multipart").multipart(form).await;
 
-    // Should succeed as it's under the limit
     assert_eq!(response.status_code(), 200);
     let json = response.json::<ResponseBody>();
     assert_eq!(json.message, "Hello, Multipart!".into());
 
-    // File is automatically cleaned up when temp_file goes out of scope
     Ok(())
 }
 
-/// Tests that a file just over the body limit is rejected.
 #[tokio::test]
 async fn body_limit_just_over_limit() -> Result<(), Box<dyn std::error::Error>> {
     let app = Application::builder()?.controller::<TestController>();
@@ -136,19 +127,14 @@ async fn body_limit_just_over_limit() -> Result<(), Box<dyn std::error::Error>> 
 
     let response = test.post("/multipart").multipart(form).await;
 
-    // Should fail as it exceeds the limit
-    assert_eq!(response.status_code(), 400);
+    assert_eq!(response.status_code(), 413);
     let json = response.json::<ResponseBody>();
-    assert_eq!(
-        json.data["details"],
-        "Error reading body: length limit exceeded".to_string()
-    );
+    assert_eq!(json.message, "Request payload too large".into());
+    assert_eq!(json.data["type"], "PayloadTooLarge");
 
-    // File is automatically cleaned up when temp_file goes out of scope
     Ok(())
 }
 
-/// Tests that multiple files that together exceed the body limit are rejected.
 #[tokio::test]
 async fn body_limit_multiple_fields_exceed_limit() -> Result<(), Box<dyn std::error::Error>> {
     let app = Application::builder()?.controller::<TestController>();
@@ -177,15 +163,11 @@ async fn body_limit_multiple_fields_exceed_limit() -> Result<(), Box<dyn std::er
 
     let response = test.post("/multipart").multipart(form).await;
 
-    // Should fail as the combined size exceeds the limit
-    assert_eq!(response.status_code(), 400);
+    assert_eq!(response.status_code(), 413);
     let json = response.json::<ResponseBody>();
-    assert_eq!(
-        json.data["details"],
-        "Error reading body: length limit exceeded".to_string()
-    );
+    assert_eq!(json.message, "Request payload too large".into());
+    assert_eq!(json.data["type"], "PayloadTooLarge");
 
-    // Files are automatically cleaned up when temp_file1 and temp_file2 go out of scope
     Ok(())
 }
 
@@ -219,12 +201,10 @@ async fn body_limit_small_fields_within_limit() -> Result<(), Box<dyn std::error
 
     let response = test.post("/multipart").multipart(form).await;
 
-    // Should succeed as the combined size is within the limit
     assert_eq!(response.status_code(), 200);
     let json = response.json::<ResponseBody>();
     assert_eq!(json.message, "Hello, Multipart!".into());
 
-    // Files are automatically cleaned up when temp_file1 and temp_file2 go out of scope
     Ok(())
 }
 

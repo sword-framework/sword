@@ -1,6 +1,7 @@
+use axum::middleware::Next;
+use axum_responses::http::HttpResponse;
+
 use crate::{
-    errors::RequestError,
-    middlewares::Next,
     next,
     web::{Context, MiddlewareResult},
 };
@@ -16,11 +17,9 @@ pub async fn content_type_check(ctx: Context, next: Next) -> MiddlewareResult {
     }
 
     if content_type != "application/json" && !content_type.contains("multipart/form-data") {
-        return Err(RequestError::InvalidContentType(
-            "Only application/json and multipart/form-data content types are supported."
-                .to_string(),
-        )
-        .into());
+        return Err(HttpResponse::UnsupportedMediaType().message(
+            "Only application/json and multipart/form-data content types are supported.",
+        ));
     }
 
     next!(ctx, next)

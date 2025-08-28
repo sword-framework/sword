@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: ["**"]
+    branches: ["main"]
   pull_request:
-    branches: ["**"]
+    branches: ["main"]
 
 env:
   CARGO_TERM_COLOR: always
@@ -12,16 +12,16 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Install stable Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
-      
+
       - name: Cache cargo registry
         uses: actions/cache@v4
         with:
@@ -32,15 +32,15 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
-      
+
       - name: Check formatting
         run: cargo fmt --all -- --check
-      
+
       - name: Run clippy
         run: cargo clippy --workspace --all-targets -- -D warnings
-      
+
       - name: Run tests
         run: cargo test --workspace
-      
+
       - name: Check if builds pass
         run: cargo build --workspace --all-targets

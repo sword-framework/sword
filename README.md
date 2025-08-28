@@ -23,7 +23,7 @@
 ```toml
 [dependencies]
 sword = "0.1.7"
-tokio = { version = "1.47.1", features = ["full"] }
+tokio = { version = "^1", features = ["full"] }
 
 # validation features:
 validator = { version = "0.20.0", features = ["derive"] }
@@ -37,7 +37,7 @@ shaku = { version = "0.6.2", features = ["derive"] }
 async-trait = "0.1.88"
 ```
 
-### Basic web server 
+### Basic web server
 
 ```rust
 use sword::prelude::*;
@@ -74,7 +74,7 @@ impl AppController {
     }
 }
 
-#[tokio::main]
+#[sword::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Application::builder()?
         .controller::<AppController>()
@@ -84,6 +84,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 ```
+
 ### With Middleware
 
 ```rust
@@ -96,7 +97,7 @@ struct LoggingMiddleware;
 impl Middleware for LoggingMiddleware {
     async fn handle(mut ctx: Context, next: Next) -> MiddlewareResult {
         println!("Request: {} {}", ctx.method(), ctx.uri());
-        
+
         ctx.extensions.insert::<String>("middleware_data".to_string());
 
         next!(ctx, next)
@@ -123,7 +124,7 @@ impl AppController {
     }
 }
 
-#[tokio::main]
+#[sword::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Application::builder()?
         .controller::<AppController>()
@@ -134,10 +135,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-## Known Issues
-- Body size limit errors return a `400 Bad Request` instead of `413 Payload Too Large. It will be fixed in future releases.
-
 ## More Examples
+
 See the [examples directory](./examples) for more advanced usage.
 
 ## Hot reloading
@@ -153,4 +152,3 @@ Then run the server with:
 ```bash
 dx serve --hot-patch --example hot_reloading
 ```
-
