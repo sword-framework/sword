@@ -307,7 +307,7 @@ pub fn main(_args: TokenStream, item: TokenStream) -> TokenStream {
     let fn_vis = input.vis.clone();
     let _fn_sig = input.sig.clone();
 
-    let output = if cfg!(feature = "hot_reloading") {
+    let output = if cfg!(feature = "hot_reload") {
         quote! {
             async fn __internal_main() -> Result<(), Box<dyn std::error::Error>> {
                 #fn_body

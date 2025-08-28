@@ -28,6 +28,7 @@
     "rust-analyzer.diagnostics.enable": true,
     "rust-analyzer.imports.granularity.group": "crate",
     "rust-analyzer.cargo.features": [
-        "multipart"
+        "multipart",
+        "hot_reload"
     ],
 }
