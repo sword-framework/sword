@@ -32,7 +32,7 @@ pub fn expand_config_struct(attr: TokenStream, item: TokenStream) -> TokenStream
     let expanded = quote! {
         #input
 
-        impl ::sword::application::config::ConfigItem for #struct_name {
+        impl ::sword::core::ConfigItem for #struct_name {
             fn toml_key() -> &'static str {
                 #toml_key_str
             }

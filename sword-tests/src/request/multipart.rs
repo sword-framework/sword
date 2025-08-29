@@ -28,7 +28,10 @@ impl TestController {
 
 #[tokio::test]
 async fn exceed_limit() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?.controller::<TestController>();
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
+
     let test = TestServer::new(app.router()).unwrap();
 
     let temp_file = TempFile::with_size(1024 * 1024 * 2); // 2 MB
@@ -43,7 +46,6 @@ async fn exceed_limit() -> Result<(), Box<dyn std::error::Error>> {
         .add_part("file", part);
 
     let response = test.post("/multipart").multipart(form).await;
-
     let json = response.json::<ResponseBody>();
 
     assert_eq!(response.status_code(), 413);
@@ -58,7 +60,10 @@ async fn exceed_limit() -> Result<(), Box<dyn std::error::Error>> {
 /// The effective limit is ~975KB due to multipart headers/boundaries overhead.
 #[tokio::test]
 async fn body_limit_exactly_at_limit() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?.controller::<TestController>();
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
+
     let test = TestServer::new(app.router()).unwrap();
 
     // Based on testing, the effective limit is around 975 KB (considering multipart overhead)
@@ -84,7 +89,10 @@ async fn body_limit_exactly_at_limit() -> Result<(), Box<dyn std::error::Error>>
 
 #[tokio::test]
 async fn body_limit_just_under_limit() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?.controller::<TestController>();
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
+
     let test = TestServer::new(app.router()).unwrap();
 
     // Create a file just under the effective limit
@@ -110,7 +118,10 @@ async fn body_limit_just_under_limit() -> Result<(), Box<dyn std::error::Error>>
 
 #[tokio::test]
 async fn body_limit_just_over_limit() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?.controller::<TestController>();
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
+
     let test = TestServer::new(app.router()).unwrap();
 
     // Create a file just over the effective limit
@@ -136,8 +147,12 @@ async fn body_limit_just_over_limit() -> Result<(), Box<dyn std::error::Error>> 
 }
 
 #[tokio::test]
-async fn body_limit_multiple_fields_exceed_limit() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?.controller::<TestController>();
+async fn body_limit_multiple_fields_exceed_limit()
+-> Result<(), Box<dyn std::error::Error>> {
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
+
     let test = TestServer::new(app.router()).unwrap();
 
     // Create multiple smaller files that together exceed the limit
@@ -173,8 +188,12 @@ async fn body_limit_multiple_fields_exceed_limit() -> Result<(), Box<dyn std::er
 
 /// Tests that multiple files that together stay within the body limit are accepted.
 #[tokio::test]
-async fn body_limit_small_fields_within_limit() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?.controller::<TestController>();
+async fn body_limit_small_fields_within_limit()
+-> Result<(), Box<dyn std::error::Error>> {
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
+
     let test = TestServer::new(app.router()).unwrap();
 
     // Create multiple smaller files that together stay within the limit
@@ -210,7 +229,10 @@ async fn body_limit_small_fields_within_limit() -> Result<(), Box<dyn std::error
 
 #[tokio::test]
 async fn valid_mime() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?.controller::<TestController>();
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
+
     let test = TestServer::new(app.router()).unwrap();
 
     let bytes = include_bytes!("../../files/pdf-test.pdf").to_vec();
@@ -235,7 +257,10 @@ async fn valid_mime() -> Result<(), Box<dyn std::error::Error>> {
 
 #[tokio::test]
 async fn invalid_mime() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?.controller::<TestController>();
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
+
     let test = TestServer::new(app.router()).unwrap();
 
     let bytes = include_bytes!("../../files/png-test.png").to_vec();

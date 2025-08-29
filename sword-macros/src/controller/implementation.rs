@@ -44,7 +44,11 @@ pub fn expand_controller_impl(_: TokenStream, item: TokenStream) -> TokenStream 
                     "patch" => quote! { axum_patch_fn },
                     "delete" => quote! { axum_delete_fn },
                     _ => {
-                        emit_error!(http_attr, "Unsupported HTTP method: {}", http_ident);
+                        emit_error!(
+                            http_attr,
+                            "Unsupported HTTP method: {}",
+                            http_ident
+                        );
                         continue;
                     }
                 };
@@ -72,8 +76,8 @@ pub fn expand_controller_impl(_: TokenStream, item: TokenStream) -> TokenStream 
     let expanded = quote! {
         #input
 
-        impl ::sword::web::RouterProvider for #struct_self {
-            fn router(app_state: ::sword::application::SwordState) -> ::sword::__private::AxumRouter {
+        impl ::sword::core::RouterProvider for #struct_self {
+            fn router(app_state: ::sword::core::State) -> ::sword::__private::AxumRouter {
 
                 let base_router = ::sword::__private::AxumRouter::new()
                     #(#routes)*

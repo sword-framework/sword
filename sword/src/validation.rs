@@ -13,7 +13,8 @@ pub fn format_validation_errors(e: &ValidationErrors) -> Value {
 
     for (field, field_errors) in e.field_errors() {
         let field_name = field.to_string();
-        let messages: Vec<String> = field_errors.iter().map(to_error_message).collect();
+        let messages: Vec<String> =
+            field_errors.iter().map(to_error_message).collect();
 
         for message in messages {
             let error = json!({

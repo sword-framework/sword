@@ -7,18 +7,20 @@ use std::{
 use crate::errors::StateError;
 
 #[derive(Clone, Debug)]
-pub struct SwordState {
+pub struct State {
     inner: Arc<RwLock<HashMap<TypeId, Arc<dyn Any + Send + Sync>>>>,
 }
 
-impl SwordState {
+impl State {
     pub fn new() -> Self {
         Self {
             inner: Arc::new(RwLock::new(HashMap::new())),
         }
     }
 
-    pub(crate) fn get<T: Send + Sync + 'static>(&self) -> Result<Arc<T>, StateError> {
+    pub(crate) fn get<T: Send + Sync + 'static>(
+        &self,
+    ) -> Result<Arc<T>, StateError> {
         let map = self.inner.read().map_err(|_| StateError::LockError)?;
 
         let state_ref = map
@@ -33,7 +35,10 @@ impl SwordState {
             })
     }
 
-    pub(crate) fn insert<T: Send + Sync + 'static>(&self, state: T) -> Result<(), StateError> {
+    pub(crate) fn insert<T: Send + Sync + 'static>(
+        &self,
+        state: T,
+    ) -> Result<(), StateError> {
         let mut map = self.inner.write().map_err(|_| StateError::LockError)?;
         map.insert(TypeId::of::<T>(), Arc::new(state));
 
@@ -41,7 +46,7 @@ impl SwordState {
     }
 }
 
-impl Default for SwordState {
+impl Default for State {
     fn default() -> Self {
         Self::new()
     }

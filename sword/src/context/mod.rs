@@ -13,10 +13,8 @@ use shaku::{HasComponent, Interface, Module};
 use std::{collections::HashMap, sync::Arc};
 
 use crate::{
-    application::{
-        SwordState,
-        config::{ConfigItem, SwordConfig},
-    },
+    core::State,
+    core::{Config, ConfigItem},
     errors::{ConfigError, StateError},
 };
 
@@ -33,7 +31,7 @@ pub struct Context {
     method: Method,
     headers: HashMap<String, String>,
     uri: Uri,
-    state: SwordState,
+    state: State,
     pub extensions: Extensions,
 }
 
@@ -74,10 +72,12 @@ impl Context {
         Ok(interface)
     }
 
-    pub fn config<T: DeserializeOwned + ConfigItem>(&self) -> Result<T, ConfigError> {
+    pub fn config<T: DeserializeOwned + ConfigItem>(
+        &self,
+    ) -> Result<T, ConfigError> {
         let config = self
             .state
-            .get::<SwordConfig>()
+            .get::<Config>()
             .map_err(|e| ConfigError::GetConfigError(e.to_string()))?;
 
         config.get::<T>()

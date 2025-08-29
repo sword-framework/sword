@@ -11,7 +11,7 @@ use serde::de::DeserializeOwned;
 use validator::Validate;
 
 use crate::{
-    application::{SwordState, config::SwordConfig},
+    core::{Config, State},
     errors::RequestError,
     prelude::ApplicationConfig,
     web::{Context, HttpResponse, HttpResult},
@@ -24,7 +24,7 @@ use crate::{
 impl<S> FromRequest<S> for Context
 where
     S: Send + Sync + 'static,
-    SwordState: FromRef<S>,
+    State: FromRef<S>,
 {
     type Rejection = HttpResponse;
 
@@ -35,25 +35,34 @@ where
 
         let path_result = {
             use axum::extract::OptionalFromRequestParts;
-            Path::<HashMap<String, String>>::from_request_parts(&mut parts, &()).await
+            Path::<HashMap<String, String>>::from_request_parts(&mut parts, &())
+                .await
         };
 
         if let Ok(Some(path_params)) = path_result {
             params.extend(path_params.0);
         }
 
-        let state = SwordState::from_ref(state);
+        let state = State::from_ref(state);
 
         let body_limit = state
-            .get::<SwordConfig>()?
+            .get::<Config>()?
             .get::<ApplicationConfig>()
             .map(|app_config| app_config.body_limit)
             .unwrap_or(usize::MAX);
 
         let body_bytes = to_bytes(body, body_limit).await.map_err(|err| {
-            if let Some(source) = std::error::Error::source(&err) {
-                if source.is::<LengthLimitError>() {
+            // Walk through the error chain to find LengthLimitError
+            let mut current_error: &dyn std::error::Error = &err;
+
+            loop {
+                if current_error.is::<LengthLimitError>() {
                     return RequestError::BodyTooLarge;
+                }
+
+                match std::error::Error::source(current_error) {
+                    Some(source) => current_error = source,
+                    None => break,
                 }
             }
 
@@ -227,14 +236,17 @@ impl Context {
             return Ok(None);
         }
 
-        let deserializer =
-            serde_urlencoded::Deserializer::new(form_urlencoded::parse(query_string.as_bytes()));
+        let deserializer = serde_urlencoded::Deserializer::new(
+            form_urlencoded::parse(query_string.as_bytes()),
+        );
 
-        let parsed: T = serde_path_to_error::deserialize(deserializer).map_err(|_| {
-            let message = "Invalid query parameters";
-            let details = "Failed to parse query parameters to the required type.";
-            RequestError::ParseError(message, details.into())
-        })?;
+        let parsed: T =
+            serde_path_to_error::deserialize(deserializer).map_err(|_| {
+                let message = "Invalid query parameters";
+                let details =
+                    "Failed to parse query parameters to the required type.";
+                RequestError::ParseError(message, details.into())
+            })?;
 
         Ok(Some(parsed))
     }
@@ -313,6 +325,10 @@ impl Context {
             }
             None => Ok(None),
         }
+    }
+
+    pub(crate) fn has_body(&self) -> bool {
+        !self.body_bytes.is_empty()
     }
 }
 

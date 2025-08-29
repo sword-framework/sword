@@ -47,7 +47,9 @@ impl Context {
             .config::<ApplicationConfig>()
             .map_err(|e| {
                 eprintln!("Error retrieving application config: {e}");
-                RequestError::InternalError("Failed to retrieve application config".to_string())
+                RequestError::InternalError(
+                    "Failed to retrieve application config".to_string(),
+                )
             })?
             .allowed_mime_types
             .clone();

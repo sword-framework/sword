@@ -85,7 +85,10 @@ impl TestController {
 
 #[tokio::test]
 async fn extensions_mw_test() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?.controller::<TestController>();
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
+
     let test = axum_test::TestServer::new(app.router()).unwrap();
     let response = test.get("/test/extensions-test").await;
     assert_eq!(response.status_code(), 200);
@@ -100,8 +103,9 @@ async fn extensions_mw_test() -> Result<(), Box<dyn std::error::Error>> {
 #[tokio::test]
 async fn middleware_state() -> Result<(), Box<dyn std::error::Error>> {
     let app = Application::builder()?
-        .state(json!({ "key": "value" }))?
-        .controller::<TestController>();
+        .with_state(json!({ "key": "value" }))?
+        .with_controller::<TestController>()
+        .build();
 
     let test = axum_test::TestServer::new(app.router()).unwrap();
     let response = test.get("/test/middleware-state").await;
@@ -119,9 +123,13 @@ async fn middleware_state() -> Result<(), Box<dyn std::error::Error>> {
 
 #[tokio::test]
 async fn role_middleware_test() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?.controller::<TestController>();
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
+
     let test = axum_test::TestServer::new(app.router()).unwrap();
     let response = test.get("/test/role-test").await;
+
     assert_eq!(response.status_code(), 200);
 
     Ok(())

@@ -28,7 +28,10 @@ impl TestController {
 
 #[tokio::test]
 async fn test_application() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?.controller::<TestController>();
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
+
     let test = axum_test::TestServer::new(app.router()).unwrap();
 
     let response = test.get("/test/hello").await;

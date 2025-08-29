@@ -3,15 +3,28 @@ mod middlewares;
 mod validation;
 
 pub mod prelude {
-    pub use crate::application::config::ConfigItem;
-    pub use crate::application::{Application, ApplicationConfig, config_macro as config};
+    pub use crate::core::{Application, ApplicationConfig};
+    pub use crate::core::{ConfigItem, config};
 
     pub use crate::errors::{ApplicationError, RequestError, StateError};
     pub use crate::web::*;
 }
 
-pub mod application;
 pub mod errors;
+
+pub mod core {
+    mod application;
+    mod config;
+    mod router;
+    mod state;
+    mod utils;
+
+    pub use router::RouterProvider;
+
+    pub use application::{Application, ApplicationConfig};
+    pub use config::{Config, ConfigItem, config};
+    pub use state::State;
+}
 
 pub mod web {
     pub use axum_responses::Result as HttpResult;
@@ -24,11 +37,6 @@ pub mod web {
 
     #[cfg(feature = "multipart")]
     pub use crate::context::multipart::MultipartField;
-
-    use crate::application::SwordState;
-    pub trait RouterProvider {
-        fn router(state: SwordState) -> axum::routing::Router;
-    }
 }
 
 pub use sword_macros::main;
@@ -41,7 +49,7 @@ pub mod __private {
     pub use axum::response::{IntoResponse, Response as AxumResponse};
     pub use axum::routing::Router as AxumRouter;
     pub use axum::routing::{
-        delete as axum_delete_fn, get as axum_get_fn, patch as axum_patch_fn, post as axum_post_fn,
-        put as axum_put_fn,
+        delete as axum_delete_fn, get as axum_get_fn, patch as axum_patch_fn,
+        post as axum_post_fn, put as axum_put_fn,
     };
 }
