@@ -13,13 +13,15 @@ license-file = "../LICENSE"
 [features]
 default = []
 multipart = ["axum/multipart"]
+shaku_di = ["dep:shaku"]
 hot_reload = ["dep:subsecond", "dep:dioxus-devtools", "sword-macros/hot_reload"]
 
 [dependencies]
 tokio = { version = "1.47.1" }
 
-axum = { version = "0.8.4" }
+axum = "0.8.4"
 axum_responses = "0.4.2"
+http-body-util = "0.1.3"
 
 toml = "0.9.0"
 serde = "1.0.219"
@@ -40,12 +42,13 @@ tower-layer = "0.3.3"
 tower-service = "0.3.3"
 tower-http = { version = "0.6.6", features = ["limit"]}
 
-shaku = "0.6.2"
 thiserror = "2.0.12"
 
-# Hot Reload dependencies
+# Hot Reload feature dependencies
 
 subsecond = { git = "https://github.com/DioxusLabs/dioxus.git", optional = true, package = "subsecond" }
 dioxus-devtools = { git = "https://github.com/DioxusLabs/dioxus.git", features = [ "serve" ], optional = true, package = "dioxus-devtools" }
-http-body-util = "0.1.3"
 
+# Shaku DI feature dependencies
+
+shaku = { version = "0.6.2", optional = true }

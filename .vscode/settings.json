@@ -29,6 +29,7 @@
     "rust-analyzer.imports.granularity.group": "crate",
     "rust-analyzer.cargo.features": [
         "multipart",
-        "hot_reload"
+        "hot_reload",
+        "shaku_di"
     ],
 }
