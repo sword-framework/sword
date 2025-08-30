@@ -307,7 +307,7 @@ pub fn main(_args: TokenStream, item: TokenStream) -> TokenStream {
     let fn_vis = input.vis.clone();
     let _fn_sig = input.sig.clone();
 
-    let output = if cfg!(feature = "hot_reload") {
+    let output = if cfg!(feature = "hot-reload") {
         quote! {
             async fn __internal_main() -> Result<(), Box<dyn std::error::Error>> {
                 #fn_body
@@ -321,7 +321,7 @@ pub fn main(_args: TokenStream, item: TokenStream) -> TokenStream {
                     .enable_all()
                     .build()
                     .expect("Failed building the Runtime")
-                    .block_on(dioxus_devtools::serve_subsecond(__internal_main));
+                    .block_on(::sword::hot_reload::dioxus_devtools::serve_subsecond(__internal_main));
             }
         }
     } else {

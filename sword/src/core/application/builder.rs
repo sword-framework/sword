@@ -25,7 +25,7 @@ use crate::{
 pub struct ApplicationBuilder {
     router: Router,
     state: State,
-    config: Config,
+    pub config: Config,
 }
 
 impl ApplicationBuilder {
@@ -60,7 +60,7 @@ impl ApplicationBuilder {
     /// Register a layer in the application.
     /// This method allows you to add middleware or other layers to the application's router.
     /// This is useful to add tower based middleware or other layers that implement the `Layer` trait.
-    pub fn layer<L>(self, layer: L) -> Self
+    pub fn with_layer<L>(self, layer: L) -> Self
     where
         L: Layer<Route> + Clone + Send + Sync + 'static,
         L::Service: Service<AxumRequest> + Clone + Send + Sync + 'static,
@@ -103,6 +103,7 @@ impl ApplicationBuilder {
     /// This method allows you to add a Shaku module to the application's state.
     /// Behind the scenes, it will register the module in the sword `State` so you can
     /// retrieve it later using the `get_dependency` method.
+    #[cfg(feature = "shaku-di")]
     pub fn with_shaku_di_module<M: Sync + Send + 'static>(
         self,
         module: M,

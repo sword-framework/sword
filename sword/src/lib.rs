@@ -41,6 +41,12 @@ pub mod web {
 
 pub use sword_macros::main;
 
+#[cfg(feature = "hot-reload")]
+pub mod hot_reload {
+    pub use dioxus_devtools;
+    pub use subsecond;
+}
+
 #[doc(hidden)]
 pub mod __private {
     pub use axum::extract::{FromRequest, FromRequestParts, Request as AxumRequest};

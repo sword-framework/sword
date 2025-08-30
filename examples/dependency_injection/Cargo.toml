@@ -1,0 +1,17 @@
+[package]
+name = "dependency_injection"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "dependency_injection"
+path = "src/main.rs"
+
+[dependencies]
+sword = { workspace = true, features = ["shaku-di"] }
+shaku = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+validator = { workspace = true }
+async-trait = { workspace = true }

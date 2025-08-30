@@ -11,7 +11,7 @@ use axum::{
 use serde::de::DeserializeOwned;
 use std::{collections::HashMap, sync::Arc};
 
-#[cfg(feature = "shaku_di")]
+#[cfg(feature = "shaku-di")]
 use shaku::{HasComponent, Interface, Module};
 
 use crate::{
@@ -59,7 +59,7 @@ impl Context {
     ///
     /// Parameter `M` is the module type that contains the dependency.
     /// Parameter `I` is the interface type that is being resolved. (must be a `dyn Interface`)
-    #[cfg(feature = "shaku_di")]
+    #[cfg(feature = "shaku-di")]
     pub fn di<M, I>(&self) -> Result<Arc<I>, StateError>
     where
         M: Module + HasComponent<I> + Send + Sync + 'static,

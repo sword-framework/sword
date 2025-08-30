@@ -12,7 +12,7 @@ license-file = "../LICENSE"
 
 [features]
 default = []
-hot_reload = []
+hot-reload = []
 
 [lib]
 proc-macro = true

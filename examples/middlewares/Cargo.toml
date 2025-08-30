@@ -1,0 +1,14 @@
+[package]
+name = "middlewares"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "middlewares"
+path = "src/main.rs"
+
+[dependencies]
+tokio = { workspace = true }
+sword = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }

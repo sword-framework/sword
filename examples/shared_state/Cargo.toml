@@ -1,0 +1,14 @@
+[package]
+name = "shared_state"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "shared_state"
+path = "src/main.rs"
+
+[dependencies]
+sword = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }

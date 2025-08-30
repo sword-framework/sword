@@ -31,10 +31,6 @@ validator = { version = "0.20.0", features = ["derive"] }
 # JSON handling features:
 serde = { version = "*", features = ["derive"] }
 serde_json = "*"
-
-# OPTIONAL: If you want to use dependency injection features
-shaku = { version = "0.6.2", features = ["derive"] }
-async-trait = "0.1.88"
 ```
 
 ### Basic web server
@@ -75,13 +71,12 @@ impl AppController {
 }
 
 #[sword::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    Application::builder()?
-        .controller::<AppController>()
-        .run("0.0.0.0:8080")
-        .await?;
+async fn main() {
+    let app = Application::builder()?
+        .with_controller::<AppController>()
+        .build();
 
-    Ok(())
+    app.run().await?;
 }
 ```
 
@@ -125,13 +120,12 @@ impl AppController {
 }
 
 #[sword::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    Application::builder()?
-        .controller::<AppController>()
-        .run("0.0.0.0:8080")
-        .await?;
+async fn main() {
+    let app = Application::builder()?
+        .with_controller::<AppController>()
+        .build();
 
-    Ok(())
+    app.run().await?;
 }
 ```
 
@@ -147,8 +141,9 @@ In the case of use hot reloading, you need to install `dioxus-cli`:
 cargo install --git https://github.com/DioxusLabs/dioxus.git dioxus-cli
 ```
 
-Then run the server with:
+Then run the hot reload example server with:
 
 ```bash
-dx serve --hot-patch --example hot_reloading
+cd examples
+dx serve --hot-patch -p hot_reload
 ```

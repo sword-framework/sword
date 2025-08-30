@@ -1,0 +1,14 @@
+[package]
+name = "data_validation"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "data_validation"
+path = "src/main.rs"
+
+[dependencies]
+sword = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+validator = { workspace = true }
