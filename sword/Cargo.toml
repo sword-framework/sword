@@ -27,7 +27,7 @@ toml = "0.9.0"
 serde = { workspace = true }
 serde_json = { workspace = true }
 serde_urlencoded = "0.7.1"
-form_urlencoded = "1.2.2"
+form_urlencoded = "^1.1.0"
 serde_path_to_error = "0.1.17"
 byte-unit = "5.1.6"
 
