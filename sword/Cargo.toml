@@ -10,12 +10,6 @@ categories = ["web-programming::http-server", "web-programming"]
 readme = "../README.md"
 license-file = "../LICENSE"
 
-[features]
-default = []
-multipart = ["axum/multipart"]
-shaku-di = ["dep:shaku"]
-hot-reload = ["dep:subsecond", "dep:dioxus-devtools", "sword-macros/hot-reload"]
-
 [dependencies]
 tokio = { workspace = true }
 
@@ -40,7 +34,7 @@ validator = { workspace = true }
 tower = "0.5.2"
 tower-layer = "0.3.3"
 tower-service = "0.3.3"
-tower-http = { version = "0.6.6", features = ["limit"]}
+tower-http = { version = "0.6.6", features = ["limit"] }
 
 thiserror = "2.0.12"
 
@@ -52,3 +46,9 @@ dioxus-devtools = { git = "https://github.com/DioxusLabs/dioxus.git", features =
 # Shaku DI feature dependencies
 
 shaku = { workspace = true, optional = true }
+
+[features]
+default = []
+multipart = ["axum/multipart"]
+shaku-di = ["dep:shaku"]
+hot-reload = ["dep:subsecond", "dep:dioxus-devtools", "sword-macros/hot-reload"]

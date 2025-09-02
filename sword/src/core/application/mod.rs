@@ -42,11 +42,9 @@ impl Application {
         let config = self.config.get::<ApplicationConfig>()?;
         let addr = format!("{}:{}", config.host, config.port);
 
-        let listener = Listener::bind(&addr).await.map_err(|e| {
-            ApplicationError::BindFailed {
-                address: addr.to_string(),
-                source: e,
-            }
+        let listener = Listener::bind(&addr).await.map_err(|e| ApplicationError::BindFailed {
+            address: addr.to_string(),
+            source: e,
         })?;
 
         let router = self.router.clone().fallback(async || {

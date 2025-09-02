@@ -7,8 +7,7 @@ pub struct ExtensionsTestMiddleware;
 
 impl Middleware for ExtensionsTestMiddleware {
     async fn handle(mut ctx: Context, next: Next) -> MiddlewareResult {
-        ctx.extensions
-            .insert::<String>("test_extension".to_string());
+        ctx.extensions.insert::<String>("test_extension".to_string());
 
         next!(ctx, next)
     }

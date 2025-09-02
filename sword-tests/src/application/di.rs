@@ -123,8 +123,7 @@ impl TestController {
 
     #[post("/counter/increment")]
     async fn increment_counter(ctx: Context) -> HttpResult<HttpResponse> {
-        ctx.di::<TestModule, dyn Logger>()?
-            .log("Incrementing counter");
+        ctx.di::<TestModule, dyn Logger>()?.log("Incrementing counter");
 
         let counter_service = ctx.di::<TestModule, dyn CounterService>()?;
 
@@ -155,10 +154,7 @@ impl TestController {
 
         let count = counter_service.get_count();
 
-        logger.log(&format!(
-            "Added {} to counter, new value: {}",
-            body.value, count
-        ));
+        logger.log(&format!("Added {} to counter, new value: {}", body.value, count));
 
         Ok(HttpResponse::Ok()
             .data(json!({
@@ -180,8 +176,7 @@ impl TestController {
 
     #[post("/counter/reset")]
     async fn reset_counter(ctx: Context) -> HttpResult<HttpResponse> {
-        ctx.di::<TestModule, dyn Logger>()?
-            .log("Resetting counter to 0");
+        ctx.di::<TestModule, dyn Logger>()?.log("Resetting counter to 0");
 
         ctx.di::<TestModule, dyn CounterService>()?.reset();
 
@@ -192,8 +187,8 @@ impl TestController {
 }
 
 #[tokio::test]
-async fn test_dependency_injection_with_multiple_services()
--> Result<(), Box<dyn std::error::Error>> {
+async fn test_dependency_injection_with_multiple_services() -> Result<(), Box<dyn std::error::Error>>
+{
     let module = TestModule::builder().build();
 
     let app = Application::builder()?
@@ -236,18 +231,8 @@ async fn test_dependency_injection_with_multiple_services()
     assert_eq!(logs.len(), 4);
     assert!(logs[0].as_str().unwrap().contains("Counter accessed: 0"));
     assert!(logs[1].as_str().unwrap().contains("Incrementing counter"));
-    assert!(
-        logs[2]
-            .as_str()
-            .unwrap()
-            .contains("Counter incremented to: 1")
-    );
-    assert!(
-        logs[3]
-            .as_str()
-            .unwrap()
-            .contains("Added 5 to counter, new value: 6")
-    );
+    assert!(logs[2].as_str().unwrap().contains("Counter incremented to: 1"));
+    assert!(logs[3].as_str().unwrap().contains("Added 5 to counter, new value: 6"));
 
     let reset_response = server.post("/api/counter/reset").await;
 
@@ -264,8 +249,7 @@ async fn test_dependency_injection_with_multiple_services()
 }
 
 #[tokio::test]
-async fn test_service_isolation_between_tests()
--> Result<(), Box<dyn std::error::Error>> {
+async fn test_service_isolation_between_tests() -> Result<(), Box<dyn std::error::Error>> {
     let module = TestModule::builder().build();
 
     let app = Application::builder()?

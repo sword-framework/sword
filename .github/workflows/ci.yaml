@@ -41,6 +41,3 @@ jobs:
 
       - name: Run tests
         run: cargo test --workspace
-
-      - name: Check if builds pass
-        run: cargo build --workspace --all-targets

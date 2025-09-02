@@ -25,9 +25,7 @@ pub enum ApplicationError {
 
 #[derive(Debug, Error)]
 pub enum StateError {
-    #[error(
-        "State type not found - ensure it is registered in the application state"
-    )]
+    #[error("State type not found - ensure it is registered in the application state")]
     TypeNotFound,
     #[error("Failed to acquire lock on state")]
     LockError,
@@ -66,9 +64,7 @@ pub enum ConfigError {
     InterpolationError(String),
     #[error("Configuration key '{0}' not found")]
     KeyNotFound(String),
-    #[error(
-        "Configuration value for key '{key}' is invalid: {value}. Reason: {reason}"
-    )]
+    #[error("Configuration value for key '{key}' is invalid: {value}. Reason: {reason}")]
     InvalidValue {
         key: String,
         value: String,

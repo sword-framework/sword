@@ -49,9 +49,7 @@ impl TestController {
 
 #[sword::main]
 async fn main() {
-    let app = Application::builder()?
-        .with_controller::<TestController>()
-        .build();
+    let app = Application::builder()?.with_controller::<TestController>().build();
 
     app.run().await?;
 }

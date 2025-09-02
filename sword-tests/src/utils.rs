@@ -5,13 +5,9 @@ pub struct TempFile {
 impl TempFile {
     pub fn with_size(size: usize) -> Self {
         use std::time::{SystemTime, UNIX_EPOCH};
-        let timestamp = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_nanos();
+        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
 
-        let project_root =
-            std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string());
+        let project_root = std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string());
         let file_path = format!("{project_root}/files/test_file_{timestamp}.txt");
 
         let content = vec![b'x'; size];

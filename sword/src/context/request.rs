@@ -8,6 +8,7 @@ use axum::{
 
 use http_body_util::LengthLimitError;
 use serde::de::DeserializeOwned;
+
 use validator::Validate;
 
 use crate::{
@@ -35,8 +36,7 @@ where
 
         let path_result = {
             use axum::extract::OptionalFromRequestParts;
-            Path::<HashMap<String, String>>::from_request_parts(&mut parts, &())
-                .await
+            Path::<HashMap<String, String>>::from_request_parts(&mut parts, &()).await
         };
 
         if let Ok(Some(path_params)) = path_result {
@@ -52,7 +52,6 @@ where
             .unwrap_or(usize::MAX);
 
         let body_bytes = to_bytes(body, body_limit).await.map_err(|err| {
-            // Walk through the error chain to find LengthLimitError
             let mut current_error: &dyn std::error::Error = &err;
 
             loop {
@@ -118,9 +117,7 @@ impl Context {
     /// # Returns
     /// `Some(&str)` with the header value if it exists, `None` if not found.
     pub fn header(&self, key: &str) -> Option<&str> {
-        self.headers
-            .get(&key.to_lowercase())
-            .map(|value| value.as_str())
+        self.headers.get(&key.to_lowercase()).map(|value| value.as_str())
     }
 
     /// Gets an immutable reference to all request headers.
@@ -236,17 +233,14 @@ impl Context {
             return Ok(None);
         }
 
-        let deserializer = serde_urlencoded::Deserializer::new(
-            form_urlencoded::parse(query_string.as_bytes()),
-        );
+        let deserializer =
+            serde_urlencoded::Deserializer::new(form_urlencoded::parse(query_string.as_bytes()));
 
-        let parsed: T =
-            serde_path_to_error::deserialize(deserializer).map_err(|_| {
-                let message = "Invalid query parameters";
-                let details =
-                    "Failed to parse query parameters to the required type.";
-                RequestError::ParseError(message, details.into())
-            })?;
+        let parsed: T = serde_path_to_error::deserialize(deserializer).map_err(|_| {
+            let message = "Invalid query parameters";
+            let details = "Failed to parse query parameters to the required type.";
+            RequestError::ParseError(message, details.into())
+        })?;
 
         Ok(Some(parsed))
     }

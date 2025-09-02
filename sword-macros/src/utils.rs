@@ -16,7 +16,8 @@ pub fn path_kind_regex() -> &'static Regex {
 
 pub fn get_attr_http_route(attr: &Attribute) -> LitStr {
     let Ok(path) = attr.parse_args::<LitStr>() else {
-        let message = "Expected a string literal as path in HTTP method attribute, e.g., #[get(\"/path\")]";
+        let message =
+            "Expected a string literal as path in HTTP method attribute, e.g., #[get(\"/path\")]";
 
         emit_error!(attr, "{}", message);
 

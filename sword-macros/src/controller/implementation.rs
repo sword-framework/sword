@@ -44,11 +44,7 @@ pub fn expand_controller_impl(_: TokenStream, item: TokenStream) -> TokenStream 
                     "patch" => quote! { axum_patch_fn },
                     "delete" => quote! { axum_delete_fn },
                     _ => {
-                        emit_error!(
-                            http_attr,
-                            "Unsupported HTTP method: {}",
-                            http_ident
-                        );
+                        emit_error!(http_attr, "Unsupported HTTP method: {}", http_ident);
                         continue;
                     }
                 };

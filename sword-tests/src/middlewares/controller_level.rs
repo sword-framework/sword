@@ -6,8 +6,7 @@ struct ExtensionsTestMiddleware;
 
 impl Middleware for ExtensionsTestMiddleware {
     async fn handle(mut ctx: Context, nxt: Next) -> MiddlewareResult {
-        ctx.extensions
-            .insert::<String>("test_extension".to_string());
+        ctx.extensions.insert::<String>("test_extension".to_string());
 
         println!("DEBERÍA EJECUTARSE PRIMERO");
 
@@ -85,9 +84,7 @@ impl TestController {
 
 #[tokio::test]
 async fn extensions_mw_test() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?
-        .with_controller::<TestController>()
-        .build();
+    let app = Application::builder()?.with_controller::<TestController>().build();
 
     let test = axum_test::TestServer::new(app.router()).unwrap();
     let response = test.get("/test/extensions-test").await;
@@ -123,9 +120,7 @@ async fn middleware_state() -> Result<(), Box<dyn std::error::Error>> {
 
 #[tokio::test]
 async fn role_middleware_test() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?
-        .with_controller::<TestController>()
-        .build();
+    let app = Application::builder()?.with_controller::<TestController>().build();
 
     let test = axum_test::TestServer::new(app.router()).unwrap();
     let response = test.get("/test/role-test").await;

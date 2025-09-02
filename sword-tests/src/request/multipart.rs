@@ -28,22 +28,16 @@ impl TestController {
 
 #[tokio::test]
 async fn exceed_limit() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?
-        .with_controller::<TestController>()
-        .build();
+    let app = Application::builder()?.with_controller::<TestController>().build();
 
     let test = TestServer::new(app.router()).unwrap();
 
     let temp_file = TempFile::with_size(1024 * 1024 * 2); // 2 MB
     let bytes = fs::read(&temp_file.path).expect("Failed to read test file");
 
-    let part = Part::bytes(bytes)
-        .file_name("large_test_file.txt")
-        .mime_type("text/plain");
+    let part = Part::bytes(bytes).file_name("large_test_file.txt").mime_type("text/plain");
 
-    let form = MultipartForm::new()
-        .add_text("field1", "value1")
-        .add_part("file", part);
+    let form = MultipartForm::new().add_text("field1", "value1").add_part("file", part);
 
     let response = test.post("/multipart").multipart(form).await;
     let json = response.json::<ResponseBody>();
@@ -60,9 +54,7 @@ async fn exceed_limit() -> Result<(), Box<dyn std::error::Error>> {
 /// The effective limit is ~975KB due to multipart headers/boundaries overhead.
 #[tokio::test]
 async fn body_limit_exactly_at_limit() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?
-        .with_controller::<TestController>()
-        .build();
+    let app = Application::builder()?.with_controller::<TestController>().build();
 
     let test = TestServer::new(app.router()).unwrap();
 
@@ -74,9 +66,7 @@ async fn body_limit_exactly_at_limit() -> Result<(), Box<dyn std::error::Error>>
         .file_name("exactly_at_limit_file.txt")
         .mime_type("text/plain");
 
-    let form = MultipartForm::new()
-        .add_text("field1", "value1")
-        .add_part("file", part);
+    let form = MultipartForm::new().add_text("field1", "value1").add_part("file", part);
 
     let response = test.post("/multipart").multipart(form).await;
 
@@ -89,9 +79,7 @@ async fn body_limit_exactly_at_limit() -> Result<(), Box<dyn std::error::Error>>
 
 #[tokio::test]
 async fn body_limit_just_under_limit() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?
-        .with_controller::<TestController>()
-        .build();
+    let app = Application::builder()?.with_controller::<TestController>().build();
 
     let test = TestServer::new(app.router()).unwrap();
 
@@ -103,9 +91,7 @@ async fn body_limit_just_under_limit() -> Result<(), Box<dyn std::error::Error>>
         .file_name("just_under_limit_file.txt")
         .mime_type("text/plain");
 
-    let form = MultipartForm::new()
-        .add_text("field1", "value1")
-        .add_part("file", part);
+    let form = MultipartForm::new().add_text("field1", "value1").add_part("file", part);
 
     let response = test.post("/multipart").multipart(form).await;
 
@@ -118,9 +104,7 @@ async fn body_limit_just_under_limit() -> Result<(), Box<dyn std::error::Error>>
 
 #[tokio::test]
 async fn body_limit_just_over_limit() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?
-        .with_controller::<TestController>()
-        .build();
+    let app = Application::builder()?.with_controller::<TestController>().build();
 
     let test = TestServer::new(app.router()).unwrap();
 
@@ -128,13 +112,9 @@ async fn body_limit_just_over_limit() -> Result<(), Box<dyn std::error::Error>> 
     let temp_file = TempFile::with_size(976 * 1024); // 976 KB - just over the limit
     let bytes = fs::read(&temp_file.path).expect("Failed to read test file");
 
-    let part = Part::bytes(bytes)
-        .file_name("just_over_limit_file.txt")
-        .mime_type("text/plain");
+    let part = Part::bytes(bytes).file_name("just_over_limit_file.txt").mime_type("text/plain");
 
-    let form = MultipartForm::new()
-        .add_text("field1", "value1")
-        .add_part("file", part);
+    let form = MultipartForm::new().add_text("field1", "value1").add_part("file", part);
 
     let response = test.post("/multipart").multipart(form).await;
 
@@ -147,11 +127,8 @@ async fn body_limit_just_over_limit() -> Result<(), Box<dyn std::error::Error>> 
 }
 
 #[tokio::test]
-async fn body_limit_multiple_fields_exceed_limit()
--> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?
-        .with_controller::<TestController>()
-        .build();
+async fn body_limit_multiple_fields_exceed_limit() -> Result<(), Box<dyn std::error::Error>> {
+    let app = Application::builder()?.with_controller::<TestController>().build();
 
     let test = TestServer::new(app.router()).unwrap();
 
@@ -163,13 +140,9 @@ async fn body_limit_multiple_fields_exceed_limit()
     let bytes1 = fs::read(&temp_file1.path).expect("Failed to read test file 1");
     let bytes2 = fs::read(&temp_file2.path).expect("Failed to read test file 2");
 
-    let part1 = Part::bytes(bytes1)
-        .file_name("file1.txt")
-        .mime_type("text/plain");
+    let part1 = Part::bytes(bytes1).file_name("file1.txt").mime_type("text/plain");
 
-    let part2 = Part::bytes(bytes2)
-        .file_name("file2.txt")
-        .mime_type("text/plain");
+    let part2 = Part::bytes(bytes2).file_name("file2.txt").mime_type("text/plain");
 
     let form = MultipartForm::new()
         .add_text("field1", "value1")
@@ -188,11 +161,8 @@ async fn body_limit_multiple_fields_exceed_limit()
 
 /// Tests that multiple files that together stay within the body limit are accepted.
 #[tokio::test]
-async fn body_limit_small_fields_within_limit()
--> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?
-        .with_controller::<TestController>()
-        .build();
+async fn body_limit_small_fields_within_limit() -> Result<(), Box<dyn std::error::Error>> {
+    let app = Application::builder()?.with_controller::<TestController>().build();
 
     let test = TestServer::new(app.router()).unwrap();
 
@@ -204,13 +174,9 @@ async fn body_limit_small_fields_within_limit()
     let bytes1 = fs::read(&temp_file1.path).expect("Failed to read test file 1");
     let bytes2 = fs::read(&temp_file2.path).expect("Failed to read test file 2");
 
-    let part1 = Part::bytes(bytes1)
-        .file_name("file1.txt")
-        .mime_type("text/plain");
+    let part1 = Part::bytes(bytes1).file_name("file1.txt").mime_type("text/plain");
 
-    let part2 = Part::bytes(bytes2)
-        .file_name("file2.txt")
-        .mime_type("text/plain");
+    let part2 = Part::bytes(bytes2).file_name("file2.txt").mime_type("text/plain");
 
     let form = MultipartForm::new()
         .add_text("field1", "value1")
@@ -229,21 +195,15 @@ async fn body_limit_small_fields_within_limit()
 
 #[tokio::test]
 async fn valid_mime() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?
-        .with_controller::<TestController>()
-        .build();
+    let app = Application::builder()?.with_controller::<TestController>().build();
 
     let test = TestServer::new(app.router()).unwrap();
 
     let bytes = include_bytes!("../../files/pdf-test.pdf").to_vec();
 
-    let part = Part::bytes(bytes)
-        .file_name("pdf-test.pdf")
-        .mime_type("application/pdf");
+    let part = Part::bytes(bytes).file_name("pdf-test.pdf").mime_type("application/pdf");
 
-    let form = MultipartForm::new()
-        .add_text("field1", "value1")
-        .add_part("file", part);
+    let form = MultipartForm::new().add_text("field1", "value1").add_part("file", part);
 
     let response = test.post("/multipart").multipart(form).await;
 
@@ -257,21 +217,15 @@ async fn valid_mime() -> Result<(), Box<dyn std::error::Error>> {
 
 #[tokio::test]
 async fn invalid_mime() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?
-        .with_controller::<TestController>()
-        .build();
+    let app = Application::builder()?.with_controller::<TestController>().build();
 
     let test = TestServer::new(app.router()).unwrap();
 
     let bytes = include_bytes!("../../files/png-test.png").to_vec();
 
-    let part = Part::bytes(bytes)
-        .file_name("png-test.png")
-        .mime_type("application/pdf");
+    let part = Part::bytes(bytes).file_name("png-test.png").mime_type("application/pdf");
 
-    let form = MultipartForm::new()
-        .add_text("field1", "value1")
-        .add_part("file", part);
+    let form = MultipartForm::new().add_text("field1", "value1").add_part("file", part);
 
     let response = test.post("/multipart").multipart(form).await;
 

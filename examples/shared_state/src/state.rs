@@ -7,9 +7,7 @@ pub type InMemoryDb = Arc<RwLock<Vec<String>>>;
 static IN_MEMORY_DB: OnceLock<InMemoryDb> = OnceLock::new();
 
 pub fn db() -> Arc<RwLock<Vec<String>>> {
-    IN_MEMORY_DB
-        .get_or_init(|| Arc::new(RwLock::new(Vec::new())))
-        .clone()
+    IN_MEMORY_DB.get_or_init(|| Arc::new(RwLock::new(Vec::new()))).clone()
 }
 
 #[derive(Clone)]

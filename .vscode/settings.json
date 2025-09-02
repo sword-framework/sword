@@ -30,6 +30,6 @@
     "rust-analyzer.cargo.features": [
         "multipart",
         "shaku-di",
-        "hot-reload"
+        "hot-reload",
     ],
 }

@@ -301,7 +301,6 @@ pub fn config(attr: TokenStream, item: TokenStream) -> TokenStream {
 pub fn main(_args: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as syn::ItemFn);
 
-    println!("{}", quote! { #input });
     let mut fn_body = input.block.clone();
     let fn_attrs = input.attrs.clone();
     let fn_vis = input.vis.clone();
@@ -321,13 +320,11 @@ pub fn main(_args: TokenStream, item: TokenStream) -> TokenStream {
                     .enable_all()
                     .build()
                     .expect("Failed building the Runtime")
-                    .block_on(::sword::hot_reload::dioxus_devtools::serve_subsecond(__internal_main));
+                    .block_on(::sword::hot_reload::dioxus_devtools::serve_subsecond(__internal_main))
             }
         }
     } else {
-        fn_body
-            .stmts
-            .push(parse_quote!({ Ok::<(), Box<dyn std::error::Error>>(()) }));
+        fn_body.stmts.push(parse_quote!({ Ok::<(), Box<dyn std::error::Error>>(()) }));
 
         quote! {
             #(#fn_attrs)*
@@ -336,7 +333,7 @@ pub fn main(_args: TokenStream, item: TokenStream) -> TokenStream {
                     .enable_all()
                     .build()
                     .expect("Failed building the Runtime")
-                    .block_on( async #fn_body );
+                    .block_on( async #fn_body )
             }
         }
     };

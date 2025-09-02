@@ -55,7 +55,7 @@ pub mod __private {
     pub use axum::response::{IntoResponse, Response as AxumResponse};
     pub use axum::routing::Router as AxumRouter;
     pub use axum::routing::{
-        delete as axum_delete_fn, get as axum_get_fn, patch as axum_patch_fn,
-        post as axum_post_fn, put as axum_put_fn,
+        delete as axum_delete_fn, get as axum_get_fn, patch as axum_patch_fn, post as axum_post_fn,
+        put as axum_put_fn,
     };
 }

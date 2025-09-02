@@ -39,9 +39,7 @@ impl CorsMiddleware {
         let headers = headers.into_iter().collect::<Vec<_>>();
 
         CorsMiddleware {
-            layer: CorsLayer::new()
-                .allow_methods(methods)
-                .allow_headers(headers),
+            layer: CorsLayer::new().allow_methods(methods).allow_headers(headers),
         }
     }
 }

@@ -22,9 +22,7 @@ impl AppController {
 async fn main() {
     println!("Running multipart example");
 
-    let app = Application::builder()?
-        .with_controller::<AppController>()
-        .build();
+    let app = Application::builder()?.with_controller::<AppController>().build();
 
     app.run().await?;
 }

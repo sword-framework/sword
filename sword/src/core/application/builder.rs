@@ -84,10 +84,7 @@ impl ApplicationBuilder {
     ///
     /// It's not necesary to use your state wrapped in `Arc`, as the sword `State`
     /// already does that for you.
-    pub fn with_state<S: Sync + Send + 'static>(
-        self,
-        state: S,
-    ) -> Result<Self, StateError> {
+    pub fn with_state<S: Sync + Send + 'static>(self, state: S) -> Result<Self, StateError> {
         self.state.insert(state)?;
 
         let router = Router::new().with_state(self.state.clone());

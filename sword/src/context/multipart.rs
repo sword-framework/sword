@@ -34,9 +34,8 @@ impl MultipartData {
 
 impl Context {
     pub async fn multipart(&self) -> Result<MultipartData, RequestError> {
-        let mut multipart = Multipart::from_request(self.clone().try_into()?, &())
-            .await
-            .map_err(|err| {
+        let mut multipart =
+            Multipart::from_request(self.clone().try_into()?, &()).await.map_err(|err| {
                 RequestError::ParseError(
                     "Failed to parse multipart data",
                     format!("Error parsing multipart: {err}"),
@@ -47,9 +46,7 @@ impl Context {
             .config::<ApplicationConfig>()
             .map_err(|e| {
                 eprintln!("Error retrieving application config: {e}");
-                RequestError::InternalError(
-                    "Failed to retrieve application config".to_string(),
-                )
+                RequestError::InternalError("Failed to retrieve application config".to_string())
             })?
             .allowed_mime_types
             .clone();

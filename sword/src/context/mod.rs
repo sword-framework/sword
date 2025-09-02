@@ -45,10 +45,7 @@ impl Context {
     where
         T: Send + Sync + 'static + Clone,
     {
-        let value = self
-            .state
-            .get::<T>()
-            .map_err(|_| StateError::TypeNotFound)?;
+        let value = self.state.get::<T>().map_err(|_| StateError::TypeNotFound)?;
 
         Ok(value)
     }
@@ -65,19 +62,14 @@ impl Context {
         M: Module + HasComponent<I> + Send + Sync + 'static,
         I: Interface + ?Sized + 'static,
     {
-        let module = self
-            .state
-            .get::<M>()
-            .map_err(|_| StateError::TypeNotFound)?;
+        let module = self.state.get::<M>().map_err(|_| StateError::TypeNotFound)?;
 
         let interface = module.resolve();
 
         Ok(interface)
     }
 
-    pub fn config<T: DeserializeOwned + ConfigItem>(
-        &self,
-    ) -> Result<T, ConfigError> {
+    pub fn config<T: DeserializeOwned + ConfigItem>(&self) -> Result<T, ConfigError> {
         let config = self
             .state
             .get::<Config>()
