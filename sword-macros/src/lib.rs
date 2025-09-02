@@ -320,15 +320,15 @@ pub fn main(_args: TokenStream, item: TokenStream) -> TokenStream {
                     .enable_all()
                     .build()
                     .expect("Failed building the Runtime")
-                    .block_on(::sword::hot_reload::dioxus_devtools::serve_subsecond(__internal_main))
+                    .block_on(::sword::hot_reload::dioxus_devtools::serve_subsecond(__internal_main));
             }
         }
     } else {
-        fn_body.stmts.push(parse_quote!(Ok::<(), Box<dyn std::error::Error>>(())));
+        fn_body.stmts.push(parse_quote!({ Ok::<(), Box<dyn std::error::Error>>(()) }));
 
         quote! {
             #(#fn_attrs)*
-            #fn_vis fn main() {
+            #fn_vis fn main() -> Result<(), Box<dyn std::error::Error>> {
                 ::tokio::runtime::Builder::new_multi_thread()
                     .enable_all()
                     .build()
