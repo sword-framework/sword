@@ -324,7 +324,7 @@ pub fn main(_args: TokenStream, item: TokenStream) -> TokenStream {
             }
         }
     } else {
-        fn_body.stmts.push(parse_quote!({ Ok::<(), Box<dyn std::error::Error>>(()) }));
+        fn_body.stmts.push(parse_quote!(Ok::<(), Box<dyn std::error::Error>>(())));
 
         quote! {
             #(#fn_attrs)*

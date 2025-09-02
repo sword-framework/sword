@@ -8,7 +8,7 @@ name = "basic_web_server"
 path = "src/main.rs"
 
 [dependencies]
-sword = { workspace = true }
+sword = { workspace = true, features = ["hot-reload"] }
 tokio = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
