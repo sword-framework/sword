@@ -7,4 +7,8 @@ impl Context {
     pub fn cookies(&self) -> Option<&Cookies> {
         self.extensions.get::<Cookies>()
     }
+
+    pub fn cookies_mut(&mut self) -> Option<&mut Cookies> {
+        self.extensions.get_mut::<Cookies>()
+    }
 }

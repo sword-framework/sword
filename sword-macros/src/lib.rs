@@ -7,36 +7,149 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, parse_quote};
 
+/// Defines a handler for HTTP GET requests.
+/// This macro should be used inside an `impl` block of a struct annotated with the `#[controller]` macro.
+///
+/// ### Parameters
+/// - `path`: The path for the GET request, e.g., `"/items"`
+///
+/// ### Usage
+/// ```rust, ignore
+/// #[controller("/api")]
+/// struct MyController {}
+///
+/// #[routes]
+/// impl MyController {
+///     #[get("/items")]
+///     async fn get_items(ctx: Context) -> HttpResult<HttpResponse> {
+///         Ok(HttpResponse::Ok().message("List of items"))
+///     }
+/// }
+/// ```
 #[proc_macro_attribute]
 pub fn get(attr: TokenStream, item: TokenStream) -> TokenStream {
     let _ = attr;
     item
 }
 
+/// Defines a handler for HTTP POST requests.
+/// This macro should be used inside an `impl` block of a struct annotated with the `#[controller]` macro.
+///
+/// ### Parameters
+/// - `path`: The path for the POST request, e.g., `"/api"`
+///
+/// ## Usage
+/// ```rust, ignore
+/// #[controller("/api")]
+/// struct MyController {}
+///
+/// #[routes]
+/// impl MyController {
+///     #[post("/items")]
+///     async fn create_item(ctx: Context) -> HttpResult<HttpResponse> {
+///         Ok(HttpResponse::Ok().message("Item created"))
+///     }
+/// }
+/// ```
 #[proc_macro_attribute]
 pub fn post(attr: TokenStream, item: TokenStream) -> TokenStream {
     let _ = attr;
     item
 }
 
+/// Defines a handler for HTTP PUT requests.
+/// This macro should be used inside an `impl` block of a struct annotated with the `#[controller]` macro.
+///
+/// ### Parameters
+/// - `path`: The path for the PUT request, e.g., `"/items"`
+///
+/// ## Usage
+/// ```rust, ignore
+/// #[controller("/api")]
+/// struct MyController {}
+///
+/// #[routes]
+/// impl MyController {
+///     #[put("/item/{id}")]
+///     async fn update_item(ctx: Context) -> HttpResult<HttpResponse> {
+///         Ok(HttpResponse::Ok().message("Item updated"))
+///     }
+/// }
+/// ```
 #[proc_macro_attribute]
 pub fn put(attr: TokenStream, item: TokenStream) -> TokenStream {
     let _ = attr;
     item
 }
 
+/// Defines a handler for HTTP DELETE requests.
+/// This macro should be used inside an `impl` block of a struct annotated with the `#[controller]` macro.
+///
+/// ### Parameters
+/// - `path`: The path for the DELETE request, e.g., `"/item/{id}"`
+///
+/// ## Usage
+/// ```rust, ignore
+/// #[controller("/api")]
+/// struct MyController {}
+///
+/// #[routes]
+/// impl MyController {
+///     #[delete("/item/{id}")]
+///     async fn delete_item(ctx: Context) -> HttpResult<HttpResponse> {
+///         Ok(HttpResponse::Ok().message("Item deleted"))
+///     }
+/// }
+/// ```
 #[proc_macro_attribute]
 pub fn delete(attr: TokenStream, item: TokenStream) -> TokenStream {
     let _ = attr;
     item
 }
 
+/// Defines a handler for PATCH DELETE requests.
+/// This macro should be used inside an `impl` block of a struct annotated with the `#[controller]` macro.
+///
+/// ### Parameters
+/// - `path`: The path for the PATCH request, e.g., `"/item/{id}"`
+///
+/// ## Usage
+/// ```rust, ignore
+/// #[controller("/api")]
+/// struct MyController {}
+///
+/// #[routes]
+/// impl MyController {
+///     #[patch("/item/{id}")]
+///     async fn patch_item(ctx: Context) -> HttpResult<HttpResponse> {
+///         Ok(HttpResponse::Ok().message("Item patched"))
+///     }
+/// }
+/// ```
 #[proc_macro_attribute]
 pub fn patch(attr: TokenStream, item: TokenStream) -> TokenStream {
     let _ = attr;
     item
 }
 
+/// Defines a controller with a base path.
+/// This macro should be used in combination with the `#[routes]` macro.
+///
+/// ### Parameters
+/// - `base_path`: The base path for the controller, e.g., `"/api
+///
+/// ### Usage
+/// ```rust, ignore
+/// #[controller("/base_path")]
+/// struct MyController {}
+///
+/// #[routes]
+/// impl MyController {
+///     #[get("/sub_path")]
+///     async fn my_handler(ctx: Context) -> HttpResult<HttpResponse> {
+///        Ok(HttpResponse::Ok().message("Hello from MyController"))    
+///     }
+/// }
 #[proc_macro_attribute]
 pub fn controller(attr: TokenStream, item: TokenStream) -> TokenStream {
     controller::expand_controller(attr, item)
@@ -48,6 +161,22 @@ pub fn controller_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
     implementation::expand_controller_impl(attr, item)
 }
 
+/// Implements the routes for a controller defined with the `#[controller]` macro.
+/// This macro should be used in combination with the `#[controller]` macro.
+///
+/// ### Usage
+/// ```rust, ignore
+/// #[controller("/base_path")]
+/// struct MyController {}
+///
+/// #[routes]
+/// impl MyController {
+///     #[get("/sub_path")]
+///     async fn my_handler(ctx: Context) -> HttpResult<HttpResponse> {
+///        Ok(HttpResponse::Ok().message("Hello from MyController"))    
+///     }
+/// }
+/// ```
 #[proc_macro_attribute]
 pub fn routes(attr: TokenStream, item: TokenStream) -> TokenStream {
     implementation::expand_controller_impl(attr, item)
@@ -58,7 +187,40 @@ pub fn middleware(attr: TokenStream, item: TokenStream) -> TokenStream {
     let _ = attr;
     item
 }
-
+/// Defines a configuration struct for the application.
+/// This macro generates the necessary code to deserialize the struct from
+/// the configuration toml file.
+///
+/// The struct must derive `Deserialize` from `serde`.
+///
+/// ### Parameters
+/// - `key`: The key in the configuration file where the struct is located.
+///
+/// ### Usage
+/// ```rust, ignore
+/// #[derive(Deserialize)]
+/// #[config(key = "my-section")]
+/// struct MyConfig {
+///     my_key: String,
+/// }
+/// ```
+///
+/// This allows you to access the configuration in your handlers or middlewares
+///
+/// /// ```rust, ignore
+/// #[controller("/some_path")]
+/// struct SomeController {}
+///
+/// #[routes]
+/// impl SomeController {
+///     #[get("/config")]
+///     async fn get_config(ctx: Context) -> HttpResult<HttpResponse> {
+///         let config = ctx.config::<MyConfig>()?;
+///         let message = format!("Config key: {}", config.my_key);
+///
+///         Ok(HttpResponse::Ok().message(message))
+///     }
+/// }
 #[proc_macro_attribute]
 pub fn config(attr: TokenStream, item: TokenStream) -> TokenStream {
     config::expand_config_struct(attr, item)

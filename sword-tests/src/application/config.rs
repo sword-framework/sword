@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use sword::prelude::*;
 use sword::web::HttpResult;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 #[config(key = "my-custom-section")]
 struct MyConfig {
     custom_key: String,
