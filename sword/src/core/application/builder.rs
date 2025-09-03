@@ -9,6 +9,9 @@ use axum::{
 use tower::{Layer, Service};
 use tower_http::limit::RequestBodyLimitLayer;
 
+#[cfg(feature = "cookies")]
+use tower_cookies::CookieManagerLayer;
+
 use crate::{
     __private::mw_with_state,
     core::{
@@ -115,6 +118,10 @@ impl ApplicationBuilder {
         router = router
             .layer(mw_with_state(self.state.clone(), ContentTypeCheck::layer))
             .layer(RequestBodyLimitLayer::new(app_config.body_limit));
+
+        if cfg!(feature = "cookies") {
+            router = router.layer(CookieManagerLayer::new());
+        }
 
         Application {
             router,

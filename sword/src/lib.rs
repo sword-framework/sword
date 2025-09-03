@@ -8,6 +8,12 @@ pub mod prelude {
 
     pub use crate::errors::{ApplicationError, RequestError, StateError};
     pub use crate::web::*;
+
+    #[cfg(feature = "cookies")]
+    pub use crate::context::cookies::*;
+
+    #[cfg(feature = "multipart")]
+    pub use crate::context::multipart::{MultipartData, MultipartField};
 }
 
 pub mod errors;
@@ -37,6 +43,9 @@ pub mod web {
 
     #[cfg(feature = "multipart")]
     pub use crate::context::multipart::MultipartField;
+
+    #[cfg(feature = "cookies")]
+    pub use crate::context::cookies;
 }
 
 pub use sword_macros::main;

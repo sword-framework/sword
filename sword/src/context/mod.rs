@@ -3,6 +3,9 @@ pub mod request;
 #[cfg(feature = "multipart")]
 pub mod multipart;
 
+#[cfg(feature = "cookies")]
+pub mod cookies;
+
 use axum::{
     body::Bytes,
     http::{Extensions, Method, Uri},

@@ -5,7 +5,7 @@ fmt-check:
     cargo fmt --all -- --check
 
 lint:
-    cargo clippy --workspace --all-targets -- -D warnings
+    cargo clippy --workspace --all-targets --all-features -- -D warnings
 
 test entity="":
     cd sword-tests && cargo test {{entity}}

@@ -31,5 +31,6 @@
         "multipart",
         "shaku-di",
         "hot-reload",
+        "cookies"
     ],
 }
