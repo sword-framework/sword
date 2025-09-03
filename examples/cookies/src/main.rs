@@ -53,7 +53,7 @@ impl CookieController {
 
 #[sword::main]
 async fn main() {
-    let mut app = Application::builder()?.with_controller::<AppController>().build();
+    let app = Application::builder()?.with_controller::<CookieController>().build();
 
     app.run().await?;
 }

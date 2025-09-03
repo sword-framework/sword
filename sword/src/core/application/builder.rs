@@ -119,7 +119,8 @@ impl ApplicationBuilder {
             .layer(mw_with_state(self.state.clone(), ContentTypeCheck::layer))
             .layer(RequestBodyLimitLayer::new(app_config.body_limit));
 
-        if cfg!(feature = "cookies") {
+        #[cfg(feature = "cookies")]
+        {
             router = router.layer(CookieManagerLayer::new());
         }
 
