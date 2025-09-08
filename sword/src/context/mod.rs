@@ -24,11 +24,49 @@ use crate::{
 };
 
 /// Context represents the incoming request context in the Sword framework.
-/// It contains request parameters, body bytes, HTTP method, headers, URI and more.
 ///
-/// Also contains the state of the application, which can be used to store and retrieve
-/// shared data across the application, such as database connections, configuration settings,
-/// and other application state.
+/// `Context` is the primary interface for accessing request data in Sword applications.
+/// It provides access to request parameters, body data, HTTP method, headers, URI,
+/// and the application's shared state. This struct is automatically extracted from
+/// incoming HTTP requests and passed to route handlers and middleware.
+///
+/// # Key Features
+///
+/// - **Parameter Access**: URL and query parameters
+/// - **Header Management**: Read and modify request headers
+/// - **Body Handling**: Access to request body as bytes
+/// - **State Access**: Retrieve shared application state
+/// - **Configuration**: Access to application configuration
+/// - **Dependency Injection**: Access to Shaku DI modules (with `shaku-di` feature)
+///
+/// # Example
+///
+/// ```rust,ignore
+/// use sword::prelude::*;
+///
+/// #[controller]
+/// struct UserController;
+///
+/// #[routes]
+/// impl UserController {
+///     #[get("/users/{id}")]
+///     async fn get_user(ctx: Context) -> HttpResult<impl IntoResponse> {
+///         // Access URL parameter
+///         let user_id = ctx.param::<u32>("id")?;
+///         
+///         // Access headers
+///         let auth_header = ctx.header("authorization");
+///         
+///         // Access application state
+///         let db = ctx.get_state::<DatabasePool>()?;
+///         
+///         // Access configuration
+///         let app_config = ctx.config::<AppConfig>()?;
+///         
+///         Ok(format!("User ID: {}", user_id))
+///     }
+/// }
+/// ```
 #[derive(Debug, Clone)]
 pub struct Context {
     params: HashMap<String, String>,
@@ -37,13 +75,49 @@ pub struct Context {
     headers: HashMap<String, String>,
     uri: Uri,
     state: State,
+    /// Axum extensions for additional request metadata.
     pub extensions: Extensions,
 }
 
 impl Context {
-    /// Method to get the `T` type from the context state.
-    /// This method will return an error if the type is not found in the state.
-    /// The error can be converted automatically to a `HttpResponse` using `?` operator.`
+    /// Retrieves shared state of type `T` from the application state container.
+    ///
+    /// This method allows access to any state that was registered during application
+    /// building using `ApplicationBuilder::with_state()`. The state is returned
+    /// wrapped in an `Arc` for safe sharing across threads.
+    ///
+    /// # Type Parameters
+    ///
+    /// * `T` - The type of state to retrieve (must implement `Send + Sync + 'static + Clone`)
+    ///
+    /// # Returns
+    ///
+    /// Returns `Ok(Arc<T>)` containing the state if found, or `Err(StateError)`
+    /// if the state type was not registered.
+    ///
+    /// # Errors
+    ///
+    /// This function will return a `StateError::TypeNotFound` if the requested
+    /// state type was not registered in the application.
+    ///
+    /// # Example
+    ///
+    /// ```rust,ignore
+    /// use sword::prelude::*;
+    /// use std::sync::atomic::{AtomicU64, Ordering};
+    ///
+    /// #[derive(Default)]
+    /// struct AppState {
+    ///     counter: AtomicU64,
+    /// }
+    ///
+    /// #[get("/count")]
+    /// async fn increment_counter(ctx: Context) -> HttpResult<String> {
+    ///     let state = ctx.get_state::<AppState>()?;
+    ///     let count = state.counter.fetch_add(1, Ordering::SeqCst);
+    ///     Ok(format!("Count: {}", count + 1))
+    /// }
+    /// ```
     pub fn get_state<T>(&self) -> Result<Arc<T>, StateError>
     where
         T: Send + Sync + 'static + Clone,
@@ -53,12 +127,31 @@ impl Context {
         Ok(value)
     }
 
-    /// Method to get the `T` type from the `shaku` dependency injection module.
-    /// This method will return an error if the type is not found in the module.
-    /// The error can be converted automatically to a `HttpResponse` using `?` operator
+    /// Retrieves a dependency from a Shaku dependency injection module.
     ///
-    /// Parameter `M` is the module type that contains the dependency.
-    /// Parameter `I` is the interface type that is being resolved. (must be a `dyn Interface`)
+    /// This method provides access to services registered in Shaku modules
+    /// that were added to the application using `ApplicationBuilder::with_shaku_di_module()`.
+    ///
+    /// Available only when the `shaku-di` feature is enabled.
+    ///
+    /// ### Type Parameters
+    ///
+    /// * `M` - The module type containing the dependency (must implement required Shaku traits)
+    /// * `I` - The interface type being resolved (must be a `dyn Interface`)
+    ///
+    /// ### Returns
+    ///
+    /// Returns `Ok(Arc<I>)` containing the resolved service, or `Err(StateError)`
+    /// if the module or service is not found.
+    ///
+    /// ### Errors
+    ///
+    /// This function will return a `StateError::TypeNotFound` if the requested
+    /// module type was not registered in the application.
+    ///
+    /// ### Example
+    /// To see usage, We recommend checking the full example in the sword framework repository.
+    /// [Shaku dependency injection example](https://github.com/sword-framework/sword/tree/main/examples/src/dependency_injection)
     #[cfg(feature = "shaku-di")]
     pub fn di<M, I>(&self) -> Result<Arc<I>, StateError>
     where
@@ -72,6 +165,64 @@ impl Context {
         Ok(interface)
     }
 
+    /// Retrieves a configuration item of type `T` from the application configuration.
+    ///
+    /// This method provides access to configuration values loaded from TOML files.
+    /// The configuration type must implement the `ConfigItem` trait, which can be
+    /// done using the `#[config(key = "section_name")]` attribute macro.
+    ///
+    /// ### Type Parameters
+    ///
+    /// * `T` - The configuration type (must implement `DeserializeOwned + ConfigItem`)
+    ///
+    /// ### Returns
+    ///
+    /// Returns `Ok(T)` containing the parsed configuration, or `Err(ConfigError)`
+    /// if the configuration cannot be loaded or parsed.
+    ///
+    /// ### Errors
+    ///
+    /// This function will return an error if:
+    /// - The configuration section is not found in the TOML file
+    /// - The configuration cannot be deserialized to type `T`
+    /// - The configuration file cannot be accessed from the application state
+    ///
+    /// ### Example
+    ///
+    /// Configuration file (`config/config.toml`):
+    /// ```toml,ignore
+    /// [database]
+    /// host = "localhost"
+    /// port = 5432
+    /// name = "myapp"
+    ///
+    /// [application]
+    /// host = "127.0.0.1"
+    /// port = 3000
+    /// ```
+    ///
+    /// Rust code:
+    /// ```rust,ignore
+    /// use sword::prelude::*;
+    /// use serde::Deserialize;
+    ///
+    /// #[derive(Deserialize)]
+    /// #[config(key = "database")]
+    /// struct DatabaseConfig {
+    ///     host: String,
+    ///     port: u16,
+    ///     name: String,
+    /// }
+    ///
+    /// ... asuming the rest of the controller ...
+    ///
+    /// #[get("/db-info")]
+    /// async fn db_info(ctx: Context) -> HttpResult<String> {
+    ///     let db_config = ctx.config::<DatabaseConfig>()?;
+    ///     Ok(format!("Database: {}:{}/{}",
+    ///         db_config.host, db_config.port, db_config.name))
+    /// }
+    /// ```
     pub fn config<T: DeserializeOwned + ConfigItem>(&self) -> Result<T, ConfigError> {
         let config = self
             .state

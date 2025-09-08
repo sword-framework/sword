@@ -35,6 +35,38 @@ impl Config {
         })
     }
 
+    /// Retrieves and deserializes a configuration section.
+    ///
+    /// This method extracts a specific section from the loaded TOML configuration
+    /// and deserializes it to the specified type. The type must implement both
+    /// `DeserializeOwned` for parsing and `ConfigItem` to specify which section
+    /// to load from.
+    ///
+    /// ### Type Parameters
+    ///
+    /// * `T` - The configuration type to deserialize (must implement `DeserializeOwned + ConfigItem`)
+    ///
+    /// ### Example
+    ///
+    /// ```rust,ignore
+    /// use sword::prelude::*;
+    /// use serde::Deserialize;
+    ///
+    /// #[derive(Deserialize)]
+    /// #[config(key = "application")]
+    /// struct DatabaseConfig {
+    ///     url: String,
+    /// }
+    ///
+    /// // Then in a route handler:
+    ///
+    /// #[get("/db-info")]
+    /// async fn db_info(ctx: Context) -> HttpResult<String> {
+    ///    let db_config = ctx.config::<DatabaseConfig>()?;
+    ///     Ok(format!("Database URL: {}", db_config.url))
+    /// }
+    ///
+    /// ```
     pub fn get<T: DeserializeOwned + ConfigItem>(&self) -> Result<T, ConfigError> {
         let config_item = match self.inner.get(T::toml_key()) {
             Some(value) => value,

@@ -2,6 +2,18 @@ mod context;
 mod middlewares;
 mod validation;
 
+/// The prelude module contains the most commonly used items from the Sword framework.
+///
+/// This module is designed to be imported with a glob import to bring all essential
+/// types and traits into scope for typical Sword applications.
+///
+/// # Example
+///
+/// ```rust,ignore
+/// use sword::prelude::*;
+///
+/// // Now you have access to Application, Context, HttpResult, and more
+/// ```
 pub mod prelude {
     pub use crate::core::{Application, ApplicationConfig};
     pub use crate::core::{ConfigItem, config};

@@ -182,6 +182,40 @@ pub fn routes(attr: TokenStream, item: TokenStream) -> TokenStream {
     implementation::expand_controller_impl(attr, item)
 }
 
+/// Declares a executable middleware to apply to a route controller.
+/// This macro should be used inside an `impl` block of a struct annotated with the `#[controller]` macro.
+///
+/// ## Parameters
+/// - `MiddlewareName`: The name of the middleware struct that implements the `Middleware` or `MiddlewareWithConfig` trait.
+/// - `config`: (Optional) Configuration parameters for the middleware,
+///
+/// ## Handle errors
+/// To throw an error from a middleware, simply return an `Err` with an `HttpResponse`
+/// struct in the same way as a controller handler.
+///
+/// ### Usage
+/// ```rust, ignore
+///
+/// pub struct RoleMiddleware;
+
+/// impl MiddlewareWithConfig<Vec<&str>> for RoleMiddleware {
+///     async fn handle(roles: Vec<&str>, ctx: Context, next: Next) -> MiddlewareResult {
+///         next!(ctx, next)
+///     }
+/// }
+///
+/// #[controller("/api")]
+/// struct MyController {}
+///
+/// #[routes]
+/// impl MyController {
+///     #[get("/items")]
+///     #[middleware(RoleMiddleware, config = vec!["admin", "user"])]
+///     async fn get_items(ctx: Context) -> HttpResult<HttpResponse> {
+///         Ok(HttpResponse::Ok().message("List of items"))
+///     }
+/// }
+/// ```
 #[proc_macro_attribute]
 pub fn middleware(attr: TokenStream, item: TokenStream) -> TokenStream {
     let _ = attr;

@@ -150,18 +150,45 @@ impl Context {
         self.headers.insert(name.into(), value.into());
     }
 
-    /// Gets and parses a route parameter by name.
-    ///
+    /// Retrieves and parses a route parameter by name.
+    /// 
+    /// This method extracts URL parameters (path parameters) from the request
+    /// and converts them to the specified type. The parameter must implement
+    /// the `FromStr` trait for conversion.
+    /// 
     /// # Type Parameters
-    /// * `T` - The type to convert the parameter to. Must implement `FromStr`.
-    ///
+    /// 
+    /// * `T` - The type to convert the parameter to (must implement `FromStr`)
+    /// 
     /// # Arguments
-    /// * `key` - The name of the route parameter to get.
-    ///
+    /// 
+    /// * `key` - The name of the route parameter to extract
+    /// 
     /// # Returns
-    /// `Ok(T)` with the parsed value if it exists and can be converted,
-    /// `Err(RequestError)` if the parameter doesn't exist or cannot be parsed. This error
-    /// can be automatically converted to an `HttpResponse` using the `?` operator.
+    /// 
+    /// Returns `Ok(T)` with the parsed value if the parameter exists and can be
+    /// converted, or `Err(RequestError)` if the parameter is missing or invalid.
+    /// 
+    /// # Errors
+    /// 
+    /// This function will return an error if:
+    /// - The parameter is not found in the request
+    /// - The parameter value cannot be parsed to type `T`
+    /// 
+    /// # Example
+    /// 
+    /// ```rust,ignore
+    /// use sword::prelude::*;
+    /// 
+    /// // Route: GET /users/{id}/posts/{post_id}
+    /// #[get("/users/{id}/posts/{post_id}")]
+    /// async fn get_user_post(ctx: Context) -> HttpResult<String> {
+    ///     let user_id: u32 = ctx.param("id")?;
+    ///     let post_id: u64 = ctx.param("post_id")?;
+    ///     
+    ///     Ok(format!("User {} Post {}", user_id, post_id))
+    /// }
+    /// ```
     pub fn param<T: FromStr>(&self, key: &str) -> Result<T, RequestError> {
         if let Some(value) = self.params.get(key) {
             let Ok(param) = value.parse::<T>() else {
@@ -180,15 +207,50 @@ impl Context {
         Err(RequestError::ParseError(message, details))
     }
 
-    /// Deserializes the request body to a specific type.
-    ///
+    /// Deserializes the request body from JSON to a specific type.
+    /// 
+    /// This method reads the request body and attempts to parse it as JSON,
+    /// deserializing it to the specified type. The body is consumed during
+    /// this operation.
+    /// 
     /// # Type Parameters
-    /// * `T` - The type to deserialize the JSON body to. Must implement `DeserializeOwned`.
-    ///
+    /// 
+    /// * `T` - The type to deserialize the JSON body to (must implement `DeserializeOwned`)
+    /// 
     /// # Returns
-    /// `Ok(T)` with the deserialized instance if the JSON is valid,
-    /// `Err(RequestError)` if the body is empty or cannot be deserialized. This error
-    /// can be automatically converted to an `HttpResponse` using the `?` operator.
+    /// 
+    /// Returns `Ok(T)` with the deserialized instance if the JSON is valid,
+    /// or `Err(RequestError)` if the body is empty or invalid JSON.
+    /// 
+    /// # Errors
+    /// 
+    /// This function will return an error if:
+    /// - The request body is empty
+    /// - The body contains invalid JSON
+    /// - The JSON structure doesn't match the target type `T`
+    /// 
+    /// # Example
+    /// 
+    /// ```rust,ignore
+    /// use sword::prelude::*;
+    /// use serde::Deserialize;
+    /// 
+    /// #[derive(Deserialize)]
+    /// struct CreateUserRequest {
+    ///     name: String,
+    ///     email: String,
+    ///     age: u32,
+    /// }
+    /// 
+    /// #[post("/users")]
+    /// async fn create_user(ctx: Context) -> HttpResult<String> {
+    ///     let user_data: CreateUserRequest = ctx.body()?;
+    ///     
+    ///     // Process user creation...
+    ///     
+    ///     Ok(format!("Created user: {}", user_data.name))
+    /// }
+    /// ```
     pub fn body<T: DeserializeOwned>(&self) -> Result<T, RequestError> {
         if self.body_bytes.is_empty() {
             return Err(RequestError::BodyIsEmpty("Request body is empty"));
@@ -202,28 +264,52 @@ impl Context {
         })
     }
 
-    /// Deserializes the query parameters (query string) to a specific type, returning `None` if no query parameters exist.
-    ///
-    /// Query parameters in HTTP are inherently optional, so this method always returns an `Option<T>`.
-    /// This allows for ergonomic usage with the `?` operator followed by `unwrap_or_default()`.
-    ///
+    /// Deserializes query parameters from the URL query string to a specific type.
+    /// 
+    /// This method parses the query string portion of the URL and deserializes
+    /// it to the specified type. Since query parameters are optional in HTTP,
+    /// this method returns `Option<T>` where `None` indicates no query parameters
+    /// were present.
+    /// 
     /// # Type Parameters
-    /// * `T` - The type to deserialize the query parameters to. Must implement `DeserializeOwned`.
-    ///
+    /// 
+    /// * `T` - The type to deserialize the query parameters to (must implement `DeserializeOwned`)
+    /// 
     /// # Returns
-    /// `Ok(Some(T))` with the deserialized instance if query parameters exist and are valid,
-    /// `Ok(None)` if no query parameters are present,
-    /// `Err(RequestError)` if query parameters exist but cannot be deserialized.
-    ///
+    /// 
+    /// Returns:
+    /// - `Ok(Some(T))` with the deserialized query parameters if they exist and are valid
+    /// - `Ok(None)` if no query parameters are present in the URL
+    /// - `Err(RequestError)` if query parameters exist but cannot be deserialized
+    /// 
+    /// # Errors
+    /// 
+    /// This function will return an error if the query parameters exist but
+    /// cannot be parsed or deserialized to the target type.
+    /// 
     /// # Example
+    /// 
     /// ```rust,ignore
-    /// // Using with a struct that implements Default
-    /// let query: QueryParams = ctx.query()?.unwrap_or_default();
-    ///
-    /// // Or using pattern matching
-    /// match ctx.query::<QueryParams>()? {
-    ///     Some(query) => println!("Got query: {:?}", query),
-    ///     None => println!("No query parameters provided"),
+    /// use sword::prelude::*;
+    /// use serde::Deserialize;
+    /// 
+    /// #[derive(Deserialize, Default)]
+    /// struct SearchQuery {
+    ///     q: Option<String>,
+    ///     page: Option<u32>,
+    ///     limit: Option<u32>,
+    /// }
+    /// 
+    /// // Route: GET /search?q=rust&page=1&limit=10
+    /// #[get("/search")]
+    /// async fn search(ctx: Context) -> HttpResult<String> {
+    ///     let query: SearchQuery = ctx.query()?.unwrap_or_default();
+    ///     
+    ///     let search_term = query.q.unwrap_or_else(|| "all".to_string());
+    ///     let page = query.page.unwrap_or(1);
+    ///     let limit = query.limit.unwrap_or(20);
+    ///     
+    ///     Ok(format!("Searching '{}' - page {}, limit {}", search_term, page, limit))
     /// }
     /// ```
     pub fn query<T: DeserializeOwned>(&self) -> Result<Option<T>, RequestError> {
@@ -246,18 +332,55 @@ impl Context {
     }
 
     /// Deserializes and validates the request body using validation rules.
-    ///
+    /// 
+    /// This method combines JSON deserialization with validation using the
+    /// `validator` crate. It first deserializes the request body and then
+    /// runs validation rules defined on the target type.
+    /// 
     /// # Type Parameters
-    /// * `T` - The type to deserialize and validate. Must implement `DeserializeOwned` and `Validate`.
-    ///
+    /// 
+    /// * `T` - The type to deserialize and validate (must implement `DeserializeOwned + Validate`)
+    /// 
     /// # Returns
-    /// `Ok(T)` with the deserialized and validated instance,
+    /// 
+    /// Returns `Ok(T)` with the deserialized and validated instance, or
     /// `Err(RequestError)` if there are deserialization or validation errors.
-    ///
+    /// 
     /// # Errors
-    /// - `RequestError::BodyIsEmpty` if the body is empty.
-    /// - `RequestError::ParseError` if the JSON is invalid.
-    /// - `RequestError::ValidationError` if the data doesn't pass validation rules.
+    /// 
+    /// This function will return an error if:
+    /// - The request body is empty (`RequestError::BodyIsEmpty`)
+    /// - The JSON is invalid (`RequestError::ParseError`)
+    /// - The data fails validation rules (`RequestError::ValidationError`)
+    /// 
+    /// # Example
+    /// 
+    /// ```rust,ignore
+    /// use sword::prelude::*;
+    /// use serde::Deserialize;
+    /// use validator::Validate;
+    /// 
+    /// #[derive(Deserialize, Validate)]
+    /// struct CreateUserRequest {
+    ///     #[validate(length(min = 1, max = 50))]
+    ///     name: String,
+    ///     
+    ///     #[validate(email)]
+    ///     email: String,
+    ///     
+    ///     #[validate(range(min = 13, max = 120))]
+    ///     age: u32,
+    /// }
+    /// 
+    /// #[post("/users")]
+    /// async fn create_user(ctx: Context) -> HttpResult<String> {
+    ///     let user_data: CreateUserRequest = ctx.validated_body()?;
+    ///     
+    ///     // Data is guaranteed to be valid here
+    ///     
+    ///     Ok(format!("Created user: {}", user_data.name))
+    /// }
+    /// ```
     pub fn validated_body<T>(&self) -> Result<T, RequestError>
     where
         T: DeserializeOwned + Validate,
@@ -274,32 +397,59 @@ impl Context {
         Ok(body)
     }
 
-    /// Deserializes and validates the query parameters using validation rules, returning `None` if no query parameters exist.
-    ///
-    /// Query parameters in HTTP are inherently optional, so this method always returns an `Option<T>`.
-    /// This allows for ergonomic usage with the `?` operator followed by `unwrap_or_default()`.
-    ///
+    /// Deserializes and validates query parameters using validation rules.
+    /// 
+    /// This method combines query parameter parsing with validation using the
+    /// `validator` crate. It first deserializes the query string and then
+    /// runs validation rules defined on the target type.
+    /// 
+    /// Since query parameters are optional in HTTP, this method returns
+    /// `Option<T>` where `None` indicates no query parameters were present.
+    /// 
     /// # Type Parameters
-    /// * `T` - The type to deserialize and validate. Must implement `DeserializeOwned` and `Validate`.
-    ///
+    /// 
+    /// * `T` - The type to deserialize and validate (must implement `DeserializeOwned + Validate`)
+    /// 
     /// # Returns
-    /// `Ok(Some(T))` with the deserialized and validated instance if query parameters exist and are valid,
-    /// `Ok(None)` if no query parameters are present,
-    /// `Err(RequestError)` if query parameters exist but fail deserialization or validation.
-    ///
+    /// 
+    /// Returns:
+    /// - `Ok(Some(T))` with the deserialized and validated query parameters if they exist and are valid
+    /// - `Ok(None)` if no query parameters are present in the URL
+    /// - `Err(RequestError)` if query parameters exist but fail deserialization or validation
+    /// 
     /// # Errors
-    /// - `RequestError::ParseError` if query parameters cannot be parsed.
-    /// - `RequestError::ValidationError` if the data doesn't pass validation rules.
-    ///
+    /// 
+    /// This function will return an error if:
+    /// - Query parameters cannot be parsed (`RequestError::ParseError`)
+    /// - The data fails validation rules (`RequestError::ValidationError`)
+    /// 
     /// # Example
+    /// 
     /// ```rust,ignore
-    /// // Using with a struct that implements Default and Validate
-    /// let query: QueryParams = ctx.validated_query()?.unwrap_or_default();
-    ///
-    /// // Or using pattern matching
-    /// match ctx.validated_query::<QueryParams>()? {
-    ///     Some(query) => println!("Got valid query: {:?}", query),
-    ///     None => println!("No query parameters provided"),
+    /// use sword::prelude::*;
+    /// use serde::Deserialize;
+    /// use validator::Validate;
+    /// 
+    /// #[derive(Deserialize, Validate, Default)]
+    /// struct SearchQuery {
+    ///     #[validate(length(min = 1, max = 100))]
+    ///     q: Option<String>,
+    ///     
+    ///     #[validate(range(min = 1, max = 1000))]
+    ///     page: Option<u32>,
+    ///     
+    ///     #[validate(range(min = 1, max = 100))]
+    ///     limit: Option<u32>,
+    /// }
+    /// 
+    /// // Route: GET /search?q=rust&page=1&limit=10
+    /// #[get("/search")]
+    /// async fn search(ctx: Context) -> HttpResult<String> {
+    ///     let query: SearchQuery = ctx.validated_query()?.unwrap_or_default();
+    ///     
+    ///     // Query parameters are guaranteed to be valid here
+    ///     
+    ///     Ok(format!("Valid search query: {:?}", query))
     /// }
     /// ```
     pub fn validated_query<T>(&self) -> Result<Option<T>, RequestError>
@@ -321,6 +471,15 @@ impl Context {
         }
     }
 
+    /// Checks if the request has a non-empty body.
+    /// 
+    /// This is an internal method used by the framework to determine
+    /// if the request contains body data. It's primarily used for
+    /// internal request processing logic.
+    /// 
+    /// # Returns
+    /// 
+    /// Returns `true` if the request has a body with content, `false` if empty.
     pub(crate) fn has_body(&self) -> bool {
         !self.body_bytes.is_empty()
     }

@@ -5,6 +5,8 @@ use axum::{
 
 use crate::{errors::RequestError, prelude::ApplicationConfig, web::Context};
 
+/// A single field in a multipart/form-data request.
+/// It contains the field's name, optional filename, content type, and the raw data as bytes.
 #[derive(Debug)]
 pub struct MultipartField {
     pub name: Option<String>,
@@ -13,6 +15,8 @@ pub struct MultipartField {
     pub data: Bytes,
 }
 
+/// Represents the parsed multipart/form-data from an HTTP request.
+/// It contains a vector of `MultipartField` representing each field in the form.
 #[derive(Debug)]
 pub struct MultipartData {
     fields: Vec<MultipartField>,
@@ -23,10 +27,14 @@ impl MultipartData {
         Self { fields }
     }
 
+    /// Returns a reference to the vector of multipart fields.
+    /// Each field contains metadata and the raw data.
     pub fn fields(&self) -> &Vec<MultipartField> {
         &self.fields
     }
 
+    /// Consumes the `MultipartData` and returns the vector of multipart fields.
+    /// This allows ownership of the fields to be transferred.
     pub fn into_fields(self) -> Vec<MultipartField> {
         self.fields
     }

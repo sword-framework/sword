@@ -34,3 +34,11 @@ impl MiddlewareWithConfig<Vec<&str>> for RoleMiddleware {
         next!(ctx, next)
     }
 }
+
+pub struct ErrorMiddleware;
+
+impl Middleware for ErrorMiddleware {
+    async fn handle(_ctx: Context, _next: Next) -> MiddlewareResult {
+        Err(HttpResponse::InternalServerError())
+    }
+}

@@ -45,6 +45,12 @@ impl TestController {
     async fn role_test(_: Context) -> HttpResponse {
         HttpResponse::Ok().message("Role middleware test passed")
     }
+
+    #[get("/error-test")]
+    #[middleware(ErrorMiddleware)]
+    async fn error_test(_: Context) -> HttpResponse {
+        HttpResponse::Ok()
+    }
 }
 
 #[sword::main]

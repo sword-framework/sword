@@ -14,12 +14,44 @@ pub use sword_macros::middleware;
 pub type MiddlewareResult = HttpResult<AxumResponse>;
 
 /// Trait for build middlewares that can be used in the application.
+///
+/// ### Usage
+/// Implement this trait for your middleware struct and define the `handle` method.
+///
+/// ```rust,ignore
+/// use sword::prelude::*;
+///
+/// struct MyMiddleware;
+///
+/// impl Middleware for MyMiddleware {
+///     async fn handle(ctx: Context, next: Next) -> MiddlewareResult {
+///         next!(ctx, next)
+///     }
+/// }
+/// ```
 pub trait Middleware: Send + Sync + 'static {
     fn handle(ctx: Context, next: Next) -> impl Future<Output = MiddlewareResult> + Send;
 }
 
 /// Trait for build middlewares that can be used in the application with a generic
 /// configuration parameters, like a secret key, vector of roles, Custom structs and more.
+///
+/// ```rust,ignore
+///
+/// use sword::prelude::*;
+///
+/// struct MyConfig {
+///     secret_key: String,
+/// }
+///
+/// struct MyMiddleware;
+///
+/// impl MiddlewareWithConfig<MyConfig> for MyMiddleware {
+///     async fn handle(config: MyConfig, req: Context, next: Next) -> MiddlewareResult {
+///         next!(req, next)
+///     }
+/// }
+/// ```
 pub trait MiddlewareWithConfig<C>: Send + Sync + 'static {
     fn handle(config: C, req: Context, next: Next)
     -> impl Future<Output = MiddlewareResult> + Send;
