@@ -1,3 +1,4 @@
+pub mod extract;
 pub mod request;
 
 #[cfg(feature = "multipart")]
@@ -30,43 +31,13 @@ use crate::{
 /// and the application's shared state. This struct is automatically extracted from
 /// incoming HTTP requests and passed to route handlers and middleware.
 ///
-/// # Key Features
+/// ### Key Features
 ///
 /// - **Parameter Access**: URL and query parameters
 /// - **Header Management**: Read and modify request headers
 /// - **Body Handling**: Access to request body as bytes
 /// - **State Access**: Retrieve shared application state
 /// - **Configuration**: Access to application configuration
-/// - **Dependency Injection**: Access to Shaku DI modules (with `shaku-di` feature)
-///
-/// # Example
-///
-/// ```rust,ignore
-/// use sword::prelude::*;
-///
-/// #[controller]
-/// struct UserController;
-///
-/// #[routes]
-/// impl UserController {
-///     #[get("/users/{id}")]
-///     async fn get_user(ctx: Context) -> HttpResult<impl IntoResponse> {
-///         // Access URL parameter
-///         let user_id = ctx.param::<u32>("id")?;
-///         
-///         // Access headers
-///         let auth_header = ctx.header("authorization");
-///         
-///         // Access application state
-///         let db = ctx.get_state::<DatabasePool>()?;
-///         
-///         // Access configuration
-///         let app_config = ctx.config::<AppConfig>()?;
-///         
-///         Ok(format!("User ID: {}", user_id))
-///     }
-/// }
-/// ```
 #[derive(Debug, Clone)]
 pub struct Context {
     params: HashMap<String, String>,
@@ -86,21 +57,21 @@ impl Context {
     /// building using `ApplicationBuilder::with_state()`. The state is returned
     /// wrapped in an `Arc` for safe sharing across threads.
     ///
-    /// # Type Parameters
+    /// ### Type Parameters
     ///
     /// * `T` - The type of state to retrieve (must implement `Send + Sync + 'static + Clone`)
     ///
-    /// # Returns
+    /// ### Returns
     ///
     /// Returns `Ok(Arc<T>)` containing the state if found, or `Err(StateError)`
     /// if the state type was not registered.
     ///
-    /// # Errors
+    /// ### Errors
     ///
     /// This function will return a `StateError::TypeNotFound` if the requested
     /// state type was not registered in the application.
     ///
-    /// # Example
+    /// ### Example
     ///
     /// ```rust,ignore
     /// use sword::prelude::*;
@@ -112,10 +83,11 @@ impl Context {
     /// }
     ///
     /// #[get("/count")]
-    /// async fn increment_counter(ctx: Context) -> HttpResult<String> {
+    /// async fn increment_counter(ctx: Context) -> HttpResult<HttpResponse> {
     ///     let state = ctx.get_state::<AppState>()?;
     ///     let count = state.counter.fetch_add(1, Ordering::SeqCst);
-    ///     Ok(format!("Count: {}", count + 1))
+    ///
+    ///     Ok(HttpResponse::Ok().data(format!("Counter: {}", count + 1)))
     /// }
     /// ```
     pub fn get_state<T>(&self) -> Result<Arc<T>, StateError>
@@ -197,7 +169,7 @@ impl Context {
     /// name = "myapp"
     ///
     /// [application]
-    /// host = "127.0.0.1"
+    /// host = "0.0.0.0"
     /// port = 3000
     /// ```
     ///
@@ -217,10 +189,13 @@ impl Context {
     /// ... asuming the rest of the controller ...
     ///
     /// #[get("/db-info")]
-    /// async fn db_info(ctx: Context) -> HttpResult<String> {
+    /// async fn db_info(ctx: Context) -> HttpResult<HttpResponse> {
     ///     let db_config = ctx.config::<DatabaseConfig>()?;
-    ///     Ok(format!("Database: {}:{}/{}",
-    ///         db_config.host, db_config.port, db_config.name))
+    ///
+    ///     Ok(HttpResponse::Ok().data(format!(
+    ///         "DB Host: {}, Port: {}, Name: {}",
+    ///         db_config.host, db_config.port, db_config.name
+    ///     )))
     /// }
     /// ```
     pub fn config<T: DeserializeOwned + ConfigItem>(&self) -> Result<T, ConfigError> {

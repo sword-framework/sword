@@ -35,10 +35,11 @@ use crate::errors::StateError;
 ///
 /// // Access state in route handlers
 /// #[get("/count")]
-/// async fn get_count(ctx: Context) -> HttpResult<String> {
+/// async fn get_count(ctx: Context) -> HttpResult<HttpResponse> {
 ///     let state = ctx.get_state::<AppState>()?;
 ///     let count = state.counter.load(Ordering::SeqCst);
-///     Ok(format!("Count: {}", count))
+///
+///     Ok(HttpResponse::Ok().data(format!("Count: {}", count)))
 /// }
 /// ```
 #[derive(Clone, Debug)]

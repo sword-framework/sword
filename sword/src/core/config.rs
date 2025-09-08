@@ -61,9 +61,9 @@ impl Config {
     /// // Then in a route handler:
     ///
     /// #[get("/db-info")]
-    /// async fn db_info(ctx: Context) -> HttpResult<String> {
-    ///    let db_config = ctx.config::<DatabaseConfig>()?;
-    ///     Ok(format!("Database URL: {}", db_config.url))
+    /// async fn db_info(ctx: Context) -> HttpResult<HttpResponse> {
+    ///     let db_config = ctx.config::<DatabaseConfig>()?;
+    ///     Ok(HttpResponse::Ok().data(db_config))
     /// }
     ///
     /// ```

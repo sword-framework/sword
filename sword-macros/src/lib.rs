@@ -195,9 +195,8 @@ pub fn routes(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///
 /// ### Usage
 /// ```rust, ignore
-///
 /// pub struct RoleMiddleware;
-
+///
 /// impl MiddlewareWithConfig<Vec<&str>> for RoleMiddleware {
 ///     async fn handle(roles: Vec<&str>, ctx: Context, next: Next) -> MiddlewareResult {
 ///         next!(ctx, next)

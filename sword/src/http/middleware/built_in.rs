@@ -1,4 +1,4 @@
-use crate::middlewares::Next;
+use crate::http::middleware::Next;
 use crate::web::HttpResponse;
 
 use crate::{
