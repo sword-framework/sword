@@ -6,6 +6,7 @@ allowed_mime_types = [
     "image/png", 
     "application/pdf", 
 ]
+request_timeout_secs = 15
 
 [my-custom-section]
 custom_key = "custom_value"

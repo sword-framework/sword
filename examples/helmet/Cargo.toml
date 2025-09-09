@@ -1,0 +1,10 @@
+[package]
+name = "helmet"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tokio = { workspace = true }
+sword = { workspace = true, features = ["helmet"] }
+serde = { workspace = true }
+serde_json = { workspace = true }

@@ -165,6 +165,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "axum-helmet"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "95d1115afac4786f6d750cc8e18bb198aa09793c616c7618cf85d778294f8376"
+dependencies = [
+ "axum",
+ "helmet-core",
+ "http",
+ "pin-project-lite",
+ "tokio",
+ "tower",
+ "tower-service",
+]
+
+[[package]]
 name = "axum-test"
 version = "17.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -836,6 +851,22 @@ name = "hashbrown"
 version = "0.15.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9229cfe53dfd69f0609a49f65461bd93001ea1ef889cd5529dd176593f5338a1"
+
+[[package]]
+name = "helmet"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "sword",
+ "tokio",
+]
+
+[[package]]
+name = "helmet-core"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77e5257ac01ab4aba4c6258f179f813a850f053b18224ca68d62c9d158947c11"
 
 [[package]]
 name = "hot_reload"
@@ -1955,6 +1986,7 @@ name = "sword"
 version = "0.1.6"
 dependencies = [
  "axum",
+ "axum-helmet",
  "axum_responses",
  "byte-unit",
  "dioxus-devtools",
@@ -2268,6 +2300,7 @@ dependencies = [
  "http-body",
  "http-body-util",
  "pin-project-lite",
+ "tokio",
  "tower-layer",
  "tower-service",
  "tracing",

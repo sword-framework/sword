@@ -11,7 +11,7 @@ use crate::{errors::RequestError, web::Context};
 impl Context {
     /// Gets the complete URI of the request as a string.
     ///
-    /// # Returns
+    /// ### Returns
     /// A `String` containing the complete request URI including
     /// the path and query parameters if any.
     pub fn uri(&self) -> String {
@@ -20,7 +20,7 @@ impl Context {
 
     /// Gets the HTTP method of the request.
     ///
-    /// # Returns
+    /// ### Returns
     /// A reference to the HTTP `Method` (GET, POST, PUT, DELETE, etc.).
     pub fn method(&self) -> &Method {
         &self.method
@@ -28,10 +28,10 @@ impl Context {
 
     /// Gets the value of a specific header by name.
     ///
-    /// # Arguments
+    /// ### Arguments
     /// * `key` - The header name to search for (case-insensitive).
     ///
-    /// # Returns
+    /// ### Returns
     /// `Some(&str)` with the header value if it exists, `None` if not found.
     pub fn header(&self, key: &str) -> Option<&str> {
         self.headers.get(&key.to_lowercase()).map(|value| value.as_str())
@@ -39,7 +39,7 @@ impl Context {
 
     /// Gets an immutable reference to all request headers.
     ///
-    /// # Returns
+    /// ### Returns
     /// A reference to `HashMap<String, String>` containing all request headers
     /// where the key is the header name and the value is its content.
     pub fn headers(&self) -> &HashMap<String, String> {
@@ -48,7 +48,7 @@ impl Context {
 
     /// Gets a mutable reference to all request headers.
     ///
-    /// # Returns
+    /// ### Returns
     /// A mutable reference to `HashMap<String, String>` that allows modifying
     /// existing headers or adding new headers to the request.
     pub fn headers_mut(&mut self) -> &mut HashMap<String, String> {
@@ -57,11 +57,11 @@ impl Context {
 
     /// Sets or updates the value of a header in the request.
     ///
-    /// # Arguments
+    /// ### Arguments
     /// * `name` - The header name to set. Must implement `Into<String>`.
     /// * `value` - The header value to set. Must implement `Into<String>`.
     ///
-    /// # Note
+    /// ### Note
     /// If the header already exists, its value will be overwritten.
     pub fn set_header(&mut self, name: impl Into<String>, value: impl Into<String>) {
         self.headers.insert(name.into(), value.into());
@@ -73,26 +73,26 @@ impl Context {
     /// and converts them to the specified type. The parameter must implement
     /// the `FromStr` trait for conversion.
     ///
-    /// # Type Parameters
+    /// ### Type Parameters
     ///
     /// * `T` - The type to convert the parameter to (must implement `FromStr`)
     ///
-    /// # Arguments
+    /// ### Arguments
     ///
     /// * `key` - The name of the route parameter to extract
     ///
-    /// # Returns
+    /// ### Returns
     ///
     /// Returns `Ok(T)` with the parsed value if the parameter exists and can be
     /// converted, or `Err(RequestError)` if the parameter is missing or invalid.
     ///
-    /// # Errors
+    /// ### Errors
     ///
     /// This function will return an error if:
     /// - The parameter is not found in the request
     /// - The parameter value cannot be parsed to type `T`
     ///
-    /// # Example
+    /// ### Example
     ///
     /// ```rust,ignore
     /// use sword::prelude::*;
@@ -132,23 +132,23 @@ impl Context {
     /// deserializing it to the specified type. The body is consumed during
     /// this operation.
     ///
-    /// # Type Parameters
+    /// ### Type Parameters
     ///
     /// * `T` - The type to deserialize the JSON body to (must implement `DeserializeOwned`)
     ///
-    /// # Returns
+    /// ### Returns
     ///
     /// Returns `Ok(T)` with the deserialized instance if the JSON is valid,
     /// or `Err(RequestError)` if the body is empty or invalid JSON.
     ///
-    /// # Errors
+    /// ### Errors
     ///
     /// This function will return an error if:
     /// - The request body is empty
     /// - The body contains invalid JSON
     /// - The JSON structure doesn't match the target type `T`
     ///
-    /// # Example
+    /// ### Example
     ///
     /// ```rust,ignore
     /// use sword::prelude::*;
@@ -190,23 +190,23 @@ impl Context {
     /// this method returns `Option<T>` where `None` indicates no query parameters
     /// were present.
     ///
-    /// # Type Parameters
+    /// ### Type Parameters
     ///
     /// * `T` - The type to deserialize the query parameters to (must implement `DeserializeOwned`)
     ///
-    /// # Returns
+    /// ### Returns
     ///
     /// Returns:
     /// - `Ok(Some(T))` with the deserialized query parameters if they exist and are valid
     /// - `Ok(None)` if no query parameters are present in the URL
     /// - `Err(RequestError)` if query parameters exist but cannot be deserialized
     ///
-    /// # Errors
+    /// ### Errors
     ///
     /// This function will return an error if the query parameters exist but
     /// cannot be parsed or deserialized to the target type.
     ///
-    /// # Example
+    /// ### Example
     ///
     /// ```rust,ignore
     /// use sword::prelude::*;
@@ -259,7 +259,7 @@ impl Context {
     /// if the request contains body data. It's primarily used for
     /// internal request processing logic.
     ///
-    /// # Returns
+    /// ### Returns
     ///
     /// Returns `true` if the request has a body with content, `false` if empty.
     pub(crate) fn has_body(&self) -> bool {

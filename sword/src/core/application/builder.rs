@@ -1,4 +1,4 @@
-use std::convert::Infallible;
+use std::{convert::Infallible, time::Duration};
 
 use axum::{
     extract::Request as AxumRequest,
@@ -7,7 +7,7 @@ use axum::{
 };
 
 use tower::{Layer, Service};
-use tower_http::limit::RequestBodyLimitLayer;
+use tower_http::{limit::RequestBodyLimitLayer, timeout::TimeoutLayer};
 
 #[cfg(feature = "cookies")]
 use tower_cookies::CookieManagerLayer;
@@ -21,7 +21,7 @@ use crate::{
         state::State,
     },
     errors::{ApplicationError, StateError},
-    web::ContentTypeCheck,
+    web::{ContentTypeCheck, ResponsePrettifier},
 };
 
 /// Builder for constructing a Sword application with various configuration options.
@@ -30,7 +30,7 @@ use crate::{
 /// before building the final `Application` instance. It allows you to register
 /// controllers, add middleware layers, configure shared state, and set up dependency injection.
 ///
-/// # Example
+/// ### Example
 ///
 /// ```rust,ignore
 /// use sword::prelude::*;
@@ -67,12 +67,12 @@ impl ApplicationBuilder {
     /// - Fresh state container
     /// - Configuration loaded from `config/config.toml`
     ///
-    /// # Returns
+    /// ### Returns
     ///
     /// Returns `Ok(ApplicationBuilder)` if initialization succeeds, or
     /// `Err(ApplicationError)` if configuration loading fails.
     ///
-    /// # Errors
+    /// ### Errors
     ///
     /// This function will return an error if:
     /// - The configuration file cannot be found or read
@@ -99,15 +99,11 @@ impl ApplicationBuilder {
     /// Controllers must implement the `RouterProvider` trait, which is typically
     /// done using the `#[controller]` and `#[routes]` macros.
     ///
-    /// # Type Parameters
+    /// ### Type Parameters
     ///
     /// * `R` - A type implementing `RouterProvider` that defines the controller's routes
     ///
-    /// # Returns
-    ///
-    /// Returns `Self` for method chaining.
-    ///
-    /// # Example
+    /// ### Example
     ///
     /// ```rust,ignore
     /// use sword::prelude::*;
@@ -144,19 +140,11 @@ impl ApplicationBuilder {
     /// that implement the `Layer` trait. Layers are applied to all routes
     /// in the application and can modify requests and responses.
     ///
-    /// # Type Parameters
-    ///
-    /// * `L` - A type implementing the `Layer` trait
-    ///
-    /// # Arguments
+    /// ### Arguments
     ///
     /// * `layer` - The middleware layer to add to the application
     ///
-    /// # Returns
-    ///
-    /// Returns `Self` for method chaining.
-    ///
-    /// # Example
+    /// ### Example
     ///
     /// ```rust,ignore
     /// use sword::prelude::*;
@@ -193,25 +181,20 @@ impl ApplicationBuilder {
     ///
     /// State can be retrieved in handlers using `Context::get_state::<T>()`.
     ///
-    /// # Type Parameters
+    /// ### Type Parameters
     ///
     /// * `S` - The type of state to store (must implement `Sync + Send + 'static`)
     ///
-    /// # Arguments
+    /// ### Arguments
     ///
     /// * `state` - The state instance to store in the application
     ///
-    /// # Returns
-    ///
-    /// Returns `Ok(Self)` for method chaining, or `Err(StateError)` if the state
-    /// type is already registered.
-    ///
-    /// # Errors
+    /// ### Errors
     ///
     /// This function will return an error if the same state type has already
     /// been registered in the application.
     ///
-    /// # Example
+    /// ### Example
     ///
     /// ```rust,ignore
     /// use sword::prelude::*;
@@ -252,20 +235,20 @@ impl ApplicationBuilder {
     ///
     /// Available only when the `shaku-di` feature is enabled.
     ///
-    /// # Type Parameters
+    /// ### Type Parameters
     ///
     /// * `M` - The Shaku module type (must implement `Sync + Send + 'static`)
     ///
-    /// # Arguments
+    /// ### Arguments
     ///
     /// * `module` - The Shaku module instance containing registered services
     ///
-    /// # Returns
+    /// ### Returns
     ///
     /// Returns `Ok(Self)` for method chaining, or `Err(StateError)` if the module
     /// type is already registered.
     ///
-    /// # Example
+    /// ### Example
     ///
     /// ```rust,ignore
     /// use sword::prelude::*;
@@ -313,29 +296,12 @@ impl ApplicationBuilder {
     /// `Application` instance. It applies all configured middleware layers,
     /// sets up request body limits, and prepares the application for running.
     ///
-    /// # Built-in Middleware
+    /// ### Built-in Middleware
     ///
     /// The following middleware is automatically applied:
     /// - Content-Type validation middleware
     /// - Request body size limiting middleware
     /// - Cookie management layer (if `cookies` feature is enabled)
-    ///
-    /// # Returns
-    ///
-    /// Returns the configured `Application` instance ready to run.
-    ///
-    /// # Example
-    ///
-    /// ```rust,ignore
-    /// use sword::prelude::*;
-    ///
-    /// let app = Application::builder()?
-    ///     .with_controller::<HomeController>()
-    ///     .build();
-    ///
-    /// // Application is now ready to run
-    /// app.run().await?;
-    /// ```
     pub fn build(self) -> Application {
         let mut router = self.router.clone();
         let app_config = self.config.get::<ApplicationConfig>().unwrap();
@@ -344,10 +310,16 @@ impl ApplicationBuilder {
             .layer(mw_with_state(self.state.clone(), ContentTypeCheck::layer))
             .layer(RequestBodyLimitLayer::new(app_config.body_limit));
 
+        if let Some(timeout_secs) = app_config.request_timeout_seconds {
+            router = router.layer(TimeoutLayer::new(Duration::from_secs(timeout_secs)));
+        }
+
         #[cfg(feature = "cookies")]
         {
             router = router.layer(CookieManagerLayer::new());
         }
+
+        router = router.layer(mw_with_state(self.state.clone(), ResponsePrettifier::layer));
 
         Application {
             router,

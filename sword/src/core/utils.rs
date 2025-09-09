@@ -1,5 +1,38 @@
+use byte_unit::Byte;
 use regex::Regex;
-use std::env;
+use serde::Deserialize;
+use std::{env, str::FromStr};
+
+/// Custom deserializer for size values in configuration.
+///
+/// This function allows configuration values like "10MB", "1GB", etc. to be
+/// automatically converted to byte counts as `usize` values. It uses the
+/// `byte_unit` crate to parse human-readable size specifications.
+///
+/// ### Supported Units
+///
+/// - B (bytes)
+/// - KB, MB, GB, TB (decimal)
+/// - KiB, MiB, GiB, TiB (binary)
+///
+/// ### Example
+///
+/// ```toml,ignore
+/// [application]
+/// body_limit = "10MB"  # Parsed as 10,000,000 bytes
+/// # or
+/// body_limit = "10MiB" # Parsed as 10,485,760 bytes
+/// ```
+pub fn deserialize_size<'de, D>(deserializer: D) -> Result<usize, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+
+    Byte::from_str(&s)
+        .map(|b| b.as_u64() as usize)
+        .map_err(serde::de::Error::custom)
+}
 
 pub fn expand_env_vars(content: &str) -> Result<String, String> {
     let re = Regex::new(r"\$\{([A-Za-z_][A-Za-z0-9_]*):?([^}]*)\}")

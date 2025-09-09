@@ -6,7 +6,10 @@ use crate::{
     web::{Context, MiddlewareResult},
 };
 
-pub struct ContentTypeCheck;
+const APPLICATION_JSON: &str = "application/json";
+const MULTIPART_FORM_DATA: &str = "multipart/form-data";
+
+pub(crate) struct ContentTypeCheck;
 
 impl ContentTypeCheck {
     pub async fn layer(ctx: Context, next: Next) -> MiddlewareResult {
@@ -16,7 +19,7 @@ impl ContentTypeCheck {
             return next!(ctx, next);
         }
 
-        if content_type != "application/json" && !content_type.contains("multipart/form-data") {
+        if content_type != APPLICATION_JSON && !content_type.contains(MULTIPART_FORM_DATA) {
             return Err(HttpResponse::UnsupportedMediaType().message(
                 "Only application/json and multipart/form-data content types are supported.",
             ));

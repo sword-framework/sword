@@ -10,7 +10,7 @@ mod validation;
 /// This module is designed to be imported with a glob import to bring all essential
 /// types and traits into scope for typical Sword applications.
 ///
-/// # Example
+/// ### Example
 ///
 /// ```rust,ignore
 /// use sword::prelude::*;
@@ -41,6 +41,7 @@ pub mod core {
     mod utils;
 
     pub use router::RouterProvider;
+    pub use utils::deserialize_size;
 
     pub use application::{Application, ApplicationConfig};
     pub use config::{Config, ConfigItem, config};

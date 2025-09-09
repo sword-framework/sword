@@ -13,7 +13,7 @@ use crate::errors::StateError;
 /// prevents type confusion. State is automatically managed by the framework
 /// and can be accessed through the `Context` in route handlers and middleware.
 ///
-/// ## Example
+/// ### Example
 ///
 /// ```rust,ignore
 /// use sword::prelude::*;
