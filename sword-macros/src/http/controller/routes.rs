@@ -1,13 +1,14 @@
-use super::middleware::MiddlewareArgs;
-use crate::{controller::middleware::expand_middleware_args, utils::*};
-
 use proc_macro::TokenStream;
 use proc_macro_error::emit_error;
 use quote::quote;
-
 use syn::{Attribute, Ident, ImplItem, ItemImpl, parse_macro_input};
 
-pub fn expand_controller_impl(_: TokenStream, item: TokenStream) -> TokenStream {
+use crate::http::{
+    middleware::{MiddlewareArgs, expand_middleware_args},
+    utils::{HTTP_METHODS, get_attr_http_route},
+};
+
+pub fn expand_controller_routes(_: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as ItemImpl);
     let struct_self = &input.self_ty;
     let mut routes = vec![];

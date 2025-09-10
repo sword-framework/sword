@@ -30,7 +30,7 @@ pub struct RoleMiddleware;
 
 impl MiddlewareWithConfig<Vec<&str>> for RoleMiddleware {
     async fn handle(roles: Vec<&str>, ctx: Context, next: Next) -> MiddlewareResult {
-        dbg!(&roles);
+        println!("Allowed roles: {:?}", roles);
         next!(ctx, next)
     }
 }
@@ -40,5 +40,15 @@ pub struct ErrorMiddleware;
 impl Middleware for ErrorMiddleware {
     async fn handle(_ctx: Context, _next: Next) -> MiddlewareResult {
         Err(HttpResponse::InternalServerError())
+    }
+}
+
+pub struct LoggerMiddleware;
+
+impl Middleware for LoggerMiddleware {
+    async fn handle(ctx: Context, next: Next) -> MiddlewareResult {
+        println!("Request: {} {}", ctx.method(), ctx.uri());
+
+        next!(ctx, next)
     }
 }

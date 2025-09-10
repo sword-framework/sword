@@ -1,6 +1,3 @@
-use proc_macro2::TokenStream;
-use quote::quote;
-
 use syn::{
     Expr, Path, Token,
     parse::{Parse, ParseStream},
@@ -33,28 +30,5 @@ impl Parse for MiddlewareArgs {
         }
 
         Ok(MiddlewareArgs { path, config })
-    }
-}
-
-pub fn expand_middleware_args(args: &MiddlewareArgs) -> TokenStream {
-    let MiddlewareArgs { path, config } = args;
-
-    match config {
-        Some(config) => quote! {
-            ::sword::__private::mw_with_state(
-                app_state.clone(),
-                |ctx: ::sword::web::Context, next: ::sword::web::Next| async move {
-                    <#path>::handle(#config, ctx, next).await
-                }
-            )
-        },
-        None => quote! {
-            ::sword::__private::mw_with_state(
-                app_state.clone(),
-                |ctx: ::sword::web::Context, next: ::sword::web::Next| async move {
-                    <#path>::handle(ctx, next).await
-                }
-            )
-        },
     }
 }

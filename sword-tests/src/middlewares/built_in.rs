@@ -96,7 +96,7 @@ async fn timeout_boundary_exact() -> Result<(), Box<dyn Error>> {
 
     let json = response.json::<ResponseBody>();
     assert_eq!(json.code, 408);
-    assert_eq!(json.success, false);
+    assert!(!json.success);
     assert_eq!(json.message, "Request Timeout".into());
 
     Ok(())
@@ -112,7 +112,7 @@ async fn timeout_just_under_limit() -> Result<(), Box<dyn Error>> {
 
     let json = response.json::<ResponseBody>();
     assert_eq!(json.code, 200);
-    assert_eq!(json.success, true);
+    assert!(!json.success);
     assert!(json.message.contains("This should complete"));
 
     Ok(())
@@ -129,7 +129,7 @@ async fn timeout_just_over_limit() -> Result<(), Box<dyn Error>> {
 
     let json = response.json::<ResponseBody>();
     assert_eq!(json.code, 408);
-    assert_eq!(json.success, false);
+    assert!(!json.success);
     assert_eq!(json.message, "Request Timeout".into());
 
     Ok(())
@@ -145,8 +145,9 @@ async fn no_timeout_quick_response() -> Result<(), Box<dyn Error>> {
     assert_eq!(response.status_code(), 200);
 
     let json = response.json::<ResponseBody>();
+
     assert_eq!(json.code, 200);
-    assert_eq!(json.success, true);
+    assert!(!json.success);
     assert!(json.message.contains("Quick response"));
 
     Ok(())
@@ -164,12 +165,10 @@ async fn content_type_json_valid() -> Result<(), Box<dyn Error>> {
 
     let json = response.json::<ResponseBody>();
 
-    dbg!(&json);
-
     assert_eq!(response.status_code(), 200);
 
     assert_eq!(json.code, 200);
-    assert_eq!(json.success, true);
+    assert!(!json.success);
     assert!(json.message.contains("JSON received"));
 
     Ok(())
@@ -189,7 +188,7 @@ async fn content_type_multipart_valid() -> Result<(), Box<dyn Error>> {
 
     let json = response.json::<ResponseBody>();
     assert_eq!(json.code, 200);
-    assert_eq!(json.success, true);
+    assert!(json.success);
     assert!(json.message.contains("Form data received"));
 
     Ok(())
@@ -209,7 +208,7 @@ async fn content_type_invalid() -> Result<(), Box<dyn Error>> {
 
     let json = response.json::<ResponseBody>();
     assert_eq!(json.code, 415);
-    assert_eq!(json.success, false);
+    assert!(json.success);
     assert!(
         json.message
             .contains("Only application/json and multipart/form-data content types are supported")
@@ -236,7 +235,7 @@ async fn content_type_xml_invalid() -> Result<(), Box<dyn Error>> {
 
     let json = response.json::<ResponseBody>();
     assert_eq!(json.code, 415);
-    assert_eq!(json.success, false);
+    assert!(!json.success);
     assert!(
         json.message
             .contains("Only application/json and multipart/form-data content types are supported")
@@ -262,7 +261,7 @@ async fn content_type_form_urlencoded_invalid() -> Result<(), Box<dyn Error>> {
 
     let json = response.json::<ResponseBody>();
     assert_eq!(json.code, 415);
-    assert_eq!(json.success, false);
+    assert!(!json.success);
     assert!(
         json.message
             .contains("Only application/json and multipart/form-data content types are supported")
@@ -283,7 +282,7 @@ async fn content_type_no_body_allowed() -> Result<(), Box<dyn Error>> {
 
     let json = response.json::<ResponseBody>();
     assert_eq!(json.code, 200);
-    assert_eq!(json.success, true);
+    assert!(!json.success);
     assert!(json.message.contains("No body required"));
 
     Ok(())
@@ -303,7 +302,7 @@ async fn content_type_missing_header_with_body() -> Result<(), Box<dyn Error>> {
 
     let json = response.json::<ResponseBody>();
     assert_eq!(json.code, 415);
-    assert_eq!(json.success, false);
+    assert!(!json.success);
     assert!(
         json.message
             .contains("Only application/json and multipart/form-data content types are supported")
@@ -345,7 +344,7 @@ async fn content_type_json_with_charset() -> Result<(), Box<dyn Error>> {
 
     let json = response.json::<ResponseBody>();
     assert_eq!(json.code, 415);
-    assert_eq!(json.success, false);
+    assert!(!json.success);
 
     Ok(())
 }

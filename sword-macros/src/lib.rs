@@ -1,11 +1,30 @@
-mod config;
-mod controller;
-mod utils;
-
-use crate::controller::implementation;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, parse_quote};
+
+mod core {
+    pub mod config;
+}
+
+mod http {
+    pub mod controller {
+        pub mod expand;
+        pub mod routes;
+
+        pub use expand::expand_controller;
+        pub use routes::expand_controller_routes;
+    }
+
+    pub mod middleware {
+        pub mod expand;
+        pub mod parse;
+
+        pub use expand::expand_middleware_args;
+        pub use parse::MiddlewareArgs;
+    }
+
+    pub mod utils;
+}
 
 /// Defines a handler for HTTP GET requests.
 /// This macro should be used inside an `impl` block of a struct annotated with the `#[controller]` macro.
@@ -152,17 +171,10 @@ pub fn patch(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// }
 #[proc_macro_attribute]
 pub fn controller(attr: TokenStream, item: TokenStream) -> TokenStream {
-    controller::expand_controller(attr, item)
-}
-
-#[deprecated(since = "0.1.5", note = "Use `#[routes]` instead")]
-#[proc_macro_attribute]
-pub fn controller_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
-    implementation::expand_controller_impl(attr, item)
+    http::controller::expand_controller(attr, item)
 }
 
 /// Implements the routes for a controller defined with the `#[controller]` macro.
-/// This macro should be used in combination with the `#[controller]` macro.
 ///
 /// ### Usage
 /// ```rust, ignore
@@ -179,17 +191,17 @@ pub fn controller_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// ```
 #[proc_macro_attribute]
 pub fn routes(attr: TokenStream, item: TokenStream) -> TokenStream {
-    implementation::expand_controller_impl(attr, item)
+    http::controller::expand_controller_routes(attr, item)
 }
 
 /// Declares a executable middleware to apply to a route controller.
 /// This macro should be used inside an `impl` block of a struct annotated with the `#[controller]` macro.
 ///
-/// ## Parameters
+/// ### Parameters
 /// - `MiddlewareName`: The name of the middleware struct that implements the `Middleware` or `MiddlewareWithConfig` trait.
 /// - `config`: (Optional) Configuration parameters for the middleware,
 ///
-/// ## Handle errors
+/// ### Handle errors
 /// To throw an error from a middleware, simply return an `Err` with an `HttpResponse`
 /// struct in the same way as a controller handler.
 ///
@@ -256,7 +268,7 @@ pub fn middleware(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// }
 #[proc_macro_attribute]
 pub fn config(attr: TokenStream, item: TokenStream) -> TokenStream {
-    config::expand_config_struct(attr, item)
+    core::config::expand_config_struct(attr, item)
 }
 
 /// ### This is just a re-export of `tokio::main` to simplify the initial setup of

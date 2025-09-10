@@ -1,7 +1,6 @@
-use std::sync::OnceLock;
-
 use proc_macro_error::emit_error;
 use regex::Regex;
+use std::sync::OnceLock;
 use syn::{Attribute, LitStr, spanned::Spanned};
 
 pub const HTTP_METHODS: [&str; 5] = ["get", "post", "put", "delete", "patch"];

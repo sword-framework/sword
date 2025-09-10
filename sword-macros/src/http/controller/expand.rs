@@ -1,12 +1,9 @@
-pub mod implementation;
-pub mod middleware;
-
 use proc_macro::TokenStream;
 use proc_macro_error::emit_error;
 use quote::quote;
 use syn::{ItemStruct, LitStr, parse_macro_input};
 
-use crate::controller::middleware::{MiddlewareArgs, expand_middleware_args};
+use crate::http::middleware::{MiddlewareArgs, expand_middleware_args};
 
 pub fn expand_controller(attr: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as ItemStruct);

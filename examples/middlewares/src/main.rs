@@ -1,12 +1,11 @@
 use serde_json::{json, Value};
-
 use sword::prelude::*;
-use sword::web::HttpResult;
 
 mod middlewares;
 use middlewares::*;
 
 #[controller("/test")]
+#[middleware(LoggerMiddleware)]
 struct TestController {}
 
 #[routes]
@@ -55,7 +54,10 @@ impl TestController {
 
 #[sword::main]
 async fn main() {
-    let app = Application::builder()?.with_controller::<TestController>().build();
+    let app = Application::builder()?
+        .with_state(json!({"key": "value"}))?
+        .with_controller::<TestController>()
+        .build();
 
     app.run().await?;
 }
