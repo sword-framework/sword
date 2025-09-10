@@ -51,7 +51,7 @@ pub fn expand_controller_routes(_: TokenStream, item: TokenStream) -> TokenStrea
                 };
 
                 let mut handler = quote! {
-                    ::sword::__private::#routing_fn(#struct_self::#method_name)
+                    ::sword::__internal::#routing_fn(#struct_self::#method_name)
                 };
 
                 for mw in middlewares.iter().rev() {
@@ -74,19 +74,19 @@ pub fn expand_controller_routes(_: TokenStream, item: TokenStream) -> TokenStrea
         #input
 
         impl ::sword::core::RouterProvider for #struct_self {
-            fn router(app_state: ::sword::core::State) -> ::sword::__private::AxumRouter {
+            fn router(app_state: ::sword::core::State) -> ::sword::__internal::AxumRouter {
 
-                let base_router = ::sword::__private::AxumRouter::new()
+                let base_router = ::sword::__internal::AxumRouter::new()
                     #(#routes)*
                     .with_state(app_state.clone());
 
+                let prefix = #struct_self::prefix();
                 let router_with_global_mw = #struct_self::apply_global_middlewares(base_router, app_state);
 
-                let prefix = #struct_self::prefix();
                 if prefix == "/" {
                     router_with_global_mw
                 } else {
-                    ::sword::__private::AxumRouter::new()
+                    ::sword::__internal::AxumRouter::new()
                         .nest(prefix, router_with_global_mw)
                 }
             }

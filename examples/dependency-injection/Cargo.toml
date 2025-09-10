@@ -1,11 +1,7 @@
 [package]
-name = "dependency_injection"
+name = "dependency-injection"
 version = "0.1.0"
 edition = "2021"
-
-[[bin]]
-name = "dependency_injection"
-path = "src/main.rs"
 
 [dependencies]
 sword = { workspace = true, features = ["shaku-di"] }

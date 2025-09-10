@@ -31,7 +31,7 @@ pub fn expand_controller(attr: TokenStream, item: TokenStream) -> TokenStream {
                 #router_prefix_str
             }
 
-            fn apply_global_middlewares(router: ::sword::__private::AxumRouter, app_state: ::sword::core::State) -> ::sword::__private::AxumRouter {
+            fn apply_global_middlewares(router: ::sword::__internal::AxumRouter, app_state: ::sword::core::State) -> ::sword::__internal::AxumRouter {
                 let mut result = router;
 
                 #(

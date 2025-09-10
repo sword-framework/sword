@@ -1,5 +1,4 @@
 use sword::prelude::*;
-use sword::web::HttpResult;
 
 #[controller("/")]
 struct AppController {}
@@ -11,7 +10,7 @@ impl AppController {
         let form = ctx.multipart().await?;
 
         for field in form.fields() {
-            dbg!(&field);
+            println!("Field Name: {:?}", field.name);
         }
 
         Ok(HttpResponse::Ok().message("Data submitted successfully"))
@@ -20,8 +19,6 @@ impl AppController {
 
 #[sword::main]
 async fn main() {
-    println!("Running multipart example");
-
     let app = Application::builder()?.with_controller::<AppController>().build();
 
     app.run().await?;

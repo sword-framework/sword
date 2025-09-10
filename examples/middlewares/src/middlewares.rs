@@ -1,8 +1,6 @@
 use serde_json::Value;
 use sword::prelude::*;
 
-use sword::next;
-
 pub struct ExtensionsTestMiddleware;
 
 impl Middleware for ExtensionsTestMiddleware {

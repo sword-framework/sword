@@ -2,6 +2,7 @@ use std::{convert::Infallible, time::Duration};
 
 use axum::{
     extract::Request as AxumRequest,
+    middleware::from_fn_with_state as mw_with_state,
     response::IntoResponse,
     routing::{Route, Router},
 };
@@ -13,7 +14,6 @@ use tower_http::{limit::RequestBodyLimitLayer, timeout::TimeoutLayer};
 use tower_cookies::CookieManagerLayer;
 
 use crate::{
-    __private::mw_with_state,
     core::{
         application::{Application, ApplicationConfig},
         config::Config,
@@ -174,6 +174,8 @@ impl ApplicationBuilder {
     }
 
     /// Registers shared state in the application.
+    ///
+    /// **IMPORTANT**: This method must be called before adding controllers or middleware.
     ///
     /// This method adds shared state that can be accessed by controllers and middleware
     /// throughout the application. The state is automatically wrapped in an `Arc` for

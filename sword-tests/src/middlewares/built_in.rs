@@ -112,7 +112,7 @@ async fn timeout_just_under_limit() -> Result<(), Box<dyn Error>> {
 
     let json = response.json::<ResponseBody>();
     assert_eq!(json.code, 200);
-    assert!(!json.success);
+    assert!(json.success);
     assert!(json.message.contains("This should complete"));
 
     Ok(())
@@ -147,7 +147,7 @@ async fn no_timeout_quick_response() -> Result<(), Box<dyn Error>> {
     let json = response.json::<ResponseBody>();
 
     assert_eq!(json.code, 200);
-    assert!(!json.success);
+    assert!(json.success);
     assert!(json.message.contains("Quick response"));
 
     Ok(())
@@ -168,7 +168,7 @@ async fn content_type_json_valid() -> Result<(), Box<dyn Error>> {
     assert_eq!(response.status_code(), 200);
 
     assert_eq!(json.code, 200);
-    assert!(!json.success);
+    assert!(json.success);
     assert!(json.message.contains("JSON received"));
 
     Ok(())
@@ -199,16 +199,13 @@ async fn content_type_invalid() -> Result<(), Box<dyn Error>> {
     let app = Application::builder()?.with_controller::<TestController>().build();
     let test_app = TestServer::new(app.router())?;
 
-    let response = test_app
-        .post("/test/content-type-any")
-        .text("plain text data") // This will set content-type to text/plain
-        .await;
+    let response = test_app.post("/test/content-type-any").text("plain text data").await;
 
     assert_eq!(response.status_code(), 415);
 
     let json = response.json::<ResponseBody>();
     assert_eq!(json.code, 415);
-    assert!(json.success);
+    assert!(!json.success);
     assert!(
         json.message
             .contains("Only application/json and multipart/form-data content types are supported")
@@ -222,7 +219,6 @@ async fn content_type_xml_invalid() -> Result<(), Box<dyn Error>> {
     let app = Application::builder()?.with_controller::<TestController>().build();
     let test_app = TestServer::new(app.router())?;
 
-    // Para simular XML, usamos bytes con content-type específico
     use axum::body::Bytes;
     let response = test_app
         .post("/test/content-type-any")
@@ -282,7 +278,7 @@ async fn content_type_no_body_allowed() -> Result<(), Box<dyn Error>> {
 
     let json = response.json::<ResponseBody>();
     assert_eq!(json.code, 200);
-    assert!(!json.success);
+    assert!(json.success);
     assert!(json.message.contains("No body required"));
 
     Ok(())
@@ -320,7 +316,7 @@ async fn content_type_case_sensitivity() -> Result<(), Box<dyn Error>> {
     let response = test_app
         .post("/test/content-type-json")
         .bytes(Bytes::from(r#"{"test": "data"}"#))
-        .content_type("Application/JSON") // Different case
+        .content_type("Application/JSON")
         .await;
 
     assert_eq!(response.status_code(), 415);

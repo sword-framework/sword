@@ -523,7 +523,7 @@ pub fn main(_args: TokenStream, item: TokenStream) -> TokenStream {
 
             #(#fn_attrs)*
             #fn_vis fn main() {
-                ::tokio::runtime::Builder::new_multi_thread()
+                ::sword::__internal::runtime::Builder::new_multi_thread()
                     .enable_all()
                     .build()
                     .expect("Failed building the Runtime")
@@ -536,7 +536,7 @@ pub fn main(_args: TokenStream, item: TokenStream) -> TokenStream {
         quote! {
             #(#fn_attrs)*
             #fn_vis fn main() -> Result<(), Box<dyn std::error::Error>> {
-                ::tokio::runtime::Builder::new_multi_thread()
+                ::sword::__internal::runtime::Builder::new_multi_thread()
                     .enable_all()
                     .build()
                     .expect("Failed building the Runtime")

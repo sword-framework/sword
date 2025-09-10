@@ -1,14 +1,9 @@
 [package]
-name = "hot_reload"
+name = "basic-server"
 version = "0.1.0"
 edition = "2021"
 
-[[bin]]
-name = "hot_reload"
-path = "src/main.rs"
-
 [dependencies]
 sword = { workspace = true, features = ["hot-reload"] }
-tokio = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

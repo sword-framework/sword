@@ -2,7 +2,11 @@ use std::collections::HashSet;
 use std::str::FromStr;
 
 use serde::Deserialize;
-use sword::prelude::config;
+use sword::{
+    core::config,
+    web::{header, Method},
+};
+
 use tower_http::cors::CorsLayer;
 
 #[derive(Clone, Debug, Deserialize)]
@@ -23,14 +27,14 @@ impl CorsMiddleware {
 
         for method in config.allowed_http_methods.iter() {
             let http_method =
-                axum::http::Method::from_str(method).expect("Invalid HTTP Method found in config");
+                Method::from_str(method).expect("Invalid HTTP Method found in config");
 
             methods.insert(http_method);
         }
 
         for header in config.allowed_http_headers.iter() {
-            let http_header = axum::http::header::HeaderName::from_str(header)
-                .expect("Invalid HTTP Header found in config");
+            let http_header =
+                header::HeaderName::from_str(header).expect("Invalid HTTP Header found in config");
 
             headers.insert(http_header);
         }

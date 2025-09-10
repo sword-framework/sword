@@ -1,12 +1,12 @@
-pub use crate::__private::AxumNext as Next;
-use crate::__private::AxumResponse;
-
 mod built_in;
-pub use built_in::*;
 
-use crate::web::{Context, HttpResult};
+use axum::response::Response as AxumResponse;
 use std::future::Future;
 
+use crate::web::{Context, HttpResult};
+
+pub use axum::middleware::Next;
+pub use built_in::*;
 pub use sword_macros::middleware;
 
 /// MiddlewareResult is the result type returned by middleware handlers.

@@ -49,6 +49,7 @@ pub mod core {
 }
 
 pub mod web {
+    pub use axum::http::{Method, StatusCode, header};
     pub use axum_responses::Result as HttpResult;
     pub use axum_responses::http::*;
     pub use sword_macros::{controller, delete, get, patch, post, put, routes};
@@ -73,7 +74,7 @@ pub mod hot_reload {
 }
 
 #[doc(hidden)]
-pub mod __private {
+pub mod __internal {
     pub use axum::extract::{FromRequest, FromRequestParts, Request as AxumRequest};
     pub use axum::middleware::Next as AxumNext;
     pub use axum::middleware::from_fn_with_state as mw_with_state;
@@ -83,4 +84,6 @@ pub mod __private {
         delete as axum_delete_fn, get as axum_get_fn, patch as axum_patch_fn, post as axum_post_fn,
         put as axum_put_fn,
     };
+
+    pub use tokio::runtime;
 }

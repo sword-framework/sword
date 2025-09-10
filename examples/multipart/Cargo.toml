@@ -3,10 +3,5 @@ name = "multipart"
 version = "0.1.0"
 edition = "2021"
 
-[[bin]]
-name = "multipart"
-path = "src/main.rs"
-
 [dependencies]
-tokio = { workspace = true }
 sword = { workspace = true, features = ["multipart"] }

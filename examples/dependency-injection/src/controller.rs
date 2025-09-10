@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use sword::{prelude::*, web::HttpResult};
+use sword::prelude::*;
 use validator::Validate;
 
 use crate::{database::DataRepository, logger::Logger, AppModule};

@@ -4,7 +4,6 @@ use sword::prelude::*;
 use sword::web::HttpResult;
 
 mod state;
-
 use crate::state::AppState;
 
 #[controller("/api")]
