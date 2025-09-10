@@ -67,12 +67,6 @@ pub mod web {
 
 pub use sword_macros::main;
 
-#[cfg(feature = "hot-reload")]
-pub mod hot_reload {
-    pub use dioxus_devtools;
-    pub use subsecond;
-}
-
 #[doc(hidden)]
 pub mod __internal {
     pub use axum::extract::{FromRequest, FromRequestParts, Request as AxumRequest};
@@ -85,5 +79,11 @@ pub mod __internal {
         put as axum_put_fn,
     };
 
-    pub use tokio::runtime;
+    #[cfg(feature = "hot-reload")]
+    pub mod hot_reload {
+        pub use dioxus_devtools;
+        pub use subsecond;
+    }
+
+    pub use tokio::runtime as tokio_runtime;
 }

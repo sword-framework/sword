@@ -523,11 +523,11 @@ pub fn main(_args: TokenStream, item: TokenStream) -> TokenStream {
 
             #(#fn_attrs)*
             #fn_vis fn main() {
-                ::sword::__internal::runtime::Builder::new_multi_thread()
+                ::sword::__internal::tokio_runtime::Builder::new_multi_thread()
                     .enable_all()
                     .build()
                     .expect("Failed building the Runtime")
-                    .block_on(::sword::hot_reload::dioxus_devtools::serve_subsecond(__internal_main));
+                    .block_on(::sword::__internal::hot_reload::dioxus_devtools::serve_subsecond(__internal_main));
             }
         }
     } else {
@@ -536,7 +536,7 @@ pub fn main(_args: TokenStream, item: TokenStream) -> TokenStream {
         quote! {
             #(#fn_attrs)*
             #fn_vis fn main() -> Result<(), Box<dyn std::error::Error>> {
-                ::sword::__internal::runtime::Builder::new_multi_thread()
+                ::sword::__internal::tokio_runtime::Builder::new_multi_thread()
                     .enable_all()
                     .build()
                     .expect("Failed building the Runtime")
