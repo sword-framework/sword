@@ -1,9 +1,8 @@
 [package]
-name = "basic-server"
+name = "graceful-shutdown"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 sword = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
+tokio = { workspace = true }

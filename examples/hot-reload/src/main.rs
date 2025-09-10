@@ -1,9 +1,6 @@
 use serde::{Deserialize, Serialize};
-
-use sword::prelude::*;
-use sword::web::HttpResult;
-
 use serde_json::{json, Value};
+use sword::prelude::*;
 
 #[derive(Deserialize, Debug, Serialize)]
 #[config(key = "my-custom-section")]
@@ -20,7 +17,7 @@ impl AppController {
     async fn get_data() -> HttpResponse {
         let data = vec![
             "This is a basic web server",
-            "It serves sdaksajdlkasjdsjd",
+            "It serves hot reload example",
             "You can extend it with more routes",
         ];
 

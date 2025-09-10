@@ -1,12 +1,12 @@
 [application]
 host = "0.0.0.0"
-port = 4000
+port = 8080
 body_limit = "10MB"
 allowed_mime_types = [
     "image/png", 
     "application/pdf", 
 ]
-request_timeout_secs = 15
+request_timeout_secs = 30
 
 [my-custom-section]
 custom_key = "custom_value"
