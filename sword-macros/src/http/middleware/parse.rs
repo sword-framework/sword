@@ -3,12 +3,37 @@ use syn::{
     parse::{Parse, ParseStream},
 };
 
-pub struct MiddlewareArgs {
+pub enum MiddlewareKind {
+    TowerLayer(Expr),
+    Sword(SwordMiddlewareArgs),
+}
+
+pub struct SwordMiddlewareArgs {
     pub path: Path,
     pub config: Option<Expr>,
 }
 
-impl Parse for MiddlewareArgs {
+impl Parse for MiddlewareKind {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let content = input.to_string();
+
+        if content.contains("::") || (content.contains("(") && content.contains(")"))
+        {
+            let expr: Expr = input.parse()?;
+            return Ok(MiddlewareKind::TowerLayer(expr));
+        }
+
+        if let Ok(sword_args) = input.parse::<SwordMiddlewareArgs>() {
+            return Ok(MiddlewareKind::Sword(sword_args));
+        }
+
+        let expr: Expr = input.parse()?;
+
+        Ok(MiddlewareKind::TowerLayer(expr))
+    }
+}
+
+impl Parse for SwordMiddlewareArgs {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let path: Path = input.parse()?;
 
@@ -29,6 +54,6 @@ impl Parse for MiddlewareArgs {
             }
         }
 
-        Ok(MiddlewareArgs { path, config })
+        Ok(SwordMiddlewareArgs { path, config })
     }
 }

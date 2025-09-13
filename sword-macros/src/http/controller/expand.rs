@@ -3,7 +3,7 @@ use proc_macro_error::emit_error;
 use quote::quote;
 use syn::{ItemStruct, LitStr, parse_macro_input};
 
-use crate::http::middleware::{MiddlewareArgs, expand_middleware_args};
+use crate::http::middleware::{expand_middleware_args, parse::MiddlewareKind};
 
 pub fn expand_controller(attr: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as ItemStruct);
@@ -16,7 +16,7 @@ pub fn expand_controller(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     for attr in &input.attrs {
         if attr.path().is_ident("middleware") {
-            match attr.parse_args::<MiddlewareArgs>() {
+            match attr.parse_args::<MiddlewareKind>() {
                 Ok(args) => route_middlewares.push(expand_middleware_args(&args)),
                 Err(e) => emit_error!("Failed to parse middleware arguments: {}", e),
             }

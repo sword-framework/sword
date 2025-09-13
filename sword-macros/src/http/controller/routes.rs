@@ -4,7 +4,7 @@ use quote::quote;
 use syn::{Attribute, Ident, ImplItem, ItemImpl, parse_macro_input};
 
 use crate::http::{
-    middleware::{MiddlewareArgs, expand_middleware_args},
+    middleware::{expand_middleware_args, parse::MiddlewareKind},
     utils::{HTTP_METHODS, get_attr_http_route},
 };
 
@@ -15,12 +15,12 @@ pub fn expand_controller_routes(_: TokenStream, item: TokenStream) -> TokenStrea
 
     for item in input.items.iter() {
         if let ImplItem::Fn(function) = item {
-            let mut middlewares = Vec::new();
+            let mut middlewares: Vec<MiddlewareKind> = vec![];
             let mut http_meta: Option<(&Attribute, Ident)> = None;
 
             for attr in &function.attrs {
                 if attr.path().is_ident("middleware") {
-                    match attr.parse_args::<MiddlewareArgs>() {
+                    match attr.parse_args::<MiddlewareKind>() {
                         Ok(args) => middlewares.push(args),
                         Err(e) => {
                             emit_error!(attr, "Invalid middleware syntax: {}", e);

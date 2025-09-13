@@ -15,14 +15,7 @@ mod http {
         pub use routes::expand_controller_routes;
     }
 
-    pub mod middleware {
-        pub mod expand;
-        pub mod parse;
-
-        pub use expand::expand_middleware_args;
-        pub use parse::MiddlewareArgs;
-    }
-
+    pub mod middleware;
     pub mod utils;
 }
 
@@ -170,6 +163,7 @@ pub fn patch(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///     }
 /// }
 #[proc_macro_attribute]
+#[proc_macro_error::proc_macro_error]
 pub fn controller(attr: TokenStream, item: TokenStream) -> TokenStream {
     http::controller::expand_controller(attr, item)
 }
@@ -190,6 +184,7 @@ pub fn controller(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// }
 /// ```
 #[proc_macro_attribute]
+#[proc_macro_error::proc_macro_error]
 pub fn routes(attr: TokenStream, item: TokenStream) -> TokenStream {
     http::controller::expand_controller_routes(attr, item)
 }

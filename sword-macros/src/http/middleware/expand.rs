@@ -1,10 +1,18 @@
 use proc_macro2::TokenStream;
 use quote::quote;
+use syn::Expr;
 
-use crate::http::middleware::MiddlewareArgs;
+use super::parse::{MiddlewareKind, SwordMiddlewareArgs};
 
-pub fn expand_middleware_args(args: &MiddlewareArgs) -> TokenStream {
-    let MiddlewareArgs { path, config } = args;
+pub fn expand_middleware_args(args: &MiddlewareKind) -> TokenStream {
+    match args {
+        MiddlewareKind::Sword(sword_args) => expand_sword_middleware(sword_args),
+        MiddlewareKind::TowerLayer(expr) => expand_tower_layer_middleware(expr),
+    }
+}
+
+fn expand_sword_middleware(args: &SwordMiddlewareArgs) -> TokenStream {
+    let SwordMiddlewareArgs { path, config } = args;
 
     match config {
         Some(config) => quote! {
@@ -24,4 +32,8 @@ pub fn expand_middleware_args(args: &MiddlewareArgs) -> TokenStream {
             )
         },
     }
+}
+
+fn expand_tower_layer_middleware(expr: &Expr) -> TokenStream {
+    quote! { #expr }
 }
