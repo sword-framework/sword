@@ -1,8 +1,3 @@
-mod http {
-    pub mod context;
-    pub mod middleware;
-}
-
 mod validation;
 
 /// The prelude module contains the most commonly used items from the Sword framework.
@@ -49,20 +44,24 @@ pub mod core {
 }
 
 pub mod web {
+
+    mod context;
+    mod middleware;
+
     pub use axum::http::{Method, StatusCode, header};
     pub use axum_responses::Result as HttpResult;
     pub use axum_responses::http::*;
     pub use sword_macros::{controller, delete, get, patch, post, put, routes};
 
-    pub use crate::http::context::{Context, request::RequestValidation};
-    pub use crate::http::middleware::*;
     pub use crate::next;
+    pub use context::{Context, request::RequestValidation};
+    pub use middleware::*;
 
     #[cfg(feature = "multipart")]
-    pub use crate::http::context::multipart;
+    pub use context::multipart;
 
     #[cfg(feature = "cookies")]
-    pub use crate::http::context::cookies;
+    pub use context::cookies;
 }
 
 pub use sword_macros::main;
