@@ -49,7 +49,9 @@ pub fn expand_env_vars(content: &str) -> Result<String, String> {
             Ok(value) => value,
             Err(_) => {
                 if default_value.is_empty() {
-                    return Err(format!("environment variable '{var_name}' not found"));
+                    return Err(format!(
+                        "environment variable '{var_name}' not found"
+                    ));
                 } else {
                     default_value.to_string()
                 }
@@ -59,8 +61,8 @@ pub fn expand_env_vars(content: &str) -> Result<String, String> {
         result = result.replace(full_match, &replacement);
     }
 
-    let simple_re =
-        Regex::new(r"\$([A-Za-z_][A-Za-z0-9_]*)").map_err(|e| format!("Regex error: {e}"))?;
+    let simple_re = Regex::new(r"\$([A-Za-z_][A-Za-z0-9_]*)")
+        .map_err(|e| format!("Regex error: {e}"))?;
 
     for caps in simple_re.captures_iter(&result.clone()) {
         let full_match = caps.get(0).unwrap().as_str();

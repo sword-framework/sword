@@ -12,9 +12,13 @@ pub static APP: OnceLock<Arc<TestServer>> = OnceLock::new();
 fn test_server() -> Result<Arc<TestServer>, Box<dyn std::error::Error>> {
     use sword::core::Application;
 
-    let app = Application::builder()?.with_controller::<UserController>().build();
+    let app = Application::builder()?
+        .with_controller::<UserController>()
+        .build();
 
-    Ok(APP.get_or_init(|| Arc::new(TestServer::new(app.router()).unwrap())).clone())
+    Ok(APP
+        .get_or_init(|| Arc::new(TestServer::new(app.router()).unwrap()))
+        .clone())
 }
 
 #[derive(Deserialize, Serialize)]
@@ -30,9 +34,17 @@ struct QueryData {
 
 #[derive(Debug, Deserialize, Serialize, Validate)]
 struct ValidableQueryData {
-    #[validate(range(message = "Page must be between 1 and 1000", min = 1, max = 1000))]
+    #[validate(range(
+        message = "Page must be between 1 and 1000",
+        min = 1,
+        max = 1000
+    ))]
     page: u32,
-    #[validate(range(message = "Limit must be between 1 and 100", min = 1, max = 100))]
+    #[validate(range(
+        message = "Limit must be between 1 and 100",
+        min = 1,
+        max = 100
+    ))]
     limit: u32,
 }
 
@@ -44,10 +56,18 @@ struct OptionalQueryData {
 
 #[derive(Debug, Default, Deserialize, Serialize, Validate)]
 struct DefaultValidableQueryData {
-    #[validate(range(message = "Page must be between 1 and 1000", min = 1, max = 1000))]
+    #[validate(range(
+        message = "Page must be between 1 and 1000",
+        min = 1,
+        max = 1000
+    ))]
     page: Option<u32>,
 
-    #[validate(range(message = "Limit must be between 1 and 100", min = 1, max = 100))]
+    #[validate(range(
+        message = "Limit must be between 1 and 100",
+        min = 1,
+        max = 100
+    ))]
     limit: Option<u32>,
 }
 
@@ -75,7 +95,9 @@ impl UserController {
     async fn get_users(ctx: Context) -> HttpResult<HttpResponse> {
         let query: Option<QueryData> = ctx.query()?;
 
-        Ok(HttpResponse::Ok().data(query).message("Users retrieved successfully"))
+        Ok(HttpResponse::Ok()
+            .data(query)
+            .message("Users retrieved successfully"))
     }
 
     #[get("/validate-query")]
@@ -88,7 +110,9 @@ impl UserController {
     }
 
     #[get("/ergonomic-optional-query")]
-    async fn get_users_with_ergonomic_query(ctx: Context) -> HttpResult<HttpResponse> {
+    async fn get_users_with_ergonomic_query(
+        ctx: Context,
+    ) -> HttpResult<HttpResponse> {
         let query: OptionalQueryData = ctx.query()?.unwrap_or_default();
 
         Ok(HttpResponse::Ok()
@@ -100,7 +124,8 @@ impl UserController {
     async fn get_users_with_ergonomic_validated_optional_query(
         ctx: Context,
     ) -> HttpResult<HttpResponse> {
-        let query: DefaultValidableQueryData = ctx.validated_query()?.unwrap_or_default();
+        let query: DefaultValidableQueryData =
+            ctx.validated_query()?.unwrap_or_default();
 
         Ok(HttpResponse::Ok()
             .data(query)
@@ -119,9 +144,9 @@ impl UserController {
     #[get("/pattern-match-query")]
     async fn get_users_with_pattern_match(ctx: Context) -> HttpResult<HttpResponse> {
         match ctx.query::<OptionalQueryData>()? {
-            Some(query) => {
-                Ok(HttpResponse::Ok().data(query).message("Users retrieved with query parameters"))
-            }
+            Some(query) => Ok(HttpResponse::Ok()
+                .data(query)
+                .message("Users retrieved with query parameters")),
             None => Ok(HttpResponse::Ok()
                 .data(OptionalQueryData::default())
                 .message("Users retrieved with default parameters")),
@@ -191,17 +216,23 @@ async fn validated_query_error_test() -> Result<(), Box<dyn std::error::Error>> 
     assert!(error.get("field").is_some());
     assert_eq!(error.get("field").unwrap(), "page");
     assert!(error.get("message").is_some());
-    assert_eq!(error.get("message").unwrap(), "Page must be between 1 and 1000");
+    assert_eq!(
+        error.get("message").unwrap(),
+        "Page must be between 1 and 1000"
+    );
 
     Ok(())
 }
 
 #[tokio::test]
-async fn ergonomic_optional_query_with_params_test() -> Result<(), Box<dyn std::error::Error>> {
+async fn ergonomic_optional_query_with_params_test()
+-> Result<(), Box<dyn std::error::Error>> {
     use sword::web::ResponseBody;
 
     let app = test_server()?;
-    let response = app.get("/users/ergonomic-optional-query?page=1&limit=5").await;
+    let response = app
+        .get("/users/ergonomic-optional-query?page=1&limit=5")
+        .await;
 
     let json = response.json::<ResponseBody>();
 
@@ -216,7 +247,8 @@ async fn ergonomic_optional_query_with_params_test() -> Result<(), Box<dyn std::
 }
 
 #[tokio::test]
-async fn ergonomic_optional_query_without_params_test() -> Result<(), Box<dyn std::error::Error>> {
+async fn ergonomic_optional_query_without_params_test()
+-> Result<(), Box<dyn std::error::Error>> {
     use sword::web::ResponseBody;
 
     let app = test_server()?;
@@ -240,7 +272,9 @@ async fn ergonomic_validated_optional_query_with_params_test()
     use sword::web::ResponseBody;
 
     let app = test_server()?;
-    let response = app.get("/users/ergonomic-validated-optional-query?page=1&limit=5").await;
+    let response = app
+        .get("/users/ergonomic-validated-optional-query?page=1&limit=5")
+        .await;
 
     let json = response.json::<ResponseBody>();
 
@@ -273,7 +307,8 @@ async fn ergonomic_validated_optional_query_without_params_test()
 }
 
 #[tokio::test]
-async fn pattern_match_query_with_params_test() -> Result<(), Box<dyn std::error::Error>> {
+async fn pattern_match_query_with_params_test()
+-> Result<(), Box<dyn std::error::Error>> {
     use sword::web::ResponseBody;
 
     let app = test_server()?;
@@ -282,13 +317,17 @@ async fn pattern_match_query_with_params_test() -> Result<(), Box<dyn std::error
     let json = response.json::<ResponseBody>();
 
     assert_eq!(200_u16, response.status_code().as_u16());
-    assert_eq!(json.message.as_ref(), "Users retrieved with query parameters");
+    assert_eq!(
+        json.message.as_ref(),
+        "Users retrieved with query parameters"
+    );
 
     Ok(())
 }
 
 #[tokio::test]
-async fn pattern_match_query_without_params_test() -> Result<(), Box<dyn std::error::Error>> {
+async fn pattern_match_query_without_params_test()
+-> Result<(), Box<dyn std::error::Error>> {
     use sword::web::ResponseBody;
 
     let app = test_server()?;
@@ -297,7 +336,10 @@ async fn pattern_match_query_without_params_test() -> Result<(), Box<dyn std::er
     let json = response.json::<ResponseBody>();
 
     assert_eq!(200_u16, response.status_code().as_u16());
-    assert_eq!(json.message.as_ref(), "Users retrieved with default parameters");
+    assert_eq!(
+        json.message.as_ref(),
+        "Users retrieved with default parameters"
+    );
 
     Ok(())
 }

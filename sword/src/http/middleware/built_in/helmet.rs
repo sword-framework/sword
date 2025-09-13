@@ -1,10 +1,11 @@
 use axum_helmet::HelmetLayer;
 
 pub use axum_helmet::{
-    ContentSecurityPolicy, ContentSecurityPolicyDirective, CrossOriginEmbedderPolicy,
-    CrossOriginOpenerPolicy, CrossOriginResourcePolicy, Header, OriginAgentCluster, ReferrerPolicy,
-    StrictTransportSecurity, XContentTypeOptions, XDNSPrefetchControl, XDownloadOptions,
-    XFrameOptions, XPermittedCrossDomainPolicies, XPoweredBy, XXSSProtection,
+    ContentSecurityPolicy, ContentSecurityPolicyDirective,
+    CrossOriginEmbedderPolicy, CrossOriginOpenerPolicy, CrossOriginResourcePolicy,
+    Header, OriginAgentCluster, ReferrerPolicy, StrictTransportSecurity,
+    XContentTypeOptions, XDNSPrefetchControl, XDownloadOptions, XFrameOptions,
+    XPermittedCrossDomainPolicies, XPoweredBy, XXSSProtection,
 };
 
 /// Middleware that adds various security headers to HTTP responses.

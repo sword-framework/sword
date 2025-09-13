@@ -1,5 +1,4 @@
-mod content_type;
-pub(crate) use content_type::ContentTypeCheck;
+pub(crate) mod content_type;
 
 /// Module containing various security headers that can be added to HTTP responses.
 /// These headers help protect against common web vulnerabilities.
@@ -13,5 +12,4 @@ pub(crate) use content_type::ContentTypeCheck;
 #[cfg(feature = "helmet")]
 pub mod helmet;
 
-mod prettifier;
-pub(crate) use prettifier::ResponsePrettifier;
+pub(crate) mod prettifier;

@@ -30,7 +30,8 @@ where
 
         let path_result = {
             use axum::extract::OptionalFromRequestParts;
-            Path::<HashMap<String, String>>::from_request_parts(&mut parts, &()).await
+            Path::<HashMap<String, String>>::from_request_parts(&mut parts, &())
+                .await
         };
 
         if let Ok(Some(path_params)) = path_result {

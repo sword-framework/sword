@@ -1,102 +1,28 @@
-use axum::{
-    body::Bytes,
-    extract::{FromRequest, Multipart},
-};
+use axum::extract::FromRequest;
+pub use axum::extract::multipart::*;
 
-use crate::{errors::RequestError, prelude::ApplicationConfig, web::Context};
-
-/// A single field in a multipart/form-data request.
-/// It contains the field's name, optional filename, content type, and the raw data as bytes.
-#[derive(Debug)]
-pub struct MultipartField {
-    pub name: Option<String>,
-    pub file_name: Option<String>,
-    pub content_type: Option<String>,
-    pub data: Bytes,
-}
-
-/// Represents the parsed multipart/form-data from an HTTP request.
-/// It contains a vector of `MultipartField` representing each field in the form.
-#[derive(Debug)]
-pub struct MultipartData {
-    fields: Vec<MultipartField>,
-}
-
-impl MultipartData {
-    pub(crate) fn new(fields: Vec<MultipartField>) -> Self {
-        Self { fields }
-    }
-
-    /// Returns a reference to the vector of multipart fields.
-    /// Each field contains metadata and the raw data.
-    pub fn fields(&self) -> &Vec<MultipartField> {
-        &self.fields
-    }
-
-    /// Consumes the `MultipartData` and returns the vector of multipart fields.
-    /// This allows ownership of the fields to be transferred.
-    pub fn into_fields(self) -> Vec<MultipartField> {
-        self.fields
-    }
-}
+use crate::{errors::RequestError, web::Context};
 
 impl Context {
-    pub async fn multipart(&self) -> Result<MultipartData, RequestError> {
-        let mut multipart =
-            Multipart::from_request(self.clone().try_into()?, &()).await.map_err(|err| {
-                RequestError::ParseError(
-                    "Failed to parse multipart data",
-                    format!("Error parsing multipart: {err}"),
-                )
-            })?;
+    pub async fn multipart(&self) -> Result<Multipart, RequestError> {
+        Ok(Multipart::from_request(self.clone().try_into()?, &()).await?)
+    }
+}
 
-        let allowed_mime_types = self
-            .config::<ApplicationConfig>()
-            .map_err(|e| {
-                eprintln!("Error retrieving application config: {e}");
-                RequestError::InternalError("Failed to retrieve application config".to_string())
-            })?
-            .allowed_mime_types
-            .clone();
+impl From<MultipartRejection> for RequestError {
+    fn from(err: MultipartRejection) -> Self {
+        RequestError::ParseError(
+            "Failed to parse multipart form data",
+            err.to_string(),
+        )
+    }
+}
 
-        let mut fields = Vec::new();
-
-        while let Some(field) = multipart.next_field().await.map_err(|err| {
-            RequestError::ParseError(
-                "Failed to read multipart field",
-                format!("Error reading field: {err}"),
-            )
-        })? {
-            let name = field.name().map(|s| s.to_string());
-            let file_name = field.file_name().map(|s| s.to_string());
-            let content_type = field.content_type().map(|s| s.to_string());
-            let data = field.bytes().await.map_err(|err| {
-                RequestError::ParseError(
-                    "Failed to read field data",
-                    format!("Error reading bytes: {err}"),
-                )
-            })?;
-
-            if file_name.is_some()
-                && let Some(kind) = infer::get(&data)
-            {
-                let mime_type = kind.mime_type().to_string();
-
-                if !allowed_mime_types.contains(&mime_type) {
-                    return Err(RequestError::UnsupportedMediaType(format!(
-                        "MIME type \"{mime_type}\" is not allowed",
-                    )));
-                }
-            }
-
-            fields.push(MultipartField {
-                name,
-                file_name,
-                content_type,
-                data,
-            });
-        }
-
-        Ok(MultipartData::new(fields))
+impl From<MultipartError> for RequestError {
+    fn from(err: MultipartError) -> Self {
+        RequestError::ParseError(
+            "Failed to parse multipart form data",
+            err.to_string(),
+        )
     }
 }

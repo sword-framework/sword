@@ -44,17 +44,20 @@ impl CookieController {
     async fn with_middleware(mut ctx: Context) -> HttpResult<HttpResponse> {
         let cookies = ctx.cookies_mut()?;
 
-        let session_cookie = cookies
-            .get("session_id")
-            .ok_or(HttpResponse::Unauthorized().message("Session cookie not found"))?;
+        let session_cookie = cookies.get("session_id").ok_or(
+            HttpResponse::Unauthorized().message("Session cookie not found"),
+        )?;
 
-        Ok(HttpResponse::Ok().message(format!("Session ID: {}", session_cookie.value())))
+        Ok(HttpResponse::Ok()
+            .message(format!("Session ID: {}", session_cookie.value())))
     }
 }
 
 #[tokio::test]
 async fn test_set_cookie() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?.with_controller::<CookieController>().build();
+    let app = Application::builder()?
+        .with_controller::<CookieController>()
+        .build();
     let server = TestServer::new(app.router())?;
 
     let response = server.get("/cookies/set").await;
@@ -78,7 +81,9 @@ async fn test_set_cookie() -> Result<(), Box<dyn std::error::Error>> {
 
 #[tokio::test]
 async fn test_with_middleware() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?.with_controller::<CookieController>().build();
+    let app = Application::builder()?
+        .with_controller::<CookieController>()
+        .build();
 
     let server = TestServer::new(app.router())?;
 

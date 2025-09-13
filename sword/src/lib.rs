@@ -25,10 +25,10 @@ pub mod prelude {
     pub use crate::web::*;
 
     #[cfg(feature = "cookies")]
-    pub use crate::http::context::cookies::*;
+    pub use crate::web::cookies::*;
 
     #[cfg(feature = "multipart")]
-    pub use crate::http::context::multipart::{MultipartData, MultipartField};
+    pub use crate::web::multipart;
 }
 
 pub mod errors;
@@ -59,7 +59,7 @@ pub mod web {
     pub use crate::next;
 
     #[cfg(feature = "multipart")]
-    pub use crate::http::context::multipart::MultipartField;
+    pub use crate::http::context::multipart;
 
     #[cfg(feature = "cookies")]
     pub use crate::http::context::cookies;
@@ -75,8 +75,8 @@ pub mod __internal {
     pub use axum::response::{IntoResponse, Response as AxumResponse};
     pub use axum::routing::Router as AxumRouter;
     pub use axum::routing::{
-        delete as axum_delete_fn, get as axum_get_fn, patch as axum_patch_fn, post as axum_post_fn,
-        put as axum_put_fn,
+        delete as axum_delete_fn, get as axum_get_fn, patch as axum_patch_fn,
+        post as axum_post_fn, put as axum_put_fn,
     };
 
     #[cfg(feature = "hot-reload")]

@@ -29,7 +29,6 @@ byte-unit = "5.1.6"
 
 sword-macros = { workspace = true }
 
-infer = "0.19.0"
 regex = "1.11.1"
 validator = { workspace = true }
 
@@ -55,6 +54,5 @@ default = []
 multipart = ["axum/multipart"]
 shaku-di = ["dep:shaku"]
 hot-reload = ["dep:subsecond", "dep:dioxus-devtools", "sword-macros/hot-reload"]
-# hot-reload = ["sword-macros/hot-reload"]
 cookies = ["dep:tower-cookies"]
 helmet = ["dep:axum-helmet"]

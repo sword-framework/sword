@@ -20,13 +20,17 @@ impl TestController {
     async fn hello(ctx: Context) -> HttpResult<HttpResponse> {
         let custom_config = ctx.config::<MyConfig>()?;
 
-        Ok(HttpResponse::Ok().data(custom_config).message("Test controller response"))
+        Ok(HttpResponse::Ok()
+            .data(custom_config)
+            .message("Test controller response"))
     }
 }
 
 #[tokio::test]
 async fn test_application() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?.with_controller::<TestController>().build();
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
 
     let test = axum_test::TestServer::new(app.router()).unwrap();
 

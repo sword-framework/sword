@@ -34,7 +34,9 @@ impl Context {
     /// ### Returns
     /// `Some(&str)` with the header value if it exists, `None` if not found.
     pub fn header(&self, key: &str) -> Option<&str> {
-        self.headers.get(&key.to_lowercase()).map(|value| value.as_str())
+        self.headers
+            .get(&key.to_lowercase())
+            .map(|value| value.as_str())
     }
 
     /// Gets an immutable reference to all request headers.
@@ -241,14 +243,17 @@ impl Context {
             return Ok(None);
         }
 
-        let deserializer =
-            serde_urlencoded::Deserializer::new(form_urlencoded::parse(query_string.as_bytes()));
+        let deserializer = serde_urlencoded::Deserializer::new(
+            form_urlencoded::parse(query_string.as_bytes()),
+        );
 
-        let parsed: T = serde_path_to_error::deserialize(deserializer).map_err(|_| {
-            let message = "Invalid query parameters";
-            let details = "Failed to parse query parameters to the required type.";
-            RequestError::ParseError(message, details.into())
-        })?;
+        let parsed: T =
+            serde_path_to_error::deserialize(deserializer).map_err(|_| {
+                let message = "Invalid query parameters";
+                let details =
+                    "Failed to parse query parameters to the required type.";
+                RequestError::ParseError(message, details.into())
+            })?;
 
         Ok(Some(parsed))
     }

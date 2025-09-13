@@ -15,9 +15,6 @@ use crate::core::utils::deserialize_size;
 /// host = "127.0.0.1"
 /// port = 3000
 /// body_limit = "10MB"
-///
-/// ### Optional: only when multipart feature is enabled
-/// allowed_mime_types = ["image/jpeg", "image/png", "application/pdf"]
 /// ```
 ///
 /// ### Environment Variable Interpolation
@@ -46,12 +43,6 @@ pub struct ApplicationConfig {
     /// Parsed using the byte_unit crate for flexible size specification.
     #[serde(deserialize_with = "deserialize_size")]
     pub body_limit: usize,
-
-    /// List of allowed MIME types for multipart uploads.
-    /// Only used when the "multipart" feature is enabled.
-    /// Example: ["image/jpeg", "image/png", "application/pdf"]
-    #[cfg(feature = "multipart")]
-    pub allowed_mime_types: Vec<String>,
 
     /// Optional request timeout in seconds.
     /// If set, requests taking longer than this duration will be aborted.

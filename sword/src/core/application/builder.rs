@@ -217,7 +217,10 @@ impl ApplicationBuilder {
     ///     .with_state(app_state)?
     ///     .build();
     /// ```
-    pub fn with_state<S: Sync + Send + 'static>(self, state: S) -> Result<Self, StateError> {
+    pub fn with_state<S: Sync + Send + 'static>(
+        self,
+        state: S,
+    ) -> Result<Self, StateError> {
         self.state.insert(state)?;
 
         let router = Router::new().with_state(self.state.clone());
@@ -313,7 +316,8 @@ impl ApplicationBuilder {
             .layer(RequestBodyLimitLayer::new(app_config.body_limit));
 
         if let Some(timeout_secs) = app_config.request_timeout_seconds {
-            router = router.layer(TimeoutLayer::new(Duration::from_secs(timeout_secs)));
+            router =
+                router.layer(TimeoutLayer::new(Duration::from_secs(timeout_secs)));
         }
 
         #[cfg(feature = "cookies")]
@@ -321,7 +325,8 @@ impl ApplicationBuilder {
             router = router.layer(CookieManagerLayer::new());
         }
 
-        router = router.layer(mw_with_state(self.state.clone(), ResponsePrettifier::layer));
+        router = router
+            .layer(mw_with_state(self.state.clone(), ResponsePrettifier::layer));
 
         Application {
             router,

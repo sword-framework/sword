@@ -19,7 +19,9 @@ impl ContentTypeCheck {
             return next!(ctx, next);
         }
 
-        if content_type != APPLICATION_JSON && !content_type.contains(MULTIPART_FORM_DATA) {
+        if content_type != APPLICATION_JSON
+            && !content_type.contains(MULTIPART_FORM_DATA)
+        {
             return Err(HttpResponse::UnsupportedMediaType().message(
                 "Only application/json and multipart/form-data content types are supported.",
             ));

@@ -3,9 +3,10 @@ use sword::prelude::*;
 
 use sword::web::helmet::{
     ContentSecurityPolicy, CrossOriginEmbedderPolicy, CrossOriginOpenerPolicy,
-    CrossOriginResourcePolicy, Helmet, OriginAgentCluster, ReferrerPolicy, StrictTransportSecurity,
-    XContentTypeOptions, XDNSPrefetchControl, XDownloadOptions, XFrameOptions,
-    XPermittedCrossDomainPolicies, XPoweredBy, XXSSProtection,
+    CrossOriginResourcePolicy, Helmet, OriginAgentCluster, ReferrerPolicy,
+    StrictTransportSecurity, XContentTypeOptions, XDNSPrefetchControl,
+    XDownloadOptions, XFrameOptions, XPermittedCrossDomainPolicies, XPoweredBy,
+    XXSSProtection,
 };
 
 #[controller("/test")]
@@ -49,7 +50,9 @@ async fn test_basic_security_headers() -> Result<(), Box<dyn std::error::Error>>
 
 #[tokio::test]
 async fn test_x_content_type_options() -> Result<(), Box<dyn std::error::Error>> {
-    let helmet = Helmet::builder().with_header(XContentTypeOptions::nosniff()).build();
+    let helmet = Helmet::builder()
+        .with_header(XContentTypeOptions::nosniff())
+        .build();
 
     let app = Application::builder()?
         .with_controller::<HelmetTestController>()
@@ -60,7 +63,10 @@ async fn test_x_content_type_options() -> Result<(), Box<dyn std::error::Error>>
     let response = server.get("/test").await;
 
     assert_eq!(response.status_code(), 200);
-    assert_eq!(response.headers().get("x-content-type-options").unwrap(), "nosniff");
+    assert_eq!(
+        response.headers().get("x-content-type-options").unwrap(),
+        "nosniff"
+    );
 
     Ok(())
 }
@@ -82,7 +88,9 @@ async fn test_x_frame_options() -> Result<(), Box<dyn std::error::Error>> {
     assert_eq!(response.headers().get("x-frame-options").unwrap(), "DENY");
 
     // Test SAMEORIGIN
-    let helmet_sameorigin = Helmet::builder().with_header(XFrameOptions::same_origin()).build();
+    let helmet_sameorigin = Helmet::builder()
+        .with_header(XFrameOptions::same_origin())
+        .build();
 
     let app = Application::builder()?
         .with_controller::<HelmetTestController>()
@@ -93,7 +101,10 @@ async fn test_x_frame_options() -> Result<(), Box<dyn std::error::Error>> {
     let response = server.get("/test").await;
 
     assert_eq!(response.status_code(), 200);
-    assert_eq!(response.headers().get("x-frame-options").unwrap(), "SAMEORIGIN");
+    assert_eq!(
+        response.headers().get("x-frame-options").unwrap(),
+        "SAMEORIGIN"
+    );
 
     Ok(())
 }
@@ -133,7 +144,9 @@ async fn test_x_xss_protection() -> Result<(), Box<dyn std::error::Error>> {
 
 #[tokio::test]
 async fn test_strict_transport_security() -> Result<(), Box<dyn std::error::Error>> {
-    let helmet = Helmet::builder().with_header(StrictTransportSecurity::default()).build();
+    let helmet = Helmet::builder()
+        .with_header(StrictTransportSecurity::default())
+        .build();
 
     let app = Application::builder()?
         .with_controller::<HelmetTestController>()
@@ -154,7 +167,9 @@ async fn test_strict_transport_security() -> Result<(), Box<dyn std::error::Erro
 
 #[tokio::test]
 async fn test_referrer_policy() -> Result<(), Box<dyn std::error::Error>> {
-    let helmet = Helmet::builder().with_header(ReferrerPolicy::no_referrer()).build();
+    let helmet = Helmet::builder()
+        .with_header(ReferrerPolicy::no_referrer())
+        .build();
 
     let app = Application::builder()?
         .with_controller::<HelmetTestController>()
@@ -165,7 +180,10 @@ async fn test_referrer_policy() -> Result<(), Box<dyn std::error::Error>> {
     let response = server.get("/test").await;
 
     assert_eq!(response.status_code(), 200);
-    assert_eq!(response.headers().get("referrer-policy").unwrap(), "no-referrer");
+    assert_eq!(
+        response.headers().get("referrer-policy").unwrap(),
+        "no-referrer"
+    );
 
     Ok(())
 }
@@ -173,7 +191,9 @@ async fn test_referrer_policy() -> Result<(), Box<dyn std::error::Error>> {
 #[tokio::test]
 async fn test_x_dns_prefetch_control() -> Result<(), Box<dyn std::error::Error>> {
     // Test DNS prefetch OFF
-    let helmet_off = Helmet::builder().with_header(XDNSPrefetchControl::off()).build();
+    let helmet_off = Helmet::builder()
+        .with_header(XDNSPrefetchControl::off())
+        .build();
 
     let app = Application::builder()?
         .with_controller::<HelmetTestController>()
@@ -184,10 +204,15 @@ async fn test_x_dns_prefetch_control() -> Result<(), Box<dyn std::error::Error>>
     let response = server.get("/test").await;
 
     assert_eq!(response.status_code(), 200);
-    assert_eq!(response.headers().get("x-dns-prefetch-control").unwrap(), "off");
+    assert_eq!(
+        response.headers().get("x-dns-prefetch-control").unwrap(),
+        "off"
+    );
 
     // Test DNS prefetch ON
-    let helmet_on = Helmet::builder().with_header(XDNSPrefetchControl::on()).build();
+    let helmet_on = Helmet::builder()
+        .with_header(XDNSPrefetchControl::on())
+        .build();
 
     let app = Application::builder()?
         .with_controller::<HelmetTestController>()
@@ -198,14 +223,19 @@ async fn test_x_dns_prefetch_control() -> Result<(), Box<dyn std::error::Error>>
     let response = server.get("/test").await;
 
     assert_eq!(response.status_code(), 200);
-    assert_eq!(response.headers().get("x-dns-prefetch-control").unwrap(), "on");
+    assert_eq!(
+        response.headers().get("x-dns-prefetch-control").unwrap(),
+        "on"
+    );
 
     Ok(())
 }
 
 #[tokio::test]
 async fn test_x_download_options() -> Result<(), Box<dyn std::error::Error>> {
-    let helmet = Helmet::builder().with_header(XDownloadOptions::noopen()).build();
+    let helmet = Helmet::builder()
+        .with_header(XDownloadOptions::noopen())
+        .build();
 
     let app = Application::builder()?
         .with_controller::<HelmetTestController>()
@@ -216,7 +246,10 @@ async fn test_x_download_options() -> Result<(), Box<dyn std::error::Error>> {
     let response = server.get("/test").await;
 
     assert_eq!(response.status_code(), 200);
-    assert_eq!(response.headers().get("x-download-options").unwrap(), "noopen");
+    assert_eq!(
+        response.headers().get("x-download-options").unwrap(),
+        "noopen"
+    );
 
     Ok(())
 }
@@ -224,7 +257,9 @@ async fn test_x_download_options() -> Result<(), Box<dyn std::error::Error>> {
 #[tokio::test]
 async fn test_x_powered_by() -> Result<(), Box<dyn std::error::Error>> {
     // X-Powered-By with custom value
-    let helmet = Helmet::builder().with_header(XPoweredBy::new("Sword Framework")).build();
+    let helmet = Helmet::builder()
+        .with_header(XPoweredBy::new("Sword Framework"))
+        .build();
 
     let app = Application::builder()?
         .with_controller::<HelmetTestController>()
@@ -235,14 +270,20 @@ async fn test_x_powered_by() -> Result<(), Box<dyn std::error::Error>> {
     let response = server.get("/test").await;
 
     assert_eq!(response.status_code(), 200);
-    assert_eq!(response.headers().get("x-powered-by").unwrap(), "Sword Framework");
+    assert_eq!(
+        response.headers().get("x-powered-by").unwrap(),
+        "Sword Framework"
+    );
 
     Ok(())
 }
 
 #[tokio::test]
-async fn test_x_permitted_cross_domain_policies() -> Result<(), Box<dyn std::error::Error>> {
-    let helmet = Helmet::builder().with_header(XPermittedCrossDomainPolicies::none()).build();
+async fn test_x_permitted_cross_domain_policies()
+-> Result<(), Box<dyn std::error::Error>> {
+    let helmet = Helmet::builder()
+        .with_header(XPermittedCrossDomainPolicies::none())
+        .build();
 
     let app = Application::builder()?
         .with_controller::<HelmetTestController>()
@@ -253,14 +294,23 @@ async fn test_x_permitted_cross_domain_policies() -> Result<(), Box<dyn std::err
     let response = server.get("/test").await;
 
     assert_eq!(response.status_code(), 200);
-    assert_eq!(response.headers().get("x-permitted-cross-domain-policies").unwrap(), "none");
+    assert_eq!(
+        response
+            .headers()
+            .get("x-permitted-cross-domain-policies")
+            .unwrap(),
+        "none"
+    );
 
     Ok(())
 }
 
 #[tokio::test]
-async fn test_cross_origin_embedder_policy() -> Result<(), Box<dyn std::error::Error>> {
-    let helmet = Helmet::builder().with_header(CrossOriginEmbedderPolicy::require_corp()).build();
+async fn test_cross_origin_embedder_policy() -> Result<(), Box<dyn std::error::Error>>
+{
+    let helmet = Helmet::builder()
+        .with_header(CrossOriginEmbedderPolicy::require_corp())
+        .build();
 
     let app = Application::builder()?
         .with_controller::<HelmetTestController>()
@@ -271,14 +321,23 @@ async fn test_cross_origin_embedder_policy() -> Result<(), Box<dyn std::error::E
     let response = server.get("/test").await;
 
     assert_eq!(response.status_code(), 200);
-    assert_eq!(response.headers().get("cross-origin-embedder-policy").unwrap(), "require-corp");
+    assert_eq!(
+        response
+            .headers()
+            .get("cross-origin-embedder-policy")
+            .unwrap(),
+        "require-corp"
+    );
 
     Ok(())
 }
 
 #[tokio::test]
-async fn test_cross_origin_opener_policy() -> Result<(), Box<dyn std::error::Error>> {
-    let helmet = Helmet::builder().with_header(CrossOriginOpenerPolicy::same_origin()).build();
+async fn test_cross_origin_opener_policy() -> Result<(), Box<dyn std::error::Error>>
+{
+    let helmet = Helmet::builder()
+        .with_header(CrossOriginOpenerPolicy::same_origin())
+        .build();
 
     let app = Application::builder()?
         .with_controller::<HelmetTestController>()
@@ -289,14 +348,23 @@ async fn test_cross_origin_opener_policy() -> Result<(), Box<dyn std::error::Err
     let response = server.get("/test").await;
 
     assert_eq!(response.status_code(), 200);
-    assert_eq!(response.headers().get("cross-origin-opener-policy").unwrap(), "same-origin");
+    assert_eq!(
+        response
+            .headers()
+            .get("cross-origin-opener-policy")
+            .unwrap(),
+        "same-origin"
+    );
 
     Ok(())
 }
 
 #[tokio::test]
-async fn test_cross_origin_resource_policy() -> Result<(), Box<dyn std::error::Error>> {
-    let helmet = Helmet::builder().with_header(CrossOriginResourcePolicy::cross_origin()).build();
+async fn test_cross_origin_resource_policy() -> Result<(), Box<dyn std::error::Error>>
+{
+    let helmet = Helmet::builder()
+        .with_header(CrossOriginResourcePolicy::cross_origin())
+        .build();
 
     let app = Application::builder()?
         .with_controller::<HelmetTestController>()
@@ -307,14 +375,22 @@ async fn test_cross_origin_resource_policy() -> Result<(), Box<dyn std::error::E
     let response = server.get("/test").await;
 
     assert_eq!(response.status_code(), 200);
-    assert_eq!(response.headers().get("cross-origin-resource-policy").unwrap(), "cross-origin");
+    assert_eq!(
+        response
+            .headers()
+            .get("cross-origin-resource-policy")
+            .unwrap(),
+        "cross-origin"
+    );
 
     Ok(())
 }
 
 #[tokio::test]
 async fn test_origin_agent_cluster() -> Result<(), Box<dyn std::error::Error>> {
-    let helmet = Helmet::builder().with_header(OriginAgentCluster::new(true)).build();
+    let helmet = Helmet::builder()
+        .with_header(OriginAgentCluster::new(true))
+        .build();
 
     let app = Application::builder()?
         .with_controller::<HelmetTestController>()
@@ -325,7 +401,10 @@ async fn test_origin_agent_cluster() -> Result<(), Box<dyn std::error::Error>> {
     let response = server.get("/test").await;
 
     assert_eq!(response.status_code(), 200);
-    assert_eq!(response.headers().get("origin-agent-cluster").unwrap(), "?1");
+    assert_eq!(
+        response.headers().get("origin-agent-cluster").unwrap(),
+        "?1"
+    );
 
     Ok(())
 }
@@ -333,7 +412,9 @@ async fn test_origin_agent_cluster() -> Result<(), Box<dyn std::error::Error>> {
 #[tokio::test]
 async fn test_content_security_policy() -> Result<(), Box<dyn std::error::Error>> {
     // Use default CSP policy
-    let helmet = Helmet::builder().with_header(ContentSecurityPolicy::default()).build();
+    let helmet = Helmet::builder()
+        .with_header(ContentSecurityPolicy::default())
+        .build();
 
     let app = Application::builder()?
         .with_controller::<HelmetTestController>()
@@ -388,10 +469,22 @@ async fn test_multiple_security_headers() -> Result<(), Box<dyn std::error::Erro
     assert_eq!(headers.get("referrer-policy").unwrap(), "no-referrer");
     assert_eq!(headers.get("x-dns-prefetch-control").unwrap(), "off");
     assert_eq!(headers.get("x-download-options").unwrap(), "noopen");
-    assert_eq!(headers.get("x-permitted-cross-domain-policies").unwrap(), "none");
-    assert_eq!(headers.get("cross-origin-embedder-policy").unwrap(), "require-corp");
-    assert_eq!(headers.get("cross-origin-opener-policy").unwrap(), "same-origin");
-    assert_eq!(headers.get("cross-origin-resource-policy").unwrap(), "same-site");
+    assert_eq!(
+        headers.get("x-permitted-cross-domain-policies").unwrap(),
+        "none"
+    );
+    assert_eq!(
+        headers.get("cross-origin-embedder-policy").unwrap(),
+        "require-corp"
+    );
+    assert_eq!(
+        headers.get("cross-origin-opener-policy").unwrap(),
+        "same-origin"
+    );
+    assert_eq!(
+        headers.get("cross-origin-resource-policy").unwrap(),
+        "same-site"
+    );
     assert_eq!(headers.get("origin-agent-cluster").unwrap(), "?1");
     assert!(headers.get("strict-transport-security").is_some());
 

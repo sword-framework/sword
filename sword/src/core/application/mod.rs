@@ -107,7 +107,10 @@ impl Application {
     ///
     /// See [Axum's docs](https://docs.rs/axum/latest/axum/serve/struct.WithGracefulShutdown.html)
     /// to learn more about graceful shutdown.
-    pub async fn run_with_graceful_shutdown<F>(&self, signal: F) -> Result<(), ApplicationError>
+    pub async fn run_with_graceful_shutdown<F>(
+        &self,
+        signal: F,
+    ) -> Result<(), ApplicationError>
     where
         F: Future<Output = ()> + Send + 'static,
     {
@@ -156,9 +159,11 @@ impl Application {
         let config = self.config.get::<ApplicationConfig>()?;
         let addr = format!("{}:{}", config.host, config.port);
 
-        let listener = Listener::bind(&addr).await.map_err(|e| ApplicationError::BindFailed {
-            address: addr.to_string(),
-            source: e,
+        let listener = Listener::bind(&addr).await.map_err(|e| {
+            ApplicationError::BindFailed {
+                address: addr.to_string(),
+                source: e,
+            }
         })?;
 
         self.display(&config);

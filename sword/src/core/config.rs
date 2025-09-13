@@ -25,10 +25,11 @@ impl Config {
         }
 
         let content = read_to_string(path).map_err(ConfigError::ReadError)?;
-        let expanded = utils::expand_env_vars(&content).map_err(ConfigError::InterpolationError)?;
+        let expanded = utils::expand_env_vars(&content)
+            .map_err(ConfigError::InterpolationError)?;
 
-        let table =
-            Table::from_str(&expanded).map_err(|e| ConfigError::ParseError(e.to_string()))?;
+        let table = Table::from_str(&expanded)
+            .map_err(|e| ConfigError::ParseError(e.to_string()))?;
 
         Ok(Self {
             inner: Arc::new(table),
@@ -75,7 +76,8 @@ impl Config {
 
         let value = toml::Value::into_deserializer(config_item.clone());
 
-        T::deserialize(value).map_err(|e| ConfigError::DeserializeError(e.to_string()))
+        T::deserialize(value)
+            .map_err(|e| ConfigError::DeserializeError(e.to_string()))
     }
 }
 

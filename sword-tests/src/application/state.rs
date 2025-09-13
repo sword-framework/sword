@@ -34,7 +34,10 @@ async fn test_state() -> Result<(), Box<dyn std::error::Error>> {
     let response = server.get("/test/state").await;
 
     assert_eq!(response.status_code(), 200);
-    assert_eq!(response.headers().get("Content-Type").unwrap(), "application/json");
+    assert_eq!(
+        response.headers().get("Content-Type").unwrap(),
+        "application/json"
+    );
 
     let json = response.json::<ResponseBody>();
 

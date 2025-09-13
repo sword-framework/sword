@@ -63,7 +63,9 @@ impl TestController {
 
 #[tokio::test]
 async fn timeout() -> Result<(), Box<dyn Error>> {
-    let app = Application::builder()?.with_controller::<TestController>().build();
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
     let test_app = TestServer::new(app.router())?;
 
     let response = test_app.get("/test/timeout").await;
@@ -87,7 +89,9 @@ async fn timeout() -> Result<(), Box<dyn Error>> {
 
 #[tokio::test]
 async fn timeout_boundary_exact() -> Result<(), Box<dyn Error>> {
-    let app = Application::builder()?.with_controller::<TestController>().build();
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
     let test_app = TestServer::new(app.router())?;
 
     let response = test_app.get("/test/timeout-boundary").await;
@@ -104,7 +108,9 @@ async fn timeout_boundary_exact() -> Result<(), Box<dyn Error>> {
 
 #[tokio::test]
 async fn timeout_just_under_limit() -> Result<(), Box<dyn Error>> {
-    let app = Application::builder()?.with_controller::<TestController>().build();
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
     let test_app = TestServer::new(app.router())?;
 
     let response = test_app.get("/test/timeout-just-under").await;
@@ -120,7 +126,9 @@ async fn timeout_just_under_limit() -> Result<(), Box<dyn Error>> {
 
 #[tokio::test]
 async fn timeout_just_over_limit() -> Result<(), Box<dyn Error>> {
-    let app = Application::builder()?.with_controller::<TestController>().build();
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
     let test_app = TestServer::new(app.router())?;
 
     let response = test_app.get("/test/timeout-just-over").await;
@@ -137,7 +145,9 @@ async fn timeout_just_over_limit() -> Result<(), Box<dyn Error>> {
 
 #[tokio::test]
 async fn no_timeout_quick_response() -> Result<(), Box<dyn Error>> {
-    let app = Application::builder()?.with_controller::<TestController>().build();
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
     let test_app = TestServer::new(app.router())?;
 
     let response = test_app.get("/test/no-timeout").await;
@@ -155,7 +165,9 @@ async fn no_timeout_quick_response() -> Result<(), Box<dyn Error>> {
 
 #[tokio::test]
 async fn content_type_json_valid() -> Result<(), Box<dyn Error>> {
-    let app = Application::builder()?.with_controller::<TestController>().build();
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
     let test_app = TestServer::new(app.router())?;
 
     let response = test_app
@@ -176,7 +188,9 @@ async fn content_type_json_valid() -> Result<(), Box<dyn Error>> {
 
 #[tokio::test]
 async fn content_type_multipart_valid() -> Result<(), Box<dyn Error>> {
-    let app = Application::builder()?.with_controller::<TestController>().build();
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
     let test_app = TestServer::new(app.router())?;
 
     let response = test_app
@@ -196,27 +210,33 @@ async fn content_type_multipart_valid() -> Result<(), Box<dyn Error>> {
 
 #[tokio::test]
 async fn content_type_invalid() -> Result<(), Box<dyn Error>> {
-    let app = Application::builder()?.with_controller::<TestController>().build();
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
     let test_app = TestServer::new(app.router())?;
 
-    let response = test_app.post("/test/content-type-any").text("plain text data").await;
+    let response = test_app
+        .post("/test/content-type-any")
+        .text("plain text data")
+        .await;
 
     assert_eq!(response.status_code(), 415);
 
     let json = response.json::<ResponseBody>();
     assert_eq!(json.code, 415);
     assert!(!json.success);
-    assert!(
-        json.message
-            .contains("Only application/json and multipart/form-data content types are supported")
-    );
+    assert!(json.message.contains(
+        "Only application/json and multipart/form-data content types are supported"
+    ));
 
     Ok(())
 }
 
 #[tokio::test]
 async fn content_type_xml_invalid() -> Result<(), Box<dyn Error>> {
-    let app = Application::builder()?.with_controller::<TestController>().build();
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
     let test_app = TestServer::new(app.router())?;
 
     use axum::body::Bytes;
@@ -232,17 +252,18 @@ async fn content_type_xml_invalid() -> Result<(), Box<dyn Error>> {
     let json = response.json::<ResponseBody>();
     assert_eq!(json.code, 415);
     assert!(!json.success);
-    assert!(
-        json.message
-            .contains("Only application/json and multipart/form-data content types are supported")
-    );
+    assert!(json.message.contains(
+        "Only application/json and multipart/form-data content types are supported"
+    ));
 
     Ok(())
 }
 
 #[tokio::test]
 async fn content_type_form_urlencoded_invalid() -> Result<(), Box<dyn Error>> {
-    let app = Application::builder()?.with_controller::<TestController>().build();
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
     let test_app = TestServer::new(app.router())?;
 
     use axum::body::Bytes;
@@ -258,17 +279,18 @@ async fn content_type_form_urlencoded_invalid() -> Result<(), Box<dyn Error>> {
     let json = response.json::<ResponseBody>();
     assert_eq!(json.code, 415);
     assert!(!json.success);
-    assert!(
-        json.message
-            .contains("Only application/json and multipart/form-data content types are supported")
-    );
+    assert!(json.message.contains(
+        "Only application/json and multipart/form-data content types are supported"
+    ));
 
     Ok(())
 }
 
 #[tokio::test]
 async fn content_type_no_body_allowed() -> Result<(), Box<dyn Error>> {
-    let app = Application::builder()?.with_controller::<TestController>().build();
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
     let test_app = TestServer::new(app.router())?;
 
     // GET request with no body should pass content type check
@@ -286,7 +308,9 @@ async fn content_type_no_body_allowed() -> Result<(), Box<dyn Error>> {
 
 #[tokio::test]
 async fn content_type_missing_header_with_body() -> Result<(), Box<dyn Error>> {
-    let app = Application::builder()?.with_controller::<TestController>().build();
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
     let test_app = TestServer::new(app.router())?;
 
     let response = test_app
@@ -299,17 +323,18 @@ async fn content_type_missing_header_with_body() -> Result<(), Box<dyn Error>> {
     let json = response.json::<ResponseBody>();
     assert_eq!(json.code, 415);
     assert!(!json.success);
-    assert!(
-        json.message
-            .contains("Only application/json and multipart/form-data content types are supported")
-    );
+    assert!(json.message.contains(
+        "Only application/json and multipart/form-data content types are supported"
+    ));
 
     Ok(())
 }
 
 #[tokio::test]
 async fn content_type_case_sensitivity() -> Result<(), Box<dyn Error>> {
-    let app = Application::builder()?.with_controller::<TestController>().build();
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
     let test_app = TestServer::new(app.router())?;
 
     use axum::body::Bytes;
@@ -326,7 +351,9 @@ async fn content_type_case_sensitivity() -> Result<(), Box<dyn Error>> {
 
 #[tokio::test]
 async fn content_type_json_with_charset() -> Result<(), Box<dyn Error>> {
-    let app = Application::builder()?.with_controller::<TestController>().build();
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
     let test_app = TestServer::new(app.router())?;
 
     use axum::body::Bytes;

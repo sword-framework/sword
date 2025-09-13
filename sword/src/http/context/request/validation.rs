@@ -4,9 +4,15 @@ use validator::Validate;
 use crate::{errors::RequestError, web::Context};
 
 pub trait RequestValidation {
-    fn validated_body<T: DeserializeOwned + Validate>(&self) -> Result<T, RequestError>;
-    fn validated_query<T: DeserializeOwned + Validate>(&self) -> Result<Option<T>, RequestError>;
-    fn validated_params<T: DeserializeOwned + Validate>(&self) -> Result<T, RequestError>;
+    fn validated_body<T: DeserializeOwned + Validate>(
+        &self,
+    ) -> Result<T, RequestError>;
+    fn validated_query<T: DeserializeOwned + Validate>(
+        &self,
+    ) -> Result<Option<T>, RequestError>;
+    fn validated_params<T: DeserializeOwned + Validate>(
+        &self,
+    ) -> Result<T, RequestError>;
 }
 
 impl RequestValidation for Context {
@@ -148,9 +154,17 @@ impl RequestValidation for Context {
         }
     }
 
-    fn validated_params<T: DeserializeOwned + Validate>(&self) -> Result<T, RequestError> {
-        let params = serde_json::to_value(self.params.clone())
-            .map_err(|e| RequestError::ParseError("Failed to serialize params", e.to_string()))?;
+    /// Deserializes and validates path parameters using validation rules.
+    ///
+    /// This method combines path parameter parsing with validation using the
+    /// `validator` crate. It first deserializes the path parameters and then
+    /// runs validation rules defined on the target type.
+    fn validated_params<T: DeserializeOwned + Validate>(
+        &self,
+    ) -> Result<T, RequestError> {
+        let params = serde_json::to_value(self.params.clone()).map_err(|e| {
+            RequestError::ParseError("Failed to serialize params", e.to_string())
+        })?;
 
         let deserialized: T = serde_json::from_value(params).map_err(|e| {
             RequestError::ParseError(

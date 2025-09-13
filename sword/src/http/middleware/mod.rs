@@ -5,8 +5,13 @@ use std::future::Future;
 
 use crate::web::{Context, HttpResult};
 
+#[cfg(feature = "helmet")]
+pub use built_in::helmet;
+
+pub(crate) use built_in::content_type::ContentTypeCheck;
+pub(crate) use built_in::prettifier::ResponsePrettifier;
+
 pub use axum::middleware::Next;
-pub use built_in::*;
 pub use sword_macros::middleware;
 
 /// MiddlewareResult is the result type returned by middleware handlers.
@@ -30,7 +35,10 @@ pub type MiddlewareResult = HttpResult<AxumResponse>;
 /// }
 /// ```
 pub trait Middleware: Send + Sync + 'static {
-    fn handle(ctx: Context, next: Next) -> impl Future<Output = MiddlewareResult> + Send;
+    fn handle(
+        ctx: Context,
+        next: Next,
+    ) -> impl Future<Output = MiddlewareResult> + Send;
 }
 
 /// Trait for build middlewares that can be used in the application with a generic
@@ -53,8 +61,11 @@ pub trait Middleware: Send + Sync + 'static {
 /// }
 /// ```
 pub trait MiddlewareWithConfig<C>: Send + Sync + 'static {
-    fn handle(config: C, req: Context, next: Next)
-    -> impl Future<Output = MiddlewareResult> + Send;
+    fn handle(
+        config: C,
+        req: Context,
+        next: Next,
+    ) -> impl Future<Output = MiddlewareResult> + Send;
 }
 
 /// A macro to simplify the next middleware call in the middleware chain.
