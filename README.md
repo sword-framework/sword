@@ -22,22 +22,27 @@
 
 ```toml
 [dependencies]
-sword = "0.1.7"
-tokio = { version = "^1", features = ["full"] }
+sword = "0.1.6"
+```
 
-# validation features:
-validator = { version = "0.20.0", features = ["derive"] }
+### Other useful dependencies
 
-# JSON handling features:
+```toml
+# Data serialization and deserialization
 serde = { version = "*", features = ["derive"] }
+
+# JSON data handling
 serde_json = "*"
+
+# Data validation and schema definition
+validator = { version = "*", features = ["derive"] }
 ```
 
 ### Basic web server
 
 ```rust
 use sword::prelude::*;
-use sword::web::HttpResult;
+use serde_json::Value;
 
 #[controller("/")]
 struct AppController {}
@@ -62,7 +67,7 @@ impl AppController {
 
     #[post("/submit")]
     async fn submit_data(ctx: Context) -> HttpResult<HttpResponse> {
-        let body = ctx.body::<serde_json::Value>()?;
+        let body = ctx.body::<Value>()?;
 
         Ok(HttpResponse::Ok()
             .data(body)
@@ -85,7 +90,6 @@ async fn main() {
 ```rust
 use serde_json::json;
 use sword::prelude::*;
-use sword::web::HttpResult;
 
 struct LoggingMiddleware;
 
