@@ -26,15 +26,15 @@ impl CorsMiddleware {
         let mut headers = HashSet::new();
 
         for method in config.allowed_http_methods.iter() {
-            let http_method =
-                Method::from_str(method).expect("Invalid HTTP Method found in config");
+            let http_method = Method::from_str(method)
+                .expect("Invalid HTTP Method found in config");
 
             methods.insert(http_method);
         }
 
         for header in config.allowed_http_headers.iter() {
-            let http_header =
-                header::HeaderName::from_str(header).expect("Invalid HTTP Header found in config");
+            let http_header = header::HeaderName::from_str(header)
+                .expect("Invalid HTTP Header found in config");
 
             headers.insert(http_header);
         }
@@ -43,7 +43,9 @@ impl CorsMiddleware {
         let headers = headers.into_iter().collect::<Vec<_>>();
 
         CorsMiddleware {
-            layer: CorsLayer::new().allow_methods(methods).allow_headers(headers),
+            layer: CorsLayer::new()
+                .allow_methods(methods)
+                .allow_headers(headers),
         }
     }
 }

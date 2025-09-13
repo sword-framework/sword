@@ -25,7 +25,8 @@ impl UserController {
         let repository = ctx.di::<AppModule, dyn DataRepository>()?;
         let users = repository.get_data().await;
 
-        ctx.di::<AppModule, dyn Logger>()?.log(&format!("Found {} users", users.len()));
+        ctx.di::<AppModule, dyn Logger>()?
+            .log(&format!("Found {} users", users.len()));
 
         Ok(HttpResponse::Ok().data(json!({ "users": repository.get_data().await })))
     }
@@ -37,7 +38,8 @@ impl UserController {
 
         repository.add_data(user.name).await;
 
-        ctx.di::<AppModule, dyn Logger>()?.log("User added successfully");
+        ctx.di::<AppModule, dyn Logger>()?
+            .log("User added successfully");
 
         Ok(HttpResponse::Created().data("User added successfully"))
     }

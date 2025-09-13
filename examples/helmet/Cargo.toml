@@ -5,3 +5,11 @@ edition = "2024"
 
 [dependencies]
 sword = { workspace = true, features = ["helmet"] }
+
+[features]
+default = []
+multipart = []
+shaku-di = []
+hot-reload = []
+cookies = []
+helmet = []

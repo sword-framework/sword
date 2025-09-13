@@ -2,16 +2,7 @@
 host = "0.0.0.0"
 port = 8080
 body_limit = "10MB"
-allowed_mime_types = [
-    "image/png", 
-    "application/pdf", 
-]
 request_timeout_secs = 15
 
 [my-custom-section]
 custom_key = "custom_value"
-env_var = "${USER:default_value}"
-
-[cors]
-allowed_http_methods = ["GET", "POST", "PUT", "DELETE"]
-allowed_http_headers = ["Content-Type", "Authorization"]

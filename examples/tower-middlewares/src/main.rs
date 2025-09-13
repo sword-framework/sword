@@ -1,6 +1,6 @@
 mod cors;
-
 use crate::cors::{CorsConfig, CorsMiddleware};
+
 use sword::prelude::*;
 
 #[controller("/")]
@@ -21,7 +21,9 @@ async fn main() {
     let cors_config = app.config.get::<CorsConfig>()?;
     let cors_middleware = CorsMiddleware::new(cors_config);
 
-    app = app.with_controller::<AppController>().with_layer(cors_middleware.layer);
+    app = app
+        .with_controller::<AppController>()
+        .with_layer(cors_middleware.layer);
 
     app.build().run().await?;
 }

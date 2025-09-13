@@ -28,10 +28,10 @@
     "rust-analyzer.diagnostics.enable": true,
     "rust-analyzer.imports.granularity.group": "crate",
     "rust-analyzer.cargo.features": [
-        "multipart",
         "shaku-di",
         "hot-reload",
         "cookies",
         "helmet",
+        "multipart"
     ],
 }

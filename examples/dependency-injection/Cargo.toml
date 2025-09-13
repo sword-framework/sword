@@ -11,3 +11,11 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 validator = { workspace = true }
 async-trait = { workspace = true }
+
+[features]
+default = []
+multipart = []
+shaku-di = []
+hot-reload = []
+cookies = []
+helmet = []
