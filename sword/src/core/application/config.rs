@@ -17,6 +17,8 @@ use crate::core::ConfigItem;
 /// host = "127.0.0.1"
 /// port = 3000
 /// body_limit = "10MB"
+/// request_timeout_seconds = 30
+/// graceful_shutdown = true
 /// ```
 ///
 /// ### Environment Variable Interpolation
@@ -25,8 +27,8 @@ use crate::core::ConfigItem;
 ///
 /// ```toml,ignore
 /// [application]
-/// host = "${HOST:-127.0.0.1}"
-/// port = "${PORT:-3000}"
+/// host = "${HOST:127.0.0.1}"
+/// port = "${PORT:3000}"
 /// ```
 #[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct ApplicationConfig {
@@ -46,10 +48,19 @@ pub struct ApplicationConfig {
     pub body_limit: BodyLimit,
 
     /// Optional request timeout in seconds.
-    /// If set, requests taking longer than this duration will be aborted.
+    /// If set, requests taking longer than this duration will
+    /// be aborted and return a timeout error.
+    ///
     /// If not set, there is no timeout.
     pub request_timeout_seconds: Option<u64>,
 
+    /// Whether to enable graceful shutdown of the server.
+    /// If true, the server will finish processing ongoing requests
+    /// before shutting down when a termination signal is received.
+    ///
+    /// If you want to use a custom signal handler, you can disable this
+    /// and implement your own signal with the `run_with_graceful_shutdown` method.
+    #[serde(default = "default_graceful_shutdown")]
     pub graceful_shutdown: bool,
 }
 
@@ -93,4 +104,8 @@ fn default_host() -> String {
 
 fn default_port() -> u16 {
     8000
+}
+
+fn default_graceful_shutdown() -> bool {
+    false
 }

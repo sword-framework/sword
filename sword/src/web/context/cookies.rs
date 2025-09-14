@@ -1,8 +1,12 @@
-use axum_responses::http::HttpResponse;
-pub use tower_cookies::Cookies;
-pub use tower_cookies::cookie::{Cookie, CookieBuilder, Expiration, SameSite};
+use crate::web::{Context, HttpResponse};
 
-use crate::web::Context;
+pub use tower_cookies::{
+    Cookies, Key, PrivateCookies, SignedCookies,
+    cookie::{
+        Cookie, CookieBuilder, Expiration, KeyError as CookieKeyError,
+        ParseError as CookieParseError, SameSite,
+    },
+};
 
 impl Context {
     /// Access the cookies from the request context.

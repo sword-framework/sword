@@ -177,6 +177,9 @@ impl Context {
     /// [application]
     /// host = "0.0.0.0"
     /// port = 3000
+    /// body_limit = "10MB"
+    /// request_timeout_seconds = 30
+    /// graceful_shutdown = true
     /// ```
     ///
     /// Rust code:

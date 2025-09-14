@@ -17,7 +17,6 @@ use crate::{
 /// `Application` is the core component of the Sword framework that manages
 /// the web server, routing, and application configuration. It provides a
 /// builder pattern for configuration and methods to run the application.
-///
 pub struct Application {
     router: Router,
     pub config: Config,
@@ -47,8 +46,7 @@ impl Application {
     /// ```rust,ignore
     /// use sword::prelude::*;
     ///
-    /// let app_builder = Application::builder()?;
-    /// let app = app_builder
+    /// let app = Application::builder()?
     ///     .with_controller::<MyController>()
     ///     .build();
     /// ```
@@ -61,6 +59,9 @@ impl Application {
     /// This method starts the web server and begins listening for incoming
     /// HTTP requests. It will bind to the host and port specified in the
     /// application configuration and run until the process is terminated.
+    ///
+    /// If graceful shutdown is enabled in the configuration, it will handle
+    /// termination signals and allow ongoing requests to complete before shutting down.
     ///
     /// ### Returns
     ///
@@ -122,7 +123,7 @@ impl Application {
     ///
     /// #[controller("/admin")]
     /// struct AdminController {}
-
+    ///
     /// #[routes]
     /// impl AdminController {
     ///     #[get("/")]

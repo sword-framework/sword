@@ -34,7 +34,7 @@ where
         .map_err(serde::de::Error::custom)
 }
 
-pub fn expand_env_vars(content: &str) -> Result<String, String> {
+pub(crate) fn expand_env_vars(content: &str) -> Result<String, String> {
     let re = Regex::new(r"\$\{([A-Za-z_][A-Za-z0-9_]*):?([^}]*)\}")
         .map_err(|e| format!("Regex error: {e}"))?;
 

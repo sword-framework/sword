@@ -12,7 +12,23 @@ pub struct Config {
     inner: Arc<Table>,
 }
 
+/// Trait for configuration section types.
+///
+/// Types implementing this trait can be used with `Config::get()` to extract
+/// and deserialize specific sections from the configuration file.
+///
+/// Use the `#[config(key = "section_name")]` macro to automatically implement this trait:
+///
+/// ```rust,ignore
+/// use sword::prelude::*;
+///
+/// #[config(key = "my_section")]
+/// struct MyConfig {
+///     value: String,
+/// }
+/// ```
 pub trait ConfigItem {
+    /// Returns the TOML section key for this configuration type.
     fn toml_key() -> &'static str;
 }
 

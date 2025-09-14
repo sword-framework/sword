@@ -3,12 +3,18 @@ name = "sword"
 version = "0.1.6"
 edition = "2024"
 authors = ["Luciano Revillod <lrevillod2022@alu.uct.cl>"]
-description = "Rust web framework"
+description = "A structured rust web framework built on top of Axum, providing clean routing, configuration, and middleware support"
 repository = "https://github.com/sword-framework/sword"
-keywords = ["web", "framework", "axum", "http", "async"]
+homepage = "https://github.com/sword-framework/sword"
+documentation = "https://docs.rs/sword"
+keywords = ["sword", "web", "framework", "axum", "http", "async"]
 categories = ["web-programming::http-server", "web-programming"]
 readme = "../README.md"
 license-file = "../LICENSE"
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
 tokio = { workspace = true }
@@ -51,8 +57,22 @@ shaku = { workspace = true, optional = true }
 
 [features]
 default = []
+
+## Core Features
+
+# Enable multipart form data support for file uploads
 multipart = ["axum/multipart"]
-shaku-di = ["dep:shaku"]
-hot-reload = ["dep:subsecond", "dep:dioxus-devtools", "sword-macros/hot-reload"]
-cookies = ["dep:tower-cookies"]
+
+## Optional Features
+
+# Cookie handling with signing and encryption support
+cookies = ["dep:tower-cookies", "tower-cookies/signed", "tower-cookies/private"]
+
+# Security headers middleware
 helmet = ["dep:axum-helmet"]
+
+# Dependency injection using the Shaku crate
+shaku-di = ["dep:shaku"]
+
+# Hot reloading for development (requires dioxus-cli)
+hot-reload = ["dep:subsecond", "dep:dioxus-devtools", "sword-macros/hot-reload"]

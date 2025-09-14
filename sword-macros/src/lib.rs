@@ -194,6 +194,9 @@ pub fn routes(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///
 /// ### Parameters
 /// - `MiddlewareName`: The name of the middleware struct that implements the `Middleware` or `MiddlewareWithConfig` trait.
+///   Also can receive an instance of a `tower-http` service layer like `CorsLayer`, `CompressionLayer`, `TraceLayer`, etc.
+///   If the layer can be added without errors on Application::with_layer() there will not be any problem using it.  
+///
 /// - `config`: (Optional) Configuration parameters for the middleware,
 ///
 /// ### Handle errors
