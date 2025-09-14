@@ -10,13 +10,15 @@
 
 - Added documentation comments to all public functions and structs in the `sword` crate. This improves code readability and helps users understand the functionality of the framework better.
 
-- Added `cookies` feature flag to `sword`. This enables cookie parsing and management. It uses the `tower-cookies` crate for cookie handling. The `Signed` and `Private` cookies will be included on future releases.
+- Added `cookies` feature flag to `sword`. This enables cookie parsing and management. It uses the `tower-cookies` crate for cookie handling. This feature allows users to use Cookies, PrivateCookies, and SignedCookies in their handlers. See the examples for usage.
 
 - Added `multipart` feature flag to `sword`. This enables multipart form data handling using the `multipart` feature flag of `axum` crate. Basically it provides `Multipart` extractor for handling file uploads and form data.
 
 - Added `hot-reload` feature flag to `sword`. This enables hot reloading functionality using the `subsecond` crate. This feature requires the `dioxus-cli` to be installed. You can see the examples for usage.
 
 - Added support for axum run with graceful shutdown. This allows the application to handle shutdown signals gracefully, ensuring that ongoing requests are completed before the server stops.
+
+- Added `tower_http` layers support to `middleware macro`. This allows users to easily add middleware layers from the `tower_http` to controllers using the `#[middleware]` attribute.
 
 ### Changed
 

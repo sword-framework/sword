@@ -22,7 +22,7 @@
 
 ```toml
 [dependencies]
-sword = "0.1.6"
+sword = "0.1.7"
 ```
 
 ### Other useful dependencies
@@ -149,5 +149,5 @@ Then run the hot reload example server with:
 
 ```bash
 cd examples
-dx serve --hot-patch -p hot_reload
+dx serve --hot-patch -p hot-reload
 ```
