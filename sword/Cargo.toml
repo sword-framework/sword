@@ -1,13 +1,13 @@
 [package]
 name = "sword"
-version = "0.1.6"
+version = "0.1.8"
 edition = "2024"
 authors = ["Luciano Revillod <lrevillod2022@alu.uct.cl>"]
 description = "A structured rust web framework built on top of Axum, providing clean routing, configuration, and middleware support"
 repository = "https://github.com/sword-framework/sword"
 homepage = "https://github.com/sword-framework/sword"
 documentation = "https://docs.rs/sword"
-keywords = ["sword", "web", "framework", "axum", "http", "async"]
+keywords = ["sword", "web", "framework", "axum", "async"]
 categories = ["web-programming::http-server", "web-programming"]
 readme = "../README.md"
 license-file = "../LICENSE"
