@@ -1,14 +1,10 @@
-<table width="100%">
-  <tr>
-    <td align="left">
-      <h1>️sword️</h1>
-      <p><em>structured web framework for rust built on top of axum</em></p>
-    </td>
-    <td align="right">
-      <img src="https://avatars.githubusercontent.com/u/228345998?s=200&v=4" alt="Sword Logo" width="150">
-    </td>
-  </tr>
-</table>
+
+# Sword
+> <img src="https://avatars.githubusercontent.com/u/228345998?s=200&v=4" align="right" width="120"/>
+
+Structured web framework for rust built on top of axum.  
+Designed to build server application with less boilerplate and more simplicity.  
+It takes advantage of the tokio ecosystem to bring you performance with nice DX.
 
 ## Features
 
@@ -54,20 +50,9 @@ struct AppController {}
 
 #[routes]
 impl AppController {
-    #[get("/")]
-    async fn get_data() -> HttpResponse {
-        let data = vec![
-            "This is a basic web server",
-            "It serves static data",
-            "You can extend it with more routes",
-        ];
-
-        HttpResponse::Ok().data(data)
-    }
-
     #[get("/hello")]
     async fn hello() -> HttpResponse {
-        HttpResponse::Ok().data("Hello, World!")
+        HttpResponse::Ok().message("Hello, World!")
     }
 
     #[post("/submit")]
@@ -77,54 +62,6 @@ impl AppController {
         Ok(HttpResponse::Ok()
             .data(body)
             .message("Data submitted successfully"))
-    }
-}
-
-#[sword::main]
-async fn main() {
-    let app = Application::builder()?
-        .with_controller::<AppController>()
-        .build();
-
-    app.run().await?;
-}
-```
-
-### With Middleware
-
-```rust
-use serde_json::json;
-use sword::prelude::*;
-
-struct LoggingMiddleware;
-
-impl Middleware for LoggingMiddleware {
-    async fn handle(mut ctx: Context, next: Next) -> MiddlewareResult {
-        println!("Request: {} {}", ctx.method(), ctx.uri());
-
-        ctx.extensions.insert::<String>("Hello application!".to_string());
-
-        next!(ctx, next)
-    }
-}
-
-#[controller("/api")]
-struct AppController {}
-
-#[routes]
-impl AppController {
-    #[get("/hello")]
-    #[middleware(LoggingMiddleware)]
-    async fn hello(ctx: Context) -> HttpResult<HttpResponse> {
-        let middleware_message = ctx.extensions
-            .get::<String>()
-            .cloned()
-            .unwrap_or_default();
-
-        Ok(HttpResponse::Ok().data(json!({
-            "message": "Hello Sword!",
-            "middleware_message": middleware_message
-        })))
     }
 }
 
