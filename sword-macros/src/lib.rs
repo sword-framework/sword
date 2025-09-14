@@ -26,7 +26,7 @@ mod http {
 /// - `path`: The path for the GET request, e.g., `"/items"`
 ///
 /// ### Usage
-/// ```rust, ignore
+/// ```rust,ignore
 /// #[controller("/api")]
 /// struct MyController {}
 ///
@@ -51,7 +51,7 @@ pub fn get(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// - `path`: The path for the POST request, e.g., `"/api"`
 ///
 /// ## Usage
-/// ```rust, ignore
+/// ```rust,ignore
 /// #[controller("/api")]
 /// struct MyController {}
 ///
@@ -76,7 +76,7 @@ pub fn post(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// - `path`: The path for the PUT request, e.g., `"/items"`
 ///
 /// ## Usage
-/// ```rust, ignore
+/// ```rust,ignore
 /// #[controller("/api")]
 /// struct MyController {}
 ///
@@ -101,7 +101,7 @@ pub fn put(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// - `path`: The path for the DELETE request, e.g., `"/item/{id}"`
 ///
 /// ## Usage
-/// ```rust, ignore
+/// ```rust,ignore
 /// #[controller("/api")]
 /// struct MyController {}
 ///
@@ -126,7 +126,7 @@ pub fn delete(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// - `path`: The path for the PATCH request, e.g., `"/item/{id}"`
 ///
 /// ## Usage
-/// ```rust, ignore
+/// ```rust,ignore
 /// #[controller("/api")]
 /// struct MyController {}
 ///
@@ -151,7 +151,7 @@ pub fn patch(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// - `base_path`: The base path for the controller, e.g., `"/api
 ///
 /// ### Usage
-/// ```rust, ignore
+/// ```rust,ignore
 /// #[controller("/base_path")]
 /// struct MyController {}
 ///
@@ -171,7 +171,7 @@ pub fn controller(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// Implements the routes for a controller defined with the `#[controller]` macro.
 ///
 /// ### Usage
-/// ```rust, ignore
+/// ```rust,ignore
 /// #[controller("/base_path")]
 /// struct MyController {}
 ///
@@ -204,7 +204,7 @@ pub fn routes(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// struct in the same way as a controller handler.
 ///
 /// ### Usage
-/// ```rust, ignore
+/// ```rust,ignore
 /// pub struct RoleMiddleware;
 ///
 /// impl MiddlewareWithConfig<Vec<&str>> for RoleMiddleware {
@@ -250,7 +250,7 @@ pub fn middleware(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///
 /// This allows you to access the configuration in your handlers or middlewares
 ///
-/// /// ```rust, ignore
+/// ```rust, ignore
 /// #[controller("/some_path")]
 /// struct SomeController {}
 ///

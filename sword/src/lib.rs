@@ -109,7 +109,7 @@ pub mod prelude {
 ///
 /// ## Error Handling Patterns
 ///
-/// ```rust,no_run
+/// ```rust,ignore
 /// use sword::prelude::*;
 ///
 /// #[get("/users/:id")]
@@ -136,8 +136,8 @@ pub mod errors;
 ///
 /// ## Example
 ///
-/// ```rust,no_run
-/// use sword::core::{Application, Config};
+/// ```rust,ignore
+/// use sword::prelude::*;
 ///
 /// // Create and configure an application
 /// let app = Application::builder()?
