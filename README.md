@@ -6,6 +6,8 @@ Structured web framework for rust built on top of axum.
 Designed to build server application with less boilerplate and more simplicity.  
 It takes advantage of the tokio ecosystem to bring you performance with nice DX.
 
+> Sword is in active development, expect breaking changes.
+
 ## Features
 
 - **Macro-based routing** - Clean and intuitive route definitions
