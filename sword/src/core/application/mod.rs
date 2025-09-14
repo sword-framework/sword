@@ -89,6 +89,12 @@ impl Application {
     /// }
     /// ```
     pub async fn run(&self) -> Result<(), ApplicationError> {
+        if self.config.get::<ApplicationConfig>()?.graceful_shutdown {
+            return self
+                .run_with_graceful_shutdown(Self::graceful_signal())
+                .await;
+        }
+
         let listener = self.pre_run().await?;
 
         let router = self.router.clone().fallback(async || {
@@ -107,6 +113,57 @@ impl Application {
     ///
     /// See [Axum's docs](https://docs.rs/axum/latest/axum/serve/struct.WithGracefulShutdown.html)
     /// to learn more about graceful shutdown.
+    ///
+    /// ### Example
+    ///
+    /// ```rust,ignore
+    /// use sword::prelude::*;
+    /// use tokio::signal;
+    ///
+    /// #[controller("/admin")]
+    /// struct AdminController {}
+
+    /// #[routes]
+    /// impl AdminController {
+    ///     #[get("/")]
+    ///     async fn get_admin_data() -> HttpResponse {
+    ///         HttpResponse::Ok()
+    ///     }
+    /// }
+    ///
+    /// #[sword::main]
+    /// async fn main() {
+    ///     let app = Application::builder()?
+    ///         .with_controller::<AppController>()
+    ///         .with_controller::<AdminController>()
+    ///         .build();
+    ///
+    ///     app.run_with_graceful_shutdown(shutdown_signal()).await?;
+    /// }
+    ///
+    /// async fn shutdown_signal() {
+    ///     let ctrl_c = async {
+    ///         signal::ctrl_c()
+    ///             .await
+    ///             .expect("failed to install Ctrl+C handler");
+    ///     };
+    ///
+    ///     #[cfg(unix)]
+    ///     let terminate = async {
+    ///         signal::unix::signal(signal::unix::SignalKind::terminate())
+    ///             .expect("failed to install signal handler")
+    ///             .recv()
+    ///             .await;
+    ///     };
+    ///
+    ///     #[cfg(not(unix))]
+    ///     let terminate = std::future::pending::<()>();
+    ///
+    ///     tokio::select! {
+    ///         _ = ctrl_c => {},
+    ///         _ = terminate => {},
+    ///     }
+    /// }
     pub async fn run_with_graceful_shutdown<F>(
         &self,
         signal: F,
@@ -172,11 +229,58 @@ impl Application {
     }
 
     fn display(&self, config: &ApplicationConfig) {
-        let ascii_logo = "\n▪──────── ⚔ S W O R D ⚔ ────────▪\n";
-        println!("{ascii_logo}");
-        println!("Starting Application ...");
+        let ascii_logo_top = "\n▪──────── ⚔ S W O R D ⚔ ────────▪\n";
+        let ascii_logo_bottom = "\n▪──────── ⚔ ───────── ⚔ ────────▪\n";
+        println!("{ascii_logo_top}");
         println!("Host: {}", config.host);
         println!("Port: {}", config.port);
-        println!("{ascii_logo}");
+        println!("Request Body Limit: {}", config.body_limit.raw);
+        println!(
+            "Request timeout: {}",
+            if let Some(timeout) = config.request_timeout_seconds {
+                format!("{} seconds", timeout)
+            } else {
+                "disabled".to_string()
+            }
+        );
+
+        println!(
+            "Graceful shutdown: {}",
+            if config.graceful_shutdown {
+                "enabled"
+            } else {
+                "disabled"
+            }
+        );
+
+        println!("{ascii_logo_bottom}");
+    }
+
+    async fn graceful_signal() {
+        let ctrl_c = async {
+            tokio::signal::ctrl_c()
+                .await
+                .expect("failed to install Ctrl+C handler");
+        };
+
+        #[cfg(unix)]
+        let terminate = async {
+            tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+                .expect("failed to install signal handler")
+                .recv()
+                .await;
+        };
+
+        #[cfg(not(unix))]
+        let terminate = std::future::pending::<()>();
+
+        tokio::select! {
+            _ = ctrl_c => {
+                println!(" Shutdown signal received, starting graceful shutdown...");
+            },
+            _ = terminate => {
+                println!(" Shutdown signal received, starting graceful shutdown...");
+            },
+        }
     }
 }

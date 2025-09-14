@@ -1,7 +1,9 @@
+use std::str::FromStr;
+
+use byte_unit::Byte;
 use serde::{Deserialize, Serialize};
 
 use crate::core::ConfigItem;
-use crate::core::utils::deserialize_size;
 
 /// Configuration structure for the Sword application.
 ///
@@ -41,13 +43,34 @@ pub struct ApplicationConfig {
     /// Maximum size of request bodies that the server will accept.
     /// Specified as a string with units (e.g., "10MB", "1GB").
     /// Parsed using the byte_unit crate for flexible size specification.
-    #[serde(deserialize_with = "deserialize_size")]
-    pub body_limit: usize,
+    pub body_limit: BodyLimit,
 
     /// Optional request timeout in seconds.
     /// If set, requests taking longer than this duration will be aborted.
     /// If not set, there is no timeout.
     pub request_timeout_seconds: Option<u64>,
+
+    pub graceful_shutdown: bool,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct BodyLimit {
+    pub raw: String,
+    pub parsed: usize,
+}
+
+impl<'de> Deserialize<'de> for BodyLimit {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        let parsed = Byte::from_str(&s)
+            .map(|b| b.as_u64() as usize)
+            .map_err(serde::de::Error::custom)?;
+
+        Ok(Self { raw: s, parsed })
+    }
 }
 
 /// Implementation of the `ConfigItem` trait for `ApplicationConfig`.

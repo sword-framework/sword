@@ -1,5 +1,6 @@
+use std::time::Duration;
 use sword::prelude::*;
-use tokio::signal;
+use tokio::time::sleep;
 
 #[controller("/")]
 struct AppController {}
@@ -8,6 +9,7 @@ struct AppController {}
 impl AppController {
     #[get("/")]
     async fn get_data() -> HttpResponse {
+        sleep(Duration::from_secs(5)).await;
         HttpResponse::Ok()
     }
 }
@@ -30,29 +32,5 @@ async fn main() {
         .with_controller::<AdminController>()
         .build();
 
-    app.run_with_graceful_shutdown(shutdown_signal()).await?;
-}
-
-async fn shutdown_signal() {
-    let ctrl_c = async {
-        signal::ctrl_c()
-            .await
-            .expect("failed to install Ctrl+C handler");
-    };
-
-    #[cfg(unix)]
-    let terminate = async {
-        signal::unix::signal(signal::unix::SignalKind::terminate())
-            .expect("failed to install signal handler")
-            .recv()
-            .await;
-    };
-
-    #[cfg(not(unix))]
-    let terminate = std::future::pending::<()>();
-
-    tokio::select! {
-        _ = ctrl_c => {},
-        _ = terminate => {},
-    }
+    app.run().await?;
 }

@@ -3,6 +3,7 @@ host = "0.0.0.0"
 port = 8080
 body_limit = "1MB"
 request_timeout_seconds = 2
+graceful_shutdown = false
 
 [my-custom-section]
 custom_key = "value"

@@ -313,7 +313,7 @@ impl ApplicationBuilder {
 
         router = router
             .layer(mw_with_state(self.state.clone(), ContentTypeCheck::layer))
-            .layer(RequestBodyLimitLayer::new(app_config.body_limit));
+            .layer(RequestBodyLimitLayer::new(app_config.body_limit.parsed));
 
         if let Some(timeout_secs) = app_config.request_timeout_seconds {
             router =

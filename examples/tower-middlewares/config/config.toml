@@ -2,7 +2,8 @@
 host = "0.0.0.0"
 port = 8080
 body_limit = "10MB"
-request_timeout_secs = 30
+request_timeout_seconds = 30
+graceful_shutdown = true
 
 [cors]
 allowed_http_methods = ["GET", "POST", "PUT", "DELETE"]
