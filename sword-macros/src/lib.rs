@@ -511,37 +511,18 @@ pub fn main(_args: TokenStream, item: TokenStream) -> TokenStream {
     let fn_vis = input.vis.clone();
     let _fn_sig = input.sig.clone();
 
-    let output = if cfg!(feature = "hot-reload") {
-        quote! {
-            async fn __internal_main() -> Result<(), Box<dyn std::error::Error>> {
-                #fn_body
+    fn_body
+        .stmts
+        .push(parse_quote!({ Ok::<(), Box<dyn std::error::Error>>(()) }));
 
-                Ok::<(), Box<dyn std::error::Error>>(())
-            }
-
-            #(#fn_attrs)*
-            #fn_vis fn main() {
-                ::sword::__internal::tokio_runtime::Builder::new_multi_thread()
-                    .enable_all()
-                    .build()
-                    .expect("Failed building the Runtime")
-                    .block_on(::sword::__internal::hot_reload::dioxus_devtools::serve_subsecond(__internal_main));
-            }
-        }
-    } else {
-        fn_body
-            .stmts
-            .push(parse_quote!({ Ok::<(), Box<dyn std::error::Error>>(()) }));
-
-        quote! {
-            #(#fn_attrs)*
-            #fn_vis fn main() -> Result<(), Box<dyn std::error::Error>> {
-                ::sword::__internal::tokio_runtime::Builder::new_multi_thread()
-                    .enable_all()
-                    .build()
-                    .expect("Failed building the Runtime")
-                    .block_on( async #fn_body )
-            }
+    let output = quote! {
+        #(#fn_attrs)*
+        #fn_vis fn main() -> Result<(), Box<dyn std::error::Error>> {
+            ::sword::__internal::tokio_runtime::Builder::new_multi_thread()
+                .enable_all()
+                .build()
+                .expect("Failed building the Runtime")
+                .block_on( async #fn_body )
         }
     };
 

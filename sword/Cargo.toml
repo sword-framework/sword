@@ -16,10 +16,18 @@ license-file = "../LICENSE"
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
+[features]
+default = []
+
+multipart = ["axum/multipart"]
+cookies = ["dep:tower-cookies", "tower-cookies/signed", "tower-cookies/private"]
+helmet = ["dep:axum-helmet"]
+shaku-di = ["dep:shaku"]
+
 [dependencies]
 tokio = { workspace = true }
-
 axum = { workspace = true }
+sword-macros = { workspace = true }
 axum_responses = { workspace = true }
 
 axum-helmet = { version = "0.2.0", optional = true }
@@ -33,8 +41,6 @@ form_urlencoded = "^1.1.0"
 serde_path_to_error = "0.1.17"
 byte-unit = "5.1.6"
 
-sword-macros = { workspace = true }
-
 regex = "1.11.1"
 validator = { workspace = true }
 
@@ -43,36 +49,6 @@ tower-layer = "0.3.3"
 tower-service = "0.3.3"
 tower-http = { version = "0.6.6", features = ["limit", "timeout"] }
 tower-cookies = { version = "0.11.0", optional = true }
-
 thiserror = "2.0.12"
 
-# Hot Reload feature dependencies
-
-subsecond = { git = "https://github.com/DioxusLabs/dioxus.git", optional = true, package = "subsecond" }
-dioxus-devtools = { git = "https://github.com/DioxusLabs/dioxus.git", features = [ "serve" ], optional = true, package = "dioxus-devtools" }
-
-# Shaku DI feature dependencies
-
 shaku = { workspace = true, optional = true }
-
-[features]
-default = []
-
-## Core Features
-
-# Enable multipart form data support for file uploads
-multipart = ["axum/multipart"]
-
-## Optional Features
-
-# Cookie handling with signing and encryption support
-cookies = ["dep:tower-cookies", "tower-cookies/signed", "tower-cookies/private"]
-
-# Security headers middleware
-helmet = ["dep:axum-helmet"]
-
-# Dependency injection using the Shaku crate
-shaku-di = ["dep:shaku"]
-
-# Hot reloading for development (requires dioxus-cli)
-hot-reload = ["dep:subsecond", "dep:dioxus-devtools", "sword-macros/hot-reload"]

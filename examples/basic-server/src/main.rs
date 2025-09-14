@@ -56,5 +56,6 @@ async fn main() {
     let app = Application::builder()?
         .with_controller::<AppController>()
         .build();
+
     app.run().await?;
 }

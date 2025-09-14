@@ -1,8 +1,8 @@
 mod cors;
 use crate::cors::{CorsConfig, CorsMiddleware};
 
-use std::time::Duration;
 use sword::prelude::*;
+use tokio::time::{sleep, Duration};
 use tower_http::timeout::TimeoutLayer;
 
 #[controller("/")]
@@ -13,7 +13,7 @@ impl AppController {
     #[get("/")]
     #[middleware(TimeoutLayer::new(Duration::from_secs(2)))]
     async fn get_data() -> HttpResponse {
-        tokio::time::sleep(Duration::from_secs(3)).await;
+        sleep(Duration::from_secs(3)).await;
         HttpResponse::Ok()
     }
 

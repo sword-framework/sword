@@ -1,5 +1,5 @@
-
 # Sword
+
 > <img src="https://avatars.githubusercontent.com/u/228345998?s=200&v=4" align="right" width="120"/>
 
 Structured web framework for rust built on top of axum.  
@@ -23,7 +23,7 @@ It takes advantage of the tokio ecosystem to bring you performance with nice DX.
 
 ```toml
 [dependencies]
-sword = "0.1.7"
+sword = "0.1.8"
 ```
 
 ### Other useful dependencies
@@ -78,16 +78,6 @@ async fn main() {
 ## More Examples
 
 See the [examples directory](./examples) for more advanced usage.
-
-## Hot reloading
-
-In the case of use hot reloading, you need to install `dioxus-cli`:
-
-```bash
-cargo install --git https://github.com/DioxusLabs/dioxus.git dioxus-cli
-```
-
-See the [hot reloading example](./examples/hot-reload) for more details.
 
 ## Changelog
 

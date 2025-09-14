@@ -1,6 +1,6 @@
 # Sword web framework changelog
 
-## [0.1.7 (Unreleased)]
+## [0.1.8]
 
 ### Added
 
@@ -14,13 +14,13 @@
 
 - Added `multipart` feature flag to `sword`. This enables multipart form data handling using the `multipart` feature flag of `axum` crate. Basically it provides `Multipart` extractor for handling file uploads and form data.
 
-- Added `hot-reload` feature flag to `sword`. This enables hot reloading functionality using the `subsecond` crate. This feature requires the `dioxus-cli` to be installed. You can see the examples for usage.
-
 - Added support for axum run with graceful shutdown. This allows the application to handle shutdown signals gracefully, ensuring that ongoing requests are completed before the server stops.
 
 - Added `tower_http` layers support to `middleware macro`. This allows users to easily add middleware layers from the `tower_http` to controllers using the `#[middleware]` attribute.
 
 ### Changed
+
+- Move `hot-reload` functionality to another branch due to its constantly changing development state.
 
 - Changed the `serde_qs` dependency to native `axum` query extraction. This simplifies the codebase and reduces dependencies.
 

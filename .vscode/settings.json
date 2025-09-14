@@ -27,11 +27,5 @@
     "rust-analyzer.inlayHints.renderColons": false,
     "rust-analyzer.diagnostics.enable": true,
     "rust-analyzer.imports.granularity.group": "crate",
-    "rust-analyzer.cargo.features": [
-        "shaku-di",
-        "hot-reload",
-        "cookies",
-        "helmet",
-        "multipart"
-    ],
+    "rust-analyzer.cargo.features": "all",
 }

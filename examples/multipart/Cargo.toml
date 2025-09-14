@@ -7,11 +7,3 @@ edition = "2021"
 sword = { workspace = true, features = ["multipart"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
-
-[features]
-default = []
-multipart = []
-shaku-di = []
-hot-reload = []
-cookies = []
-helmet = []

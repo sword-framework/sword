@@ -54,7 +54,6 @@
 //! - `cookies` - Cookie handling
 //! - `helmet` - Security headers middleware
 //! - `shaku-di` - Dependency injection
-//! - `hot-reload` - Development hot reloading
 //!
 //! ## 📖 Examples
 //!
@@ -240,12 +239,6 @@ pub mod __internal {
         delete as axum_delete_fn, get as axum_get_fn, patch as axum_patch_fn,
         post as axum_post_fn, put as axum_put_fn,
     };
-
-    #[cfg(feature = "hot-reload")]
-    pub mod hot_reload {
-        pub use dioxus_devtools;
-        pub use subsecond;
-    }
 
     pub use tokio::runtime as tokio_runtime;
 }
