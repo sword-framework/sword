@@ -1,22 +1,27 @@
-<div align="center">
-<img src="https://pillan.inf.uct.cl/~lrevillod/images/sword-logo.png" alt="Sword Logo" width="200">
+<table width="100%">
+  <tr>
+    <td align="left">
+      <h1>️sword️</h1>
+      <p><em>structured web framework for rust built on top of axum</em></p>
+    </td>
+    <td align="right">
+      <img src="https://avatars.githubusercontent.com/u/228345998?s=200&v=4" alt="Sword Logo" width="150">
+    </td>
+  </tr>
+</table>
 
-<h1>⚔️ Sword ⚔️</h1>
-<p><em>Rust web framework</em></p>
-</div>
+## Features
 
-## ✨ Features
+- **Macro-based routing** - Clean and intuitive route definitions
+- **JSON-first design** - Built with JSON formats as priority
+- **Built-in validation** - Support with `serde` and `validator` crates
+- **RFC-compliant HTTP responses** - Using `axum_responses` crate
+- **Express-Like** - It provides a `Context` object with utility methods for request handling
+- **Dependency Injection** - Built-in DI support using `shaku` crate
+- **Middleware support** - Easily add middleware to routes or controllers
+- **Asynchronous by default** - Built on top of `axum` and `tokio`
 
-- 🛣️ **Macro-based routing** - Clean and intuitive route definitions
-- 📄 **JSON-first design** - Built with JSON formats as priority
-- ✅ **Built-in validation** - Support with `serde` and `validator` crates
-- 🌐 **RFC-compliant HTTP responses** - Using `axum_responses` crate
-- � **Express-Like** - It provides a `Context` object with utility methods for request handling
-- �💉 **Dependency Injection** - Built-in DI support using `shaku` crate
-- 🧩 **Middleware support** - Easily add middleware to routes or controllers
-- 🚀 **Asynchronous by default** - Built on top of `axum` and `tokio`
-
-## 🛠️ Usage
+## Usage
 
 ### Add to your `Cargo.toml`
 
@@ -97,7 +102,7 @@ impl Middleware for LoggingMiddleware {
     async fn handle(mut ctx: Context, next: Next) -> MiddlewareResult {
         println!("Request: {} {}", ctx.method(), ctx.uri());
 
-        ctx.extensions.insert::<String>("middleware_data".to_string());
+        ctx.extensions.insert::<String>("Hello application!".to_string());
 
         next!(ctx, next)
     }
@@ -111,14 +116,14 @@ impl AppController {
     #[get("/hello")]
     #[middleware(LoggingMiddleware)]
     async fn hello(ctx: Context) -> HttpResult<HttpResponse> {
-        let middleware_data = ctx.extensions
+        let middleware_message = ctx.extensions
             .get::<String>()
             .cloned()
             .unwrap_or_default();
 
         Ok(HttpResponse::Ok().data(json!({
-            "message": "Hello from middleware!",
-            "middleware_data": middleware_data
+            "message": "Hello Sword!",
+            "middleware_message": middleware_message
         })))
     }
 }
@@ -145,9 +150,12 @@ In the case of use hot reloading, you need to install `dioxus-cli`:
 cargo install --git https://github.com/DioxusLabs/dioxus.git dioxus-cli
 ```
 
-Then run the hot reload example server with:
+See the [hot reloading example](./examples/hot-reload) for more details.
 
-```bash
-cd examples
-dx serve --hot-patch -p hot-reload
-```
+## Changelog
+
+See [CHANGELOG.md](./CHANGELOG.md) for more details.
+
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request. See [CONTRIBUTING.md](./CONTRIBUTING.md) for more details.
