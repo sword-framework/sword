@@ -192,13 +192,14 @@ impl TestController {
 }
 
 #[tokio::test]
-async fn test_dependency_injection_with_multiple_services() -> Result<(), Box<dyn std::error::Error>>
-{
+async fn test_dependency_injection_with_multiple_services()
+-> Result<(), Box<dyn std::error::Error>> {
     let module = TestModule::builder().build();
 
     let app = Application::builder()?
-        .di_module(module)?
-        .controller::<TestController>();
+        .with_shaku_di_module(module)?
+        .with_controller::<TestController>()
+        .build();
 
     let server = TestServer::new(app.router()).unwrap();
 
@@ -208,14 +209,18 @@ async fn test_dependency_injection_with_multiple_services() -> Result<(), Box<dy
     assert_eq!(get_json.data["count"], 0);
 
     let increment_response = server.post("/api/counter/increment").await;
-    assert_eq!(increment_response.status_code(), 200);
+
     let increment_json = increment_response.json::<ResponseBody>();
+
+    assert_eq!(increment_response.status_code(), 200);
     assert_eq!(increment_json.data["count"], 1);
 
     let add_response = server
         .post("/api/counter/add")
+        .content_type("application/json")
         .json(&json!({ "value": 5 }))
         .await;
+
     assert_eq!(add_response.status_code(), 200);
     let add_json = add_response.json::<ResponseBody>();
     let add_data = add_json.data;
@@ -245,6 +250,7 @@ async fn test_dependency_injection_with_multiple_services() -> Result<(), Box<dy
     );
 
     let reset_response = server.post("/api/counter/reset").await;
+
     assert_eq!(reset_response.status_code(), 200);
     let reset_json = reset_response.json::<ResponseBody>();
     assert_eq!(reset_json.data["count"], 0);
@@ -258,12 +264,14 @@ async fn test_dependency_injection_with_multiple_services() -> Result<(), Box<dy
 }
 
 #[tokio::test]
-async fn test_service_isolation_between_tests() -> Result<(), Box<dyn std::error::Error>> {
+async fn test_service_isolation_between_tests()
+-> Result<(), Box<dyn std::error::Error>> {
     let module = TestModule::builder().build();
 
     let app = Application::builder()?
-        .di_module(module)?
-        .controller::<TestController>();
+        .with_shaku_di_module(module)?
+        .with_controller::<TestController>()
+        .build();
 
     let server = TestServer::new(app.router()).unwrap();
 

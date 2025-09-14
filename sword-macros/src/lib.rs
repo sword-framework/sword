@@ -1,67 +1,272 @@
-mod config;
-mod controller;
-mod utils;
-
-use crate::controller::implementation;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, parse_quote};
 
+mod core {
+    pub mod config;
+}
+
+mod http {
+    pub mod controller {
+        pub mod expand;
+        pub mod routes;
+
+        pub use expand::expand_controller;
+        pub use routes::expand_controller_routes;
+    }
+
+    pub mod middleware;
+    pub mod utils;
+}
+
+/// Defines a handler for HTTP GET requests.
+/// This macro should be used inside an `impl` block of a struct annotated with the `#[controller]` macro.
+///
+/// ### Parameters
+/// - `path`: The path for the GET request, e.g., `"/items"`
+///
+/// ### Usage
+/// ```rust,ignore
+/// #[controller("/api")]
+/// struct MyController {}
+///
+/// #[routes]
+/// impl MyController {
+///     #[get("/items")]
+///     async fn get_items(ctx: Context) -> HttpResult<HttpResponse> {
+///         Ok(HttpResponse::Ok().message("List of items"))
+///     }
+/// }
+/// ```
 #[proc_macro_attribute]
 pub fn get(attr: TokenStream, item: TokenStream) -> TokenStream {
     let _ = attr;
     item
 }
 
+/// Defines a handler for HTTP POST requests.
+/// This macro should be used inside an `impl` block of a struct annotated with the `#[controller]` macro.
+///
+/// ### Parameters
+/// - `path`: The path for the POST request, e.g., `"/api"`
+///
+/// ## Usage
+/// ```rust,ignore
+/// #[controller("/api")]
+/// struct MyController {}
+///
+/// #[routes]
+/// impl MyController {
+///     #[post("/items")]
+///     async fn create_item(ctx: Context) -> HttpResult<HttpResponse> {
+///         Ok(HttpResponse::Ok().message("Item created"))
+///     }
+/// }
+/// ```
 #[proc_macro_attribute]
 pub fn post(attr: TokenStream, item: TokenStream) -> TokenStream {
     let _ = attr;
     item
 }
 
+/// Defines a handler for HTTP PUT requests.
+/// This macro should be used inside an `impl` block of a struct annotated with the `#[controller]` macro.
+///
+/// ### Parameters
+/// - `path`: The path for the PUT request, e.g., `"/items"`
+///
+/// ## Usage
+/// ```rust,ignore
+/// #[controller("/api")]
+/// struct MyController {}
+///
+/// #[routes]
+/// impl MyController {
+///     #[put("/item/{id}")]
+///     async fn update_item(ctx: Context) -> HttpResult<HttpResponse> {
+///         Ok(HttpResponse::Ok().message("Item updated"))
+///     }
+/// }
+/// ```
 #[proc_macro_attribute]
 pub fn put(attr: TokenStream, item: TokenStream) -> TokenStream {
     let _ = attr;
     item
 }
 
+/// Defines a handler for HTTP DELETE requests.
+/// This macro should be used inside an `impl` block of a struct annotated with the `#[controller]` macro.
+///
+/// ### Parameters
+/// - `path`: The path for the DELETE request, e.g., `"/item/{id}"`
+///
+/// ## Usage
+/// ```rust,ignore
+/// #[controller("/api")]
+/// struct MyController {}
+///
+/// #[routes]
+/// impl MyController {
+///     #[delete("/item/{id}")]
+///     async fn delete_item(ctx: Context) -> HttpResult<HttpResponse> {
+///         Ok(HttpResponse::Ok().message("Item deleted"))
+///     }
+/// }
+/// ```
 #[proc_macro_attribute]
 pub fn delete(attr: TokenStream, item: TokenStream) -> TokenStream {
     let _ = attr;
     item
 }
 
+/// Defines a handler for PATCH DELETE requests.
+/// This macro should be used inside an `impl` block of a struct annotated with the `#[controller]` macro.
+///
+/// ### Parameters
+/// - `path`: The path for the PATCH request, e.g., `"/item/{id}"`
+///
+/// ## Usage
+/// ```rust,ignore
+/// #[controller("/api")]
+/// struct MyController {}
+///
+/// #[routes]
+/// impl MyController {
+///     #[patch("/item/{id}")]
+///     async fn patch_item(ctx: Context) -> HttpResult<HttpResponse> {
+///         Ok(HttpResponse::Ok().message("Item patched"))
+///     }
+/// }
+/// ```
 #[proc_macro_attribute]
 pub fn patch(attr: TokenStream, item: TokenStream) -> TokenStream {
     let _ = attr;
     item
 }
 
+/// Defines a controller with a base path.
+/// This macro should be used in combination with the `#[routes]` macro.
+///
+/// ### Parameters
+/// - `base_path`: The base path for the controller, e.g., `"/api
+///
+/// ### Usage
+/// ```rust,ignore
+/// #[controller("/base_path")]
+/// struct MyController {}
+///
+/// #[routes]
+/// impl MyController {
+///     #[get("/sub_path")]
+///     async fn my_handler(ctx: Context) -> HttpResult<HttpResponse> {
+///        Ok(HttpResponse::Ok().message("Hello from MyController"))    
+///     }
+/// }
 #[proc_macro_attribute]
+#[proc_macro_error::proc_macro_error]
 pub fn controller(attr: TokenStream, item: TokenStream) -> TokenStream {
-    controller::expand_controller(attr, item)
+    http::controller::expand_controller(attr, item)
 }
 
-#[deprecated(since = "0.1.5", note = "Use `#[routes]` instead")]
+/// Implements the routes for a controller defined with the `#[controller]` macro.
+///
+/// ### Usage
+/// ```rust,ignore
+/// #[controller("/base_path")]
+/// struct MyController {}
+///
+/// #[routes]
+/// impl MyController {
+///     #[get("/sub_path")]
+///     async fn my_handler(ctx: Context) -> HttpResult<HttpResponse> {
+///        Ok(HttpResponse::Ok().message("Hello from MyController"))    
+///     }
+/// }
+/// ```
 #[proc_macro_attribute]
-pub fn controller_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
-    implementation::expand_controller_impl(attr, item)
-}
-
-#[proc_macro_attribute]
+#[proc_macro_error::proc_macro_error]
 pub fn routes(attr: TokenStream, item: TokenStream) -> TokenStream {
-    implementation::expand_controller_impl(attr, item)
+    http::controller::expand_controller_routes(attr, item)
 }
 
+/// Declares a executable middleware to apply to a route controller.
+/// This macro should be used inside an `impl` block of a struct annotated with the `#[controller]` macro.
+///
+/// ### Parameters
+/// - `MiddlewareName`: The name of the middleware struct that implements the `Middleware` or `MiddlewareWithConfig` trait.
+///   Also can receive an instance of a `tower-http` service layer like `CorsLayer`, `CompressionLayer`, `TraceLayer`, etc.
+///   If the layer can be added without errors on Application::with_layer() there will not be any problem using it.  
+///
+/// - `config`: (Optional) Configuration parameters for the middleware,
+///
+/// ### Handle errors
+/// To throw an error from a middleware, simply return an `Err` with an `HttpResponse`
+/// struct in the same way as a controller handler.
+///
+/// ### Usage
+/// ```rust,ignore
+/// pub struct RoleMiddleware;
+///
+/// impl MiddlewareWithConfig<Vec<&str>> for RoleMiddleware {
+///     async fn handle(roles: Vec<&str>, ctx: Context, next: Next) -> MiddlewareResult {
+///         next!(ctx, next)
+///     }
+/// }
+///
+/// #[controller("/api")]
+/// struct MyController {}
+///
+/// #[routes]
+/// impl MyController {
+///     #[get("/items")]
+///     #[middleware(RoleMiddleware, config = vec!["admin", "user"])]
+///     async fn get_items(ctx: Context) -> HttpResult<HttpResponse> {
+///         Ok(HttpResponse::Ok().message("List of items"))
+///     }
+/// }
+/// ```
 #[proc_macro_attribute]
 pub fn middleware(attr: TokenStream, item: TokenStream) -> TokenStream {
     let _ = attr;
     item
 }
-
+/// Defines a configuration struct for the application.
+/// This macro generates the necessary code to deserialize the struct from
+/// the configuration toml file.
+///
+/// The struct must derive `Deserialize` from `serde`.
+///
+/// ### Parameters
+/// - `key`: The key in the configuration file where the struct is located.
+///
+/// ### Usage
+/// ```rust, ignore
+/// #[derive(Deserialize)]
+/// #[config(key = "my-section")]
+/// struct MyConfig {
+///     my_key: String,
+/// }
+/// ```
+///
+/// This allows you to access the configuration in your handlers or middlewares
+///
+/// ```rust, ignore
+/// #[controller("/some_path")]
+/// struct SomeController {}
+///
+/// #[routes]
+/// impl SomeController {
+///     #[get("/config")]
+///     async fn get_config(ctx: Context) -> HttpResult<HttpResponse> {
+///         let config = ctx.config::<MyConfig>()?;
+///         let message = format!("Config key: {}", config.my_key);
+///
+///         Ok(HttpResponse::Ok().message(message))
+///     }
+/// }
 #[proc_macro_attribute]
 pub fn config(attr: TokenStream, item: TokenStream) -> TokenStream {
-    config::expand_config_struct(attr, item)
+    core::config::expand_config_struct(attr, item)
 }
 
 /// ### This is just a re-export of `tokio::main` to simplify the initial setup of
@@ -301,43 +506,23 @@ pub fn config(attr: TokenStream, item: TokenStream) -> TokenStream {
 pub fn main(_args: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as syn::ItemFn);
 
-    println!("{}", quote! { #input });
     let mut fn_body = input.block.clone();
     let fn_attrs = input.attrs.clone();
     let fn_vis = input.vis.clone();
     let _fn_sig = input.sig.clone();
 
-    let output = if cfg!(feature = "hot_reloading") {
-        quote! {
-            async fn __internal_main() -> Result<(), Box<dyn std::error::Error>> {
-                #fn_body
+    fn_body
+        .stmts
+        .push(parse_quote!({ Ok::<(), Box<dyn std::error::Error>>(()) }));
 
-                Ok::<(), Box<dyn std::error::Error>>(())
-            }
-
-            #(#fn_attrs)*
-            #fn_vis fn main() {
-                ::tokio::runtime::Builder::new_multi_thread()
-                    .enable_all()
-                    .build()
-                    .expect("Failed building the Runtime")
-                    .block_on(dioxus_devtools::serve_subsecond(__internal_main));
-            }
-        }
-    } else {
-        fn_body
-            .stmts
-            .push(parse_quote!({ Ok::<(), Box<dyn std::error::Error>>(()) }));
-
-        quote! {
-            #(#fn_attrs)*
-            #fn_vis fn main() {
-                ::tokio::runtime::Builder::new_multi_thread()
-                    .enable_all()
-                    .build()
-                    .expect("Failed building the Runtime")
-                    .block_on( async #fn_body );
-            }
+    let output = quote! {
+        #(#fn_attrs)*
+        #fn_vis fn main() -> Result<(), Box<dyn std::error::Error>> {
+            ::sword::__internal::tokio_runtime::Builder::new_multi_thread()
+                .enable_all()
+                .build()
+                .expect("Failed building the Runtime")
+                .block_on( async #fn_body )
         }
     };
 

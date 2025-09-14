@@ -31,12 +31,6 @@ impl From<RequestError> for HttpResponse {
                     "type": "PayloadTooLarge",
                     "message": "The request body exceeds the maximum allowed size by the server"
                 })),
-            RequestError::InvalidContentType(message) => HttpResponse::UnsupportedMediaType()
-                .message("Invalid content type")
-                .data(json!({
-                    "type": "InvalidContentType",
-                    "message": message
-                })),
 
             RequestError::UnsupportedMediaType(message) => HttpResponse::UnsupportedMediaType()
                 .message("Unsupported media type")
@@ -81,25 +75,23 @@ impl From<StateError> for HttpResponse {
 impl From<ConfigError> for HttpResponse {
     fn from(error: ConfigError) -> Self {
         match error {
-            ConfigError::DeserializeError(message) => HttpResponse::InternalServerError()
-                .message("Configuration error")
-                .data(json!({
+            ConfigError::DeserializeError(message) => {
+                HttpResponse::InternalServerError().message("Configuration error").data(json!({
                     "type": "ConfigError",
                     "message": message
-                })),
-            ConfigError::KeyNotFound(key) => HttpResponse::InternalServerError()
-                .message("Configuration error")
-                .data(json!({
+                }))
+            }
+            ConfigError::KeyNotFound(key) => {
+                HttpResponse::InternalServerError().message("Configuration error").data(json!({
                     "type": "ConfigError",
                     "message": format!("Key '{}' not found in configuration", key)
-                })),
+                }))
+            }
 
-            _ => HttpResponse::InternalServerError()
-                .message("Configuration error")
-                .data(json!({
-                    "type": "ConfigError",
-                    "message": "An error occurred while processing the app configuration"
-                })),
+            _ => HttpResponse::InternalServerError().message("Configuration error").data(json!({
+                "type": "ConfigError",
+                "message": "An error occurred while processing the app configuration"
+            })),
         }
     }
 }

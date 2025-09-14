@@ -4,7 +4,33 @@ members = [
     "sword-tests",
     "sword-macros",
     "sword",
-    "examples",
+    "examples/*"
 ]
 
-exclude = ["sword-tests", "examples"]
+exclude = ["sword-tests"]
+
+[workspace.dependencies]
+sword = { path = "sword" }
+sword-macros = { path = "sword-macros", version = "0.1.9" }
+
+tokio = { version = "^1.0", features = ["full"] }
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+axum = "0.8.4"
+axum_responses = "0.4.2"
+validator = { version = "0.20.0", features = ["derive"] }
+uuid = { version = "1.18.0", features = ["v4", "serde"] }
+syn = { version = "2", features = ["full"] }
+quote = "1"
+proc-macro2 = "1"
+async-trait = "0.1.83"
+tower-http = { version = "0.6.6", features = ["limit", "cors", "trace"] }
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+
+# Hot reload feature dependencies
+subsecond = { git = "https://github.com/DioxusLabs/dioxus.git", package = "subsecond" }
+dioxus-devtools = { git = "https://github.com/DioxusLabs/dioxus.git", features = [ "serve" ], package = "dioxus-devtools" }
+
+# Shaku DI feature dependencies
+shaku = "0.6.2"

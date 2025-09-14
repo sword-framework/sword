@@ -26,8 +26,9 @@ async fn test_state() -> Result<(), Box<dyn std::error::Error>> {
     let data = json!({ "key": "value" });
 
     let app = Application::builder()?
-        .state(data)?
-        .controller::<TestController>();
+        .with_state(data)?
+        .with_controller::<TestController>()
+        .build();
 
     let server = TestServer::new(app.router()).unwrap();
     let response = server.get("/test/state").await;

@@ -2,7 +2,8 @@
 host = "0.0.0.0"
 port = 8080
 body_limit = "1MB"
-allowed_mime_types = ["image/jpeg", "application/pdf"]
+request_timeout_seconds = 2
+graceful_shutdown = false
 
 [my-custom-section]
 custom_key = "value"

@@ -15,11 +15,29 @@ struct TestController {}
 impl TestController {
     #[post("/multipart")]
     async fn hello(ctx: Context) -> HttpResult<HttpResponse> {
-        let form = ctx.multipart().await?;
-        let mut fields: Vec<String> = Vec::new();
+        let mut fields = vec![];
+        let mut multipart = ctx.multipart().await?;
 
-        for field in form.iter() {
-            fields.push(field.name.clone().unwrap_or("unknown".to_string()));
+        while let Some(field) = multipart.next_field().await.map_err(|e| {
+            eprintln!("Error reading multipart field: {}", e);
+            HttpResponse::BadRequest().message("Failed to read multipart field")
+        })? {
+            let name = field.name().unwrap_or("Unnamed").to_string();
+            let file_name = field.file_name().unwrap_or("No file name").to_string();
+
+            let content_type = field
+                .content_type()
+                .map(|ct| ct.to_string())
+                .unwrap_or("No content type".to_string());
+
+            let data = field.bytes().await.unwrap();
+
+            fields.push(serde_json::json!({
+                "name": name,
+                "file_name": file_name,
+                "content_type": content_type,
+                "data_length": data.len(),
+            }));
         }
 
         Ok(HttpResponse::Ok().data(fields).message("Hello, Multipart!"))
@@ -28,7 +46,10 @@ impl TestController {
 
 #[tokio::test]
 async fn exceed_limit() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?.controller::<TestController>();
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
+
     let test = TestServer::new(app.router()).unwrap();
 
     let temp_file = TempFile::with_size(1024 * 1024 * 2); // 2 MB
@@ -43,17 +64,13 @@ async fn exceed_limit() -> Result<(), Box<dyn std::error::Error>> {
         .add_part("file", part);
 
     let response = test.post("/multipart").multipart(form).await;
-
     let json = response.json::<ResponseBody>();
 
-    assert_eq!(response.status_code(), 400);
+    assert_eq!(response.status_code(), 413);
 
-    assert_eq!(
-        json.data["details"],
-        "Error reading body: length limit exceeded".to_string()
-    );
+    assert_eq!(json.message, "Request payload too large".into());
+    assert_eq!(json.data["type"], "PayloadTooLarge");
 
-    // File is automatically cleaned up when temp_file goes out of scope
     Ok(())
 }
 
@@ -61,7 +78,10 @@ async fn exceed_limit() -> Result<(), Box<dyn std::error::Error>> {
 /// The effective limit is ~975KB due to multipart headers/boundaries overhead.
 #[tokio::test]
 async fn body_limit_exactly_at_limit() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?.controller::<TestController>();
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
+
     let test = TestServer::new(app.router()).unwrap();
 
     // Based on testing, the effective limit is around 975 KB (considering multipart overhead)
@@ -78,19 +98,19 @@ async fn body_limit_exactly_at_limit() -> Result<(), Box<dyn std::error::Error>>
 
     let response = test.post("/multipart").multipart(form).await;
 
-    // Should succeed as it's right at the limit
     assert_eq!(response.status_code(), 200);
     let json = response.json::<ResponseBody>();
     assert_eq!(json.message, "Hello, Multipart!".into());
 
-    // File is automatically cleaned up when temp_file goes out of scope
     Ok(())
 }
 
-/// Tests that a file just under the body limit is accepted.
 #[tokio::test]
 async fn body_limit_just_under_limit() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?.controller::<TestController>();
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
+
     let test = TestServer::new(app.router()).unwrap();
 
     // Create a file just under the effective limit
@@ -107,19 +127,19 @@ async fn body_limit_just_under_limit() -> Result<(), Box<dyn std::error::Error>>
 
     let response = test.post("/multipart").multipart(form).await;
 
-    // Should succeed as it's under the limit
     assert_eq!(response.status_code(), 200);
     let json = response.json::<ResponseBody>();
     assert_eq!(json.message, "Hello, Multipart!".into());
 
-    // File is automatically cleaned up when temp_file goes out of scope
     Ok(())
 }
 
-/// Tests that a file just over the body limit is rejected.
 #[tokio::test]
 async fn body_limit_just_over_limit() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?.controller::<TestController>();
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
+
     let test = TestServer::new(app.router()).unwrap();
 
     // Create a file just over the effective limit
@@ -136,22 +156,21 @@ async fn body_limit_just_over_limit() -> Result<(), Box<dyn std::error::Error>> 
 
     let response = test.post("/multipart").multipart(form).await;
 
-    // Should fail as it exceeds the limit
-    assert_eq!(response.status_code(), 400);
+    assert_eq!(response.status_code(), 413);
     let json = response.json::<ResponseBody>();
-    assert_eq!(
-        json.data["details"],
-        "Error reading body: length limit exceeded".to_string()
-    );
+    assert_eq!(json.message, "Request payload too large".into());
+    assert_eq!(json.data["type"], "PayloadTooLarge");
 
-    // File is automatically cleaned up when temp_file goes out of scope
     Ok(())
 }
 
-/// Tests that multiple files that together exceed the body limit are rejected.
 #[tokio::test]
-async fn body_limit_multiple_fields_exceed_limit() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?.controller::<TestController>();
+async fn body_limit_multiple_fields_exceed_limit()
+-> Result<(), Box<dyn std::error::Error>> {
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
+
     let test = TestServer::new(app.router()).unwrap();
 
     // Create multiple smaller files that together exceed the limit
@@ -177,22 +196,22 @@ async fn body_limit_multiple_fields_exceed_limit() -> Result<(), Box<dyn std::er
 
     let response = test.post("/multipart").multipart(form).await;
 
-    // Should fail as the combined size exceeds the limit
-    assert_eq!(response.status_code(), 400);
+    assert_eq!(response.status_code(), 413);
     let json = response.json::<ResponseBody>();
-    assert_eq!(
-        json.data["details"],
-        "Error reading body: length limit exceeded".to_string()
-    );
+    assert_eq!(json.message, "Request payload too large".into());
+    assert_eq!(json.data["type"], "PayloadTooLarge");
 
-    // Files are automatically cleaned up when temp_file1 and temp_file2 go out of scope
     Ok(())
 }
 
 /// Tests that multiple files that together stay within the body limit are accepted.
 #[tokio::test]
-async fn body_limit_small_fields_within_limit() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?.controller::<TestController>();
+async fn body_limit_small_fields_within_limit()
+-> Result<(), Box<dyn std::error::Error>> {
+    let app = Application::builder()?
+        .with_controller::<TestController>()
+        .build();
+
     let test = TestServer::new(app.router()).unwrap();
 
     // Create multiple smaller files that together stay within the limit
@@ -219,61 +238,9 @@ async fn body_limit_small_fields_within_limit() -> Result<(), Box<dyn std::error
 
     let response = test.post("/multipart").multipart(form).await;
 
-    // Should succeed as the combined size is within the limit
     assert_eq!(response.status_code(), 200);
     let json = response.json::<ResponseBody>();
     assert_eq!(json.message, "Hello, Multipart!".into());
-
-    // Files are automatically cleaned up when temp_file1 and temp_file2 go out of scope
-    Ok(())
-}
-
-#[tokio::test]
-async fn valid_mime() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?.controller::<TestController>();
-    let test = TestServer::new(app.router()).unwrap();
-
-    let bytes = include_bytes!("../../files/pdf-test.pdf").to_vec();
-
-    let part = Part::bytes(bytes)
-        .file_name("pdf-test.pdf")
-        .mime_type("application/pdf");
-
-    let form = MultipartForm::new()
-        .add_text("field1", "value1")
-        .add_part("file", part);
-
-    let response = test.post("/multipart").multipart(form).await;
-
-    assert_eq!(response.status_code(), 200);
-    let json = response.json::<ResponseBody>();
-
-    assert_eq!(json.message, "Hello, Multipart!".into());
-
-    Ok(())
-}
-
-#[tokio::test]
-async fn invalid_mime() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?.controller::<TestController>();
-    let test = TestServer::new(app.router()).unwrap();
-
-    let bytes = include_bytes!("../../files/png-test.png").to_vec();
-
-    let part = Part::bytes(bytes)
-        .file_name("png-test.png")
-        .mime_type("application/pdf");
-
-    let form = MultipartForm::new()
-        .add_text("field1", "value1")
-        .add_part("file", part);
-
-    let response = test.post("/multipart").multipart(form).await;
-
-    assert_eq!(response.status_code(), 415);
-    let json = response.json::<ResponseBody>();
-
-    assert_eq!(json.message, "Unsupported media type".into());
 
     Ok(())
 }

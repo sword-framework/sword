@@ -1,11 +1,14 @@
 fmt:
+    cargo fmt --all
+
+fmt-check:
     cargo fmt --all -- --check
 
 lint:
-    cargo clippy --workspace --all-targets -- -D warnings
+    cargo clippy --workspace --all-targets --all-features -- -D warnings
 
 test entity="":
-    cargo test {{entity}}
+    cd sword-tests && cargo test {{entity}}
 
 test-log entity="":
     cargo test {{entity}} -- --nocapture

@@ -1,0 +1,9 @@
+[package]
+name = "data-validation"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sword = { workspace = true }
+serde = { workspace = true }
+validator = { workspace = true }

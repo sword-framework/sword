@@ -10,9 +10,11 @@ pub static APP: OnceLock<Arc<TestServer>> = OnceLock::new();
 
 #[cfg(test)]
 fn test_server() -> Result<Arc<TestServer>, Box<dyn std::error::Error>> {
-    use sword::application::Application;
+    use sword::core::Application;
 
-    let app = Application::builder()?.controller::<UserController>();
+    let app = Application::builder()?
+        .with_controller::<UserController>()
+        .build();
 
     Ok(APP
         .get_or_init(|| Arc::new(TestServer::new(app.router()).unwrap()))
@@ -32,9 +34,17 @@ struct QueryData {
 
 #[derive(Debug, Deserialize, Serialize, Validate)]
 struct ValidableQueryData {
-    #[validate(range(message = "Page must be between 1 and 1000", min = 1, max = 1000))]
+    #[validate(range(
+        message = "Page must be between 1 and 1000",
+        min = 1,
+        max = 1000
+    ))]
     page: u32,
-    #[validate(range(message = "Limit must be between 1 and 100", min = 1, max = 100))]
+    #[validate(range(
+        message = "Limit must be between 1 and 100",
+        min = 1,
+        max = 100
+    ))]
     limit: u32,
 }
 
@@ -46,10 +56,34 @@ struct OptionalQueryData {
 
 #[derive(Debug, Default, Deserialize, Serialize, Validate)]
 struct DefaultValidableQueryData {
-    #[validate(range(message = "Page must be between 1 and 1000", min = 1, max = 1000))]
+    #[validate(range(
+        message = "Page must be between 1 and 1000",
+        min = 1,
+        max = 1000
+    ))]
     page: Option<u32>,
-    #[validate(range(message = "Limit must be between 1 and 100", min = 1, max = 100))]
+
+    #[validate(range(
+        message = "Limit must be between 1 and 100",
+        min = 1,
+        max = 100
+    ))]
     limit: Option<u32>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct ComplexQueryData {
+    page: Option<u32>,
+    limit: Option<i32>,
+    price: Option<f64>,
+
+    search: Option<String>,
+    category: Option<String>,
+
+    active: Option<bool>,
+
+    user_name: Option<String>,
+    email_filter: Option<String>,
 }
 
 #[controller("/users")]
@@ -76,7 +110,9 @@ impl UserController {
     }
 
     #[get("/ergonomic-optional-query")]
-    async fn get_users_with_ergonomic_query(ctx: Context) -> HttpResult<HttpResponse> {
+    async fn get_users_with_ergonomic_query(
+        ctx: Context,
+    ) -> HttpResult<HttpResponse> {
         let query: OptionalQueryData = ctx.query()?.unwrap_or_default();
 
         Ok(HttpResponse::Ok()
@@ -88,17 +124,25 @@ impl UserController {
     async fn get_users_with_ergonomic_validated_optional_query(
         ctx: Context,
     ) -> HttpResult<HttpResponse> {
-        // Usando la nueva API ergonómica para validación: Result<Option<T>, RequestError>
-        let query: DefaultValidableQueryData = ctx.validated_query()?.unwrap_or_default();
+        let query: DefaultValidableQueryData =
+            ctx.validated_query()?.unwrap_or_default();
 
         Ok(HttpResponse::Ok()
             .data(query)
             .message("Users retrieved with ergonomic validated optional query"))
     }
 
+    #[get("/complex-query")]
+    async fn get_users_with_complex_query(ctx: Context) -> HttpResult<HttpResponse> {
+        let query: Option<ComplexQueryData> = ctx.query()?;
+
+        Ok(HttpResponse::Ok()
+            .data(query)
+            .message("Users retrieved with complex query parameters"))
+    }
+
     #[get("/pattern-match-query")]
     async fn get_users_with_pattern_match(ctx: Context) -> HttpResult<HttpResponse> {
-        // También se puede usar pattern matching de forma ergonómica
         match ctx.query::<OptionalQueryData>()? {
             Some(query) => Ok(HttpResponse::Ok()
                 .data(query)
@@ -181,7 +225,8 @@ async fn validated_query_error_test() -> Result<(), Box<dyn std::error::Error>> 
 }
 
 #[tokio::test]
-async fn ergonomic_optional_query_with_params_test() -> Result<(), Box<dyn std::error::Error>> {
+async fn ergonomic_optional_query_with_params_test()
+-> Result<(), Box<dyn std::error::Error>> {
     use sword::web::ResponseBody;
 
     let app = test_server()?;
@@ -202,7 +247,8 @@ async fn ergonomic_optional_query_with_params_test() -> Result<(), Box<dyn std::
 }
 
 #[tokio::test]
-async fn ergonomic_optional_query_without_params_test() -> Result<(), Box<dyn std::error::Error>> {
+async fn ergonomic_optional_query_without_params_test()
+-> Result<(), Box<dyn std::error::Error>> {
     use sword::web::ResponseBody;
 
     let app = test_server()?;
@@ -211,11 +257,9 @@ async fn ergonomic_optional_query_without_params_test() -> Result<(), Box<dyn st
     let json = response.json::<ResponseBody>();
 
     assert_eq!(200_u16, response.status_code().as_u16());
-    // Debería retornar valores por defecto (None/null para los optional fields)
     assert!(json.data.get("page").is_some());
     assert!(json.data.get("limit").is_some());
 
-    // Los valores deben ser null ya que OptionalQueryData tiene campos Option<T>
     assert!(json.data.get("page").unwrap().is_null());
     assert!(json.data.get("limit").unwrap().is_null());
 
@@ -263,7 +307,8 @@ async fn ergonomic_validated_optional_query_without_params_test()
 }
 
 #[tokio::test]
-async fn pattern_match_query_with_params_test() -> Result<(), Box<dyn std::error::Error>> {
+async fn pattern_match_query_with_params_test()
+-> Result<(), Box<dyn std::error::Error>> {
     use sword::web::ResponseBody;
 
     let app = test_server()?;
@@ -281,7 +326,8 @@ async fn pattern_match_query_with_params_test() -> Result<(), Box<dyn std::error
 }
 
 #[tokio::test]
-async fn pattern_match_query_without_params_test() -> Result<(), Box<dyn std::error::Error>> {
+async fn pattern_match_query_without_params_test()
+-> Result<(), Box<dyn std::error::Error>> {
     use sword::web::ResponseBody;
 
     let app = test_server()?;
@@ -294,6 +340,54 @@ async fn pattern_match_query_without_params_test() -> Result<(), Box<dyn std::er
         json.message.as_ref(),
         "Users retrieved with default parameters"
     );
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn complex_encoded_query_test() -> Result<(), Box<dyn std::error::Error>> {
+    use sword::web::ResponseBody;
+
+    let app = test_server()?;
+
+    let encoded_url = "/users/complex-query?page=1&limit=-10&price=99.99&search=hello%20world&category=electronics%26gadgets&active=true&user_name=john%2Bdoe&email_filter=test%40example.com";
+
+    let response = app.get(encoded_url).await;
+    let json = response.json::<ResponseBody>();
+
+    println!("Response status: {}", response.status_code().as_u16());
+    println!("Response data: {:#?}", json.data);
+
+    assert_eq!(200_u16, response.status_code().as_u16());
+
+    let data = &json.data;
+
+    if let Some(page) = data.get("page") {
+        assert_eq!(page, &1u32);
+    }
+    if let Some(limit) = data.get("limit") {
+        assert_eq!(limit, &-10i32);
+    }
+    if let Some(price) = data.get("price") {
+        assert_eq!(price, &99.99f64);
+    }
+
+    if let Some(search) = data.get("search") {
+        assert_eq!(search, "hello world");
+    }
+    if let Some(category) = data.get("category") {
+        assert_eq!(category, "electronics&gadgets");
+    }
+    if let Some(user_name) = data.get("user_name") {
+        assert_eq!(user_name, "john+doe");
+    }
+    if let Some(email_filter) = data.get("email_filter") {
+        assert_eq!(email_filter, "test@example.com");
+    }
+
+    if let Some(active) = data.get("active") {
+        assert_eq!(active, &true);
+    }
 
     Ok(())
 }

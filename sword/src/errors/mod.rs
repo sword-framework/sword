@@ -25,7 +25,9 @@ pub enum ApplicationError {
 
 #[derive(Debug, Error)]
 pub enum StateError {
-    #[error("State type not found - ensure it is registered in the application state")]
+    #[error(
+        "State type not found - ensure it is registered in the application state"
+    )]
     TypeNotFound,
     #[error("Failed to acquire lock on state")]
     LockError,
@@ -37,14 +39,15 @@ pub enum StateError {
 pub enum RequestError {
     #[error("Failed to parse request: {0}")]
     ParseError(&'static str, String),
+
     #[error("Failed to validate request")]
     ValidationError(&'static str, Value),
+
     #[error("Request body is empty")]
     BodyIsEmpty(&'static str),
+
     #[error("Request body is too large")]
     BodyTooLarge,
-    #[error("Invalid content type: {0}")]
-    InvalidContentType(String),
 
     #[error("Unsupported media type: {0}")]
     UnsupportedMediaType(String),
@@ -63,7 +66,9 @@ pub enum ConfigError {
     InterpolationError(String),
     #[error("Configuration key '{0}' not found")]
     KeyNotFound(String),
-    #[error("Configuration value for key '{key}' is invalid: {value}. Reason: {reason}")]
+    #[error(
+        "Configuration value for key '{key}' is invalid: {value}. Reason: {reason}"
+    )]
     InvalidValue {
         key: String,
         value: String,

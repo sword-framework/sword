@@ -1,3 +1,5 @@
 edition = "2024"
-max_width = 100
+max_width = 85
+
 reorder_imports = true
+use_field_init_shorthand = true

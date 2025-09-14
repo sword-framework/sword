@@ -1,37 +1,54 @@
 [package]
 name = "sword"
-version = "0.1.7"
+version = "0.1.8"
 edition = "2024"
 authors = ["Luciano Revillod <lrevillod2022@alu.uct.cl>"]
-description = "Axum based web framework prototype"
+description = "A structured rust web framework built on top of Axum, providing clean routing, configuration, and middleware support"
 repository = "https://github.com/sword-framework/sword"
-keywords = ["web", "framework", "axum", "http", "async"]
+homepage = "https://github.com/sword-framework/sword"
+documentation = "https://docs.rs/sword"
+keywords = ["sword", "web", "framework", "axum", "async"]
 categories = ["web-programming::http-server", "web-programming"]
 readme = "../README.md"
 license-file = "../LICENSE"
 
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[features]
+default = []
+
+multipart = ["axum/multipart"]
+cookies = ["dep:tower-cookies", "tower-cookies/signed", "tower-cookies/private"]
+helmet = ["dep:axum-helmet"]
+shaku-di = ["dep:shaku"]
+
 [dependencies]
-tokio = { version = "1.45.1" }
+tokio = { workspace = true }
+axum = { workspace = true }
+sword-macros = { workspace = true }
+axum_responses = { workspace = true }
 
-axum = { version = "0.8.4", features = ["multipart"] }
-axum_responses = "0.4.2"
+axum-helmet = { version = "0.2.0", optional = true }
+http-body-util = "0.1.3"
 
-serde = "1.0.219"
-serde_json = "1.0.140"
-serde_qs = "0.15.0"
-
-sword-macros = { path = "../sword-macros", version = "0.1.7" }
-
-validator = { version = "0.20.0", features = ["derive"] }
-
-infer = "0.19.0"
 toml = "0.9.0"
-regex = "1.11.1"
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_urlencoded = "0.7.1"
+form_urlencoded = "^1.1.0"
+serde_path_to_error = "0.1.17"
+byte-unit = "5.1.6"
 
+regex = "1.11.1"
+validator = { workspace = true }
+
+tower = "0.5.2"
 tower-layer = "0.3.3"
 tower-service = "0.3.3"
-tower-http = { version = "0.6.6", features = ["trace", "cors"] }
-
-shaku = "0.6.2"
+tower-http = { version = "0.6.6", features = ["limit", "timeout"] }
+tower-cookies = { version = "0.11.0", optional = true }
 thiserror = "2.0.12"
-byte-unit = "5.1.6"
+
+shaku = { workspace = true, optional = true }
