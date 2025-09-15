@@ -1,6 +1,6 @@
 [package]
 name = "sword"
-version = "0.1.8"
+version = "0.1.9"
 edition = "2024"
 authors = ["Luciano Revillod <lrevillod2022@alu.uct.cl>"]
 description = "A structured rust web framework built on top of Axum, providing clean routing, configuration, and middleware support"
@@ -18,11 +18,11 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 default = []
-
 multipart = ["axum/multipart"]
 cookies = ["dep:tower-cookies", "tower-cookies/signed", "tower-cookies/private"]
-helmet = ["dep:axum-helmet"]
+helmet = ["dep:axum-helmet"] 
 shaku-di = ["dep:shaku"]
+hot-reload = ["sword-macros/hot-reload"]
 
 [dependencies]
 tokio = { workspace = true }

@@ -4,7 +4,9 @@ members = [
     "sword-tests",
     "sword-macros",
     "sword",
-    "examples/*"
+    "examples/basic-server",
+    "examples/hot-reload", 
+    # "examples/*"
 ]
 
 exclude = ["sword-tests"]

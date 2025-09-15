@@ -29,3 +29,4 @@ proc-macro-error = "1.0.4"
 
 [features]
 default = []
+hot-reload = []

@@ -1,0 +1,12 @@
+[package]
+name = "hot-reload"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sword = { workspace = true, features = ["hot-reload"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+subsecond = { git = "https://github.com/DioxusLabs/dioxus.git"}
+dioxus-devtools = { git = "https://github.com/DioxusLabs/dioxus.git", features = ["serve"] }

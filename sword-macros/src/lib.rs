@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, parse_quote};
+use syn::parse_macro_input;
 
 mod core {
     pub mod config;
@@ -506,25 +506,55 @@ pub fn config(attr: TokenStream, item: TokenStream) -> TokenStream {
 pub fn main(_args: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as syn::ItemFn);
 
-    let mut fn_body = input.block.clone();
+    let fn_body = input.block.clone();
     let fn_attrs = input.attrs.clone();
     let fn_vis = input.vis.clone();
     let _fn_sig = input.sig.clone();
 
-    fn_body
-        .stmts
-        .push(parse_quote!({ Ok::<(), Box<dyn std::error::Error>>(()) }));
+    let output = if cfg!(feature = "hot-reload") {
+        quote! {
+            async fn __internal_main() {
+                #fn_body
+            }
 
-    let output = quote! {
-        #(#fn_attrs)*
-        #fn_vis fn main() -> Result<(), Box<dyn std::error::Error>> {
-            ::sword::__internal::tokio_runtime::Builder::new_multi_thread()
-                .enable_all()
-                .build()
-                .expect("Failed building the Runtime")
-                .block_on( async #fn_body )
+            #(#fn_attrs)*
+            #fn_vis fn main() {
+                ::sword::__internal::tokio_runtime::Builder::new_multi_thread()
+                    .enable_all()
+                    .build()
+                    .expect("Failed building the Runtime")
+                    .block_on(::dioxus_devtools::serve_subsecond(__internal_main));
+            }
+        }
+    } else {
+        quote! {
+            #(#fn_attrs)*
+            #fn_vis fn main() {
+                ::sword::__internal::tokio_runtime::Builder::new_multi_thread()
+                    .enable_all()
+                    .build()
+                    .expect("Failed building the Runtime")
+                    .block_on( async #fn_body );
+            }
         }
     };
 
     output.into()
+
+    // fn_body
+    //     .stmts
+    //     .push(parse_quote!({ Ok::<(), Box<dyn std::error::Error>>(()) }));
+
+    // let output = quote! {
+    //     #(#fn_attrs)*
+    //     #fn_vis fn main() -> Result<(), Box<dyn std::error::Error>> {
+    //         ::sword::__internal::tokio_runtime::Builder::new_multi_thread()
+    //             .enable_all()
+    //             .build()
+    //             .expect("Failed building the Runtime")
+    //             .block_on( async #fn_body )
+    //     }
+    // };
+
+    // output.into()
 }
