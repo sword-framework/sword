@@ -150,7 +150,13 @@ pub mod core {
     mod application;
     mod config;
     mod router;
-    mod state;
+    mod state {
+        mod extract;
+        mod internal;
+        pub use extract::ExtractState;
+        pub use internal::State;
+    }
+
     mod utils;
 
     pub use router::RouterProvider;
@@ -158,6 +164,7 @@ pub mod core {
 
     pub use application::{Application, ApplicationConfig};
     pub use config::{Config, ConfigItem, config};
+    pub use state::ExtractState;
     pub use state::State;
 }
 
@@ -208,6 +215,7 @@ pub mod core {
 pub mod web {
 
     mod context;
+    mod controller;
     mod middleware;
 
     pub use axum::http::{Method, StatusCode, header};
@@ -218,6 +226,8 @@ pub mod web {
     pub use crate::next;
     pub use context::{Context, request::RequestValidation};
     pub use middleware::*;
+
+    pub use controller::{Controller, ControllerError};
 
     #[cfg(feature = "multipart")]
     pub use context::multipart;

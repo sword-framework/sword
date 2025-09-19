@@ -54,9 +54,7 @@ impl State {
         }
     }
 
-    pub(crate) fn get<T: Send + Sync + 'static>(
-        &self,
-    ) -> Result<Arc<T>, StateError> {
+    pub fn get<T: Send + Sync + 'static>(&self) -> Result<Arc<T>, StateError> {
         let map = self.inner.read().map_err(|_| StateError::LockError)?;
 
         let state_ref = map
