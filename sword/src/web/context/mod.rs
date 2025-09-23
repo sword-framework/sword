@@ -13,7 +13,9 @@ use axum::{
 };
 
 use serde::de::DeserializeOwned;
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
+#[cfg(feature = "shaku-di")]
+use std::sync::Arc;
 
 #[cfg(feature = "shaku-di")]
 use shaku::{HasComponent, Interface, Module};

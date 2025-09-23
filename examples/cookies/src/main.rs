@@ -27,7 +27,7 @@ struct CookieController {}
 #[routes]
 impl CookieController {
     #[get("/set")]
-    async fn set_cookie(mut ctx: Context) -> HttpResult<HttpResponse> {
+    async fn set_cookie(&self, mut ctx: Context) -> HttpResult<HttpResponse> {
         let cookies = ctx.cookies_mut()?;
 
         let cookie = CookieBuilder::new("username", "sword_user")
@@ -43,7 +43,7 @@ impl CookieController {
 
     #[get("/with_middleware")]
     #[middleware(SetCookieMw)]
-    async fn with_middleware(mut ctx: Context) -> HttpResult<HttpResponse> {
+    async fn with_middleware(&self, mut ctx: Context) -> HttpResult<HttpResponse> {
         let cookies = ctx.cookies_mut()?;
 
         let session_cookie = cookies.get("session_id").ok_or(
@@ -55,7 +55,7 @@ impl CookieController {
     }
 
     #[get("/private-counter")]
-    async fn private_counter(mut ctx: Context) -> HttpResult<HttpResponse> {
+    async fn private_counter(&self, mut ctx: Context) -> HttpResult<HttpResponse> {
         let key = ctx.get_state::<CookieKey>()?;
         let private = ctx.cookies_mut()?.private(&key.0);
 

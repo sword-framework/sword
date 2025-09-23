@@ -9,6 +9,7 @@ mod core {
 mod http {
     pub mod controller {
         pub mod expand;
+        pub mod fields;
         pub mod routes;
 
         pub use expand::expand_controller;

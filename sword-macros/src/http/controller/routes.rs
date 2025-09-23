@@ -55,7 +55,25 @@ pub fn expand_controller_routes(_: TokenStream, item: TokenStream) -> TokenStrea
                 };
 
                 let mut handler = quote! {
-                    ::sword::__internal::#routing_fn(#struct_self::#method_name)
+                    ::sword::__internal::#routing_fn({
+                        let controller_clone = std::sync::Arc::clone(&controller);
+                        move |ctx: ::sword::web::Context| {
+                            let controller_result = controller_clone.clone();
+
+                            async move {
+                                use sword::__internal::IntoResponse;
+
+                                match controller_result.as_ref() {
+                                    Ok(controller) => {
+                                        controller.#method_name(ctx).await.into_response()
+                                    },
+                                    Err(e) => ::sword::web::HttpResponse::InternalServerError()
+                                        .message(format!("Controller build error: {e}"))
+                                        .into_response(),
+                                }
+                            }
+                        }
+                    })
                 };
 
                 for mw in middlewares.iter().rev() {
@@ -77,8 +95,9 @@ pub fn expand_controller_routes(_: TokenStream, item: TokenStream) -> TokenStrea
     let expanded = quote! {
         #input
 
-        impl ::sword::core::RouterProvider for #struct_self {
+        impl ::sword::web::Controller for #struct_self {
             fn router(app_state: ::sword::core::State) -> ::sword::__internal::AxumRouter {
+                let controller = std::sync::Arc::new(Self::build(app_state.clone()));
 
                 let base_router = ::sword::__internal::AxumRouter::new()
                     #(#routes)*

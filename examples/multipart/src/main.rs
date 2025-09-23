@@ -6,7 +6,7 @@ struct TestController {}
 #[routes]
 impl TestController {
     #[post("/multipart")]
-    async fn hello(ctx: Context) -> HttpResult<HttpResponse> {
+    async fn hello(&self, ctx: Context) -> HttpResult<HttpResponse> {
         let mut fields = vec![];
         let mut multipart = ctx.multipart().await?;
 

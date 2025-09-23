@@ -12,7 +12,7 @@ struct TestController {}
 impl TestController {
     #[get("/extensions-test")]
     #[middleware(ExtensionsTestMiddleware)]
-    async fn extensions_test(ctx: Context) -> HttpResponse {
+    async fn extensions_test(&self, ctx: Context) -> HttpResponse {
         let extension_value = ctx.extensions.get::<String>();
 
         HttpResponse::Ok()
@@ -24,7 +24,7 @@ impl TestController {
 
     #[get("/middleware-state")]
     #[middleware(MwWithState)]
-    async fn middleware_state(ctx: Context) -> HttpResult<HttpResponse> {
+    async fn middleware_state(&self, ctx: Context) -> HttpResult<HttpResponse> {
         let port = ctx.extensions.get::<u16>().cloned().unwrap_or(0);
         let app_state = ctx.get_state::<Value>()?;
 
@@ -41,13 +41,13 @@ impl TestController {
     #[get("/role-test")]
     #[middleware(MwWithState)]
     #[middleware(RoleMiddleware, config = vec!["admin", "user"])]
-    async fn role_test(_: Context) -> HttpResponse {
+    async fn role_test(&self, _: Context) -> HttpResponse {
         HttpResponse::Ok().message("Role middleware test passed")
     }
 
     #[get("/error-test")]
     #[middleware(ErrorMiddleware)]
-    async fn error_test(_: Context) -> HttpResponse {
+    async fn error_test(&self, _: Context) -> HttpResponse {
         HttpResponse::Ok()
     }
 }

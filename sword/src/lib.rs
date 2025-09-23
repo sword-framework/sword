@@ -220,7 +220,7 @@ pub mod web {
     pub use context::{Context, request::RequestValidation};
     pub use middleware::*;
 
-    pub use controller::{Controller, ControllerError};
+    pub use controller::{Controller, ControllerBuilder, ControllerError};
 
     #[cfg(feature = "multipart")]
     pub use context::multipart;

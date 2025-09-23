@@ -10,7 +10,7 @@ struct TestController {}
 #[routes]
 impl TestController {
     #[get("/state")]
-    async fn handler(ctx: Context) -> HttpResult<HttpResponse> {
+    async fn handler(&self, ctx: Context) -> HttpResult<HttpResponse> {
         let data = ctx.get_state::<Value>()?;
 
         Ok(HttpResponse::Ok()

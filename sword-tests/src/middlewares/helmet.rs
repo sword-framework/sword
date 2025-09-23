@@ -15,20 +15,18 @@ struct HelmetTestController;
 #[routes]
 impl HelmetTestController {
     #[get("/")]
-    async fn index() -> HttpResponse {
+    async fn index(&self, _: Context) -> HttpResponse {
         HttpResponse::Ok().message("Hello from helmet test")
     }
 }
 
 #[tokio::test]
 async fn test_basic_security_headers() -> Result<(), Box<dyn std::error::Error>> {
-    // Configurar helmet con headers básicos
     let helmet = Helmet::builder()
         .with_header(XContentTypeOptions::nosniff())
         .with_header(XFrameOptions::deny())
         .build();
 
-    // Crear aplicación con helmet
     let app = Application::builder()?
         .with_controller::<HelmetTestController>()
         .with_layer(helmet)
@@ -37,11 +35,10 @@ async fn test_basic_security_headers() -> Result<(), Box<dyn std::error::Error>>
     let server = TestServer::new(app.router())?;
     let response = server.get("/test").await;
 
-    // Verificar que la respuesta es exitosa
     assert_eq!(response.status_code(), 200);
 
-    // Verificar que los security headers están presentes
     let headers = response.headers();
+
     assert_eq!(headers.get("x-content-type-options").unwrap(), "nosniff");
     assert_eq!(headers.get("x-frame-options").unwrap(), "DENY");
 

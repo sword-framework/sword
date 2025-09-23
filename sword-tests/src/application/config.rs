@@ -17,7 +17,7 @@ struct TestController {}
 #[routes]
 impl TestController {
     #[get("/hello")]
-    async fn hello(ctx: Context) -> HttpResult<HttpResponse> {
+    async fn hello(&self, ctx: Context) -> HttpResult<HttpResponse> {
         let custom_config = ctx.config::<MyConfig>()?;
 
         Ok(HttpResponse::Ok()

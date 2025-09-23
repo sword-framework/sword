@@ -8,9 +8,12 @@ pub enum ControllerError {
     StateExtractionError(String),
 }
 
-pub trait Controller {
+pub trait Controller: ControllerBuilder {
     fn router(state: SwordState) -> AxumRouter;
-    fn build_from_state(state: SwordState) -> Result<Self, ControllerError>
+}
+
+pub trait ControllerBuilder {
+    fn build(state: SwordState) -> Result<Self, ControllerError>
     where
         Self: Sized;
 }

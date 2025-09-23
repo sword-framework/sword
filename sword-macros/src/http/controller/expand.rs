@@ -3,7 +3,10 @@ use proc_macro_error::emit_error;
 use quote::quote;
 use syn::{ItemStruct, LitStr, parse_macro_input};
 
-use crate::http::middleware::{expand_middleware_args, parse::MiddlewareKind};
+use crate::http::{
+    controller::fields::collect_controller_fields,
+    middleware::{expand_middleware_args, parse::MiddlewareKind},
+};
 
 pub fn expand_controller(attr: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as ItemStruct);
@@ -23,6 +26,36 @@ pub fn expand_controller(attr: TokenStream, item: TokenStream) -> TokenStream {
         }
     }
 
+    let self_fields = collect_controller_fields(&input);
+
+    let field_extractions = self_fields.iter().map(|(field_name, field_type)| {
+        quote! {
+            let #field_name = state.get::<#field_type>().map_err(|e| {
+                ControllerError::StateExtractionError(format!(
+                    "Failed to extract {} from state: {}",
+                    stringify!(#field_type),
+                    e
+                ))
+            })?;
+        }
+    });
+
+    let field_assignments = self_fields.iter().map(|(field_name, _)| {
+        quote! { #field_name }
+    });
+
+    let expanded_builder = quote! {
+        impl ::sword::web::ControllerBuilder for #struct_name {
+            fn build(state: ::sword::core::State) -> Result<Self, ::sword::web::ControllerError> {
+                #(#field_extractions)*
+
+                Ok(Self {
+                    #(#field_assignments),*
+                })
+            }
+        }
+    };
+
     let expanded = quote! {
         #input
 
@@ -41,6 +74,9 @@ pub fn expand_controller(attr: TokenStream, item: TokenStream) -> TokenStream {
                 result
             }
         }
+
+        #expanded_builder
+
     };
 
     TokenStream::from(expanded)

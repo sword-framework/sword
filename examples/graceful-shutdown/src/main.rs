@@ -8,7 +8,7 @@ struct AppController {}
 #[routes]
 impl AppController {
     #[get("/")]
-    async fn get_data() -> HttpResponse {
+    async fn get_data(&self, _: Context) -> HttpResponse {
         sleep(Duration::from_secs(5)).await;
         HttpResponse::Ok()
     }
@@ -20,7 +20,7 @@ struct AdminController {}
 #[routes]
 impl AdminController {
     #[get("/")]
-    async fn get_admin_data() -> HttpResponse {
+    async fn get_admin_data(&self, _: Context) -> HttpResponse {
         HttpResponse::Ok()
     }
 }

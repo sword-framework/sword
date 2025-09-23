@@ -21,7 +21,7 @@ pub struct UserController {}
 #[routes]
 impl UserController {
     #[get("/")]
-    async fn get_users(ctx: Context) -> HttpResult<HttpResponse> {
+    async fn get_users(&self, ctx: Context) -> HttpResult<HttpResponse> {
         let repository = ctx.di::<AppModule, dyn DataRepository>()?;
         let users = repository.get_data().await;
 
@@ -32,7 +32,7 @@ impl UserController {
     }
 
     #[post("/")]
-    async fn add_user(ctx: Context) -> HttpResult<HttpResponse> {
+    async fn add_user(&self, ctx: Context) -> HttpResult<HttpResponse> {
         let user: IncommingUser = ctx.validated_body()?;
         let repository = ctx.di::<AppModule, dyn DataRepository>()?;
 
