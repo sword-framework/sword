@@ -4,6 +4,7 @@ port = 8080
 body_limit = "10MB"
 request_timeout_seconds = 15
 graceful_shutdown = false
+name = "MySwordApp"
 
 [my-custom-section]
 custom_key = "custom_value"

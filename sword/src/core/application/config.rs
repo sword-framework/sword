@@ -62,6 +62,10 @@ pub struct ApplicationConfig {
     /// and implement your own signal with the `run_with_graceful_shutdown` method.
     #[serde(default = "default_graceful_shutdown")]
     pub graceful_shutdown: bool,
+
+    /// Optional name of the application.
+    /// This can be used for logging or display purposes.
+    pub name: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]

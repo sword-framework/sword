@@ -1,5 +1,6 @@
 use axum::extract::FromRequest;
 pub use axum::extract::multipart::*;
+pub use bytes;
 
 use crate::{errors::RequestError, web::Context};
 

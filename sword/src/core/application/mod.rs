@@ -230,9 +230,17 @@ impl Application {
     }
 
     fn display(&self, config: &ApplicationConfig) {
-        let ascii_logo_top = "\n▪──────── ⚔ S W O R D ⚔ ────────▪\n";
-        let ascii_logo_bottom = "\n▪──────── ⚔ ───────── ⚔ ────────▪\n";
+        let ascii_logo_top =
+            "\n▪──────── ⚔ ──────── ⚔ S W O R D ⚔ ──────── ⚔ ────────▪\n";
+        let ascii_logo_bottom =
+            "\n▪──────── ⚔ ─────────────────────────────── ⚔ ────────▪\n";
+
         println!("{ascii_logo_top}");
+
+        if let Some(name) = &config.name {
+            println!("Application: {name}");
+        }
+
         println!("Host: {}", config.host);
         println!("Port: {}", config.port);
         println!("Request Body Limit: {}", config.body_limit.raw);
