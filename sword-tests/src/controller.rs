@@ -5,7 +5,6 @@ use sword::{
     web::{Context, Controller, ControllerError, HttpResponse},
 };
 
-#[derive(Clone)]
 pub struct ControllerExample {
     u32_number: u32,
 }
@@ -28,9 +27,7 @@ impl Controller for ControllerExample {
             ))
         })?;
 
-        Ok(ControllerExample {
-            u32_number: *u32_number,
-        })
+        Ok(ControllerExample { u32_number })
     }
 
     fn router(state: State) -> AxumRouter {

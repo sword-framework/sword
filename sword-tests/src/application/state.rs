@@ -1,5 +1,3 @@
-use std::ops::Deref;
-
 use axum_test::TestServer;
 use serde_json::{Value, json};
 
@@ -16,7 +14,7 @@ impl TestController {
         let data = ctx.get_state::<Value>()?;
 
         Ok(HttpResponse::Ok()
-            .data(data.deref())
+            .data(data)
             .add_header("Content-Type", "application/json"))
     }
 }

@@ -150,13 +150,7 @@ pub mod core {
     mod application;
     mod config;
     mod router;
-    mod state {
-        mod extract;
-        mod internal;
-        pub use extract::ExtractState;
-        pub use internal::State;
-    }
-
+    mod state;
     mod utils;
 
     pub use router::RouterProvider;
@@ -164,7 +158,6 @@ pub mod core {
 
     pub use application::{Application, ApplicationConfig};
     pub use config::{Config, ConfigItem, config};
-    pub use state::ExtractState;
     pub use state::State;
 }
 

@@ -15,7 +15,13 @@ mod http {
         pub use routes::expand_controller_routes;
     }
 
-    pub mod middleware;
+    pub mod middleware {
+        pub mod expand;
+        pub mod parse;
+
+        pub use expand::expand_middleware_args;
+    }
+
     pub mod utils;
 }
 

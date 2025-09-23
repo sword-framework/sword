@@ -54,7 +54,26 @@ impl State {
         }
     }
 
-    pub fn get<T: Send + Sync + 'static>(&self) -> Result<Arc<T>, StateError> {
+    pub fn get<T>(&self) -> Result<T, StateError>
+    where
+        T: Clone + Send + Sync + 'static,
+    {
+        let map = self.inner.read().map_err(|_| StateError::LockError)?;
+
+        let state_ref = map
+            .get(&TypeId::of::<T>())
+            .ok_or(StateError::TypeNotFound)?;
+
+        state_ref
+            .downcast_ref::<T>()
+            .cloned()
+            .ok_or(StateError::TypeNotFound)
+    }
+
+    pub fn borrow<T>(&self) -> Result<Arc<T>, StateError>
+    where
+        T: Send + Sync + 'static,
+    {
         let map = self.inner.read().map_err(|_| StateError::LockError)?;
 
         let state_ref = map
@@ -64,9 +83,7 @@ impl State {
         state_ref
             .clone()
             .downcast::<T>()
-            .map_err(|_| StateError::DowncastFailed {
-                type_name: std::any::type_name::<T>(),
-            })
+            .map_err(|_| StateError::TypeNotFound)
     }
 
     pub(crate) fn insert<T: Send + Sync + 'static>(
