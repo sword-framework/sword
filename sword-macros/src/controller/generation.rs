@@ -1,0 +1,82 @@
+use proc_macro2::TokenStream;
+use quote::quote;
+use syn::{Ident, Type};
+
+use crate::controller::parsing::ControllerInput;
+use crate::middleware::expand_middleware_args;
+
+pub fn generate_controller_builder(input: &ControllerInput) -> TokenStream {
+    let base_path = &input.base_path;
+    let self_name = &input.struct_name;
+    let self_fields = &input.fields;
+    let controller_middlewares = &input.middlewares;
+
+    let field_extractions = generate_field_extractions(self_fields.clone());
+    let field_assignments = generate_field_assignments(self_fields.clone());
+
+    let processed_middlewares: Vec<TokenStream> = controller_middlewares
+        .iter()
+        .map(|mw| expand_middleware_args(mw))
+        .collect();
+
+    quote! {
+
+        impl ::sword::web::ControllerBuilder for #self_name {
+
+            fn base_path() -> &'static str {
+                #base_path
+            }
+
+            fn apply_controller_middlewares(
+                router: ::sword::__internal::AxumRouter,
+                app_state: ::sword::core::State,
+            ) -> ::sword::__internal::AxumRouter {
+                let mut result = router;
+
+                #(
+                    result = result.layer(#processed_middlewares);
+                )*
+
+                result
+            }
+
+            fn build(state: ::sword::core::State) -> Result<Self, ::sword::web::ControllerError> {
+                #field_extractions
+
+                Ok(Self {
+                    #field_assignments
+                })
+            }
+        }
+
+
+    }
+}
+
+fn generate_field_extractions(fields: Vec<(Ident, Type)>) -> TokenStream {
+    let extractions = fields.iter().map(|(field_name, field_type)| {
+        quote! {
+            let #field_name = state.get::<#field_type>().map_err(|e| {
+                ControllerError::StateExtractionError(format!(
+                    "Failed to extract {} from state: {}",
+                    stringify!(#field_type),
+                    e
+                ))
+            })?;
+        }
+    });
+
+    quote! {
+        #(#extractions)*
+    }
+}
+
+fn generate_field_assignments(fields: Vec<(Ident, Type)>) -> TokenStream {
+    let assignments = fields.iter().map(|(name, _)| {
+        quote! { #name }
+    });
+
+    quote! {
+        #(#assignments),*
+    }
+}

@@ -233,6 +233,7 @@ pub use sword_macros::main;
 
 #[doc(hidden)]
 pub mod __internal {
+    pub use axum::body::{Body as AxumBody, HttpBody as AxumHttpBody};
     pub use axum::extract::{FromRequest, FromRequestParts, Request as AxumRequest};
     pub use axum::middleware::Next as AxumNext;
     pub use axum::middleware::from_fn_with_state as mw_with_state;

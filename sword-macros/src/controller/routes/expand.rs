@@ -3,7 +3,7 @@ use proc_macro_error::emit_error;
 use quote::quote;
 use syn::{Attribute, Ident, ImplItem, ItemImpl, parse_macro_input};
 
-use crate::http::{
+use crate::{
     middleware::{expand_middleware_args, parse::MiddlewareKind},
     utils::{HTTP_METHODS, get_attr_http_route},
 };
@@ -95,7 +95,9 @@ pub fn expand_controller_routes(_: TokenStream, item: TokenStream) -> TokenStrea
     let expanded = quote! {
         #input
 
-        impl ::sword::web::Controller for #struct_self {
+        impl ::sword::web::Controller for #struct_self
+            where Self: ::sword::web::ControllerBuilder
+        {
             fn router(app_state: ::sword::core::State) -> ::sword::__internal::AxumRouter {
                 let controller = std::sync::Arc::new(Self::build(app_state.clone()));
 
@@ -103,14 +105,14 @@ pub fn expand_controller_routes(_: TokenStream, item: TokenStream) -> TokenStrea
                     #(#routes)*
                     .with_state(app_state.clone());
 
-                let prefix = #struct_self::prefix();
-                let router_with_global_mw = #struct_self::apply_global_middlewares(base_router, app_state);
+                let base_path = #struct_self::base_path();
+                let router_with_global_mw = #struct_self::apply_controller_middlewares(base_router, app_state.clone());
 
-                if prefix == "/" {
+                if base_path == "/" {
                     router_with_global_mw
                 } else {
                     ::sword::__internal::AxumRouter::new()
-                        .nest(prefix, router_with_global_mw)
+                        .nest(base_path, router_with_global_mw)
                 }
             }
         }

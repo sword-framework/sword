@@ -2,29 +2,28 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, parse_quote};
 
-mod core {
-    pub mod config;
-}
+mod config;
 
-mod http {
-    pub mod controller {
+mod controller {
+    pub mod expand;
+    pub mod generation;
+    pub mod parsing;
+    pub mod routes {
         pub mod expand;
-        pub mod fields;
-        pub mod routes;
-
-        pub use expand::expand_controller;
-        pub use routes::expand_controller_routes;
     }
 
-    pub mod middleware {
-        pub mod expand;
-        pub mod parse;
-
-        pub use expand::expand_middleware_args;
-    }
-
-    pub mod utils;
+    pub use expand::expand_controller;
+    pub use routes::expand::expand_controller_routes;
 }
+
+mod middleware {
+    pub mod expand;
+    pub mod parse;
+
+    pub use expand::expand_middleware_args;
+}
+
+mod utils;
 
 /// Defines a handler for HTTP GET requests.
 /// This macro should be used inside an `impl` block of a struct annotated with the `#[controller]` macro.
@@ -172,7 +171,7 @@ pub fn patch(attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 #[proc_macro_error::proc_macro_error]
 pub fn controller(attr: TokenStream, item: TokenStream) -> TokenStream {
-    http::controller::expand_controller(attr, item)
+    controller::expand_controller(attr, item)
 }
 
 /// Implements the routes for a controller defined with the `#[controller]` macro.
@@ -193,7 +192,7 @@ pub fn controller(attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 #[proc_macro_error::proc_macro_error]
 pub fn routes(attr: TokenStream, item: TokenStream) -> TokenStream {
-    http::controller::expand_controller_routes(attr, item)
+    controller::expand_controller_routes(attr, item)
 }
 
 /// Declares a executable middleware to apply to a route controller.
@@ -273,7 +272,7 @@ pub fn middleware(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// }
 #[proc_macro_attribute]
 pub fn config(attr: TokenStream, item: TokenStream) -> TokenStream {
-    core::config::expand_config_struct(attr, item)
+    config::expand_config_struct(attr, item)
 }
 
 /// ### This is just a re-export of `tokio::main` to simplify the initial setup of

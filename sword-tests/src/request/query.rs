@@ -21,11 +21,6 @@ fn test_server() -> Result<Arc<TestServer>, Box<dyn std::error::Error>> {
         .clone())
 }
 
-#[derive(Deserialize, Serialize)]
-struct Data {
-    name: String,
-}
-
 #[derive(Debug, Deserialize, Serialize)]
 struct QueryData {
     page: Option<u32>,
