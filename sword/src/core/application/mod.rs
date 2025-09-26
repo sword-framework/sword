@@ -224,45 +224,9 @@ impl Application {
             }
         })?;
 
-        self.display(&config);
+        config.display();
 
         Ok(listener)
-    }
-
-    fn display(&self, config: &ApplicationConfig) {
-        let ascii_logo_top =
-            "\n▪──────── ⚔ ──────── ⚔ S W O R D ⚔ ──────── ⚔ ────────▪\n";
-        let ascii_logo_bottom =
-            "\n▪──────── ⚔ ─────────────────────────────── ⚔ ────────▪\n";
-
-        println!("{ascii_logo_top}");
-
-        if let Some(name) = &config.name {
-            println!("Application: {name}");
-        }
-
-        println!("Host: {}", config.host);
-        println!("Port: {}", config.port);
-        println!("Request Body Limit: {}", config.body_limit.raw);
-        println!(
-            "Request timeout: {}",
-            if let Some(timeout) = config.request_timeout_seconds {
-                format!("{} seconds", timeout)
-            } else {
-                "disabled".to_string()
-            }
-        );
-
-        println!(
-            "Graceful shutdown: {}",
-            if config.graceful_shutdown {
-                "enabled"
-            } else {
-                "disabled"
-            }
-        );
-
-        println!("{ascii_logo_bottom}");
     }
 
     async fn graceful_signal() {

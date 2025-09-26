@@ -65,7 +65,7 @@ impl Context {
     ///
     /// ### Returns
     ///
-    /// Returns `Ok(Arc<T>)` containing the state if found, or `Err(StateError)`
+    /// Returns `Ok(T)` containing the state if found, or `Err(StateError)`
     /// if the state type was not registered.
     ///
     /// ### Errors

@@ -275,8 +275,14 @@ pub fn config(attr: TokenStream, item: TokenStream) -> TokenStream {
     config::expand_config_struct(attr, item)
 }
 
+/// Automatically implements the `TryFrom<State>` trait for a struct.
+/// This allows you to easily extract the struct from the application state
+/// in your controller structs.
+///
+/// This can be useful to replace the usage of `ctx.get_state::<MyStruct>()`
+/// with a more idiomatic approach using `TryFrom`.
 #[proc_macro_derive(TryFromState)]
-pub fn state(input: TokenStream) -> TokenStream {
+pub fn try_from_state(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as syn::DeriveInput);
     let struct_name = &input.ident;
 

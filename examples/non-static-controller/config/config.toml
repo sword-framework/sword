@@ -5,6 +5,7 @@ body_limit = "10MB"
 request_timeout_seconds = 30
 graceful_shutdown = false
 name = "Static controllers application"
+environment = "development"
 
 [custom-config]
 some_variable = "some value"

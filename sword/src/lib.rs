@@ -31,14 +31,14 @@
 //!
 //! ## 🎯 Core Features
 //!
-//! - **🛣️ Macro-based routing** - Clean and intuitive route definitions using `#[get]`, `#[post]`, etc.
-//! - **📄 JSON-first design** - Built-in JSON serialization/deserialization support
-//! - **✅ Request validation** - Automatic validation using `serde` and `validator` crates
-//! - **🌐 RFC-compliant HTTP responses** - Standards-compliant HTTP handling
-//! - **🕸️ Express-like Context** - Rich request context with utility methods
-//! - **💉 Dependency Injection** - Optional DI support using `shaku` crate
-//! - **🧩 Middleware system** - Flexible middleware at route and controller levels
-//! - **🚀 Async by default** - Built on `tokio` and `axum` for high performance
+//! - ** Macro-based routing** - Clean and intuitive route definitions using `#[get]`, `#[post]`, etc.
+//! - ** JSON-first design** - Built-in JSON serialization/deserialization support
+//! - ** Request validation** - Automatic validation using `serde` and `validator` crates
+//! - ** RFC-compliant HTTP responses** - Standards-compliant HTTP handling
+//! - ** Express-like Context** - Rich request context with utility methods
+//! - ** Dependency Injection** - Optional DI support using `shaku` crate
+//! - ** Middleware system** - Flexible middleware at route and controller levels
+//! - ** Async by default** - Built on `tokio` and `axum` for high performance
 //!
 //! ## 📦 Optional Features
 //!

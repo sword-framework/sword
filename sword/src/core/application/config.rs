@@ -1,6 +1,7 @@
 use std::str::FromStr;
 
 use byte_unit::Byte;
+use colored::Colorize;
 use serde::{Deserialize, Serialize};
 
 use crate::core::ConfigItem;
@@ -66,6 +67,49 @@ pub struct ApplicationConfig {
     /// Optional name of the application.
     /// This can be used for logging or display purposes.
     pub name: Option<String>,
+
+    /// Optional environment name (e.g., "development", "production").
+    /// This can be used to alter behavior based on the environment.
+    pub environment: Option<String>,
+}
+
+impl ApplicationConfig {
+    pub fn display(&self) {
+        let banner_top = "▪───────────────── ⚔ S W O R D ⚔ ───────────────▪".white();
+        let banner_bot = "▪───────────────── ⚔ ───────── ⚔ ───────────────▪".white();
+
+        println!("\n{}\n", banner_top);
+
+        if let Some(name) = &self.name {
+            println!("Application: {}", name.bright_green());
+        }
+
+        println!("Host: {}", self.host);
+        println!("Port: {}", self.port);
+        println!("Request Size Limit: {}", self.body_limit.raw);
+
+        let timeout_display = if let Some(timeout) = self.request_timeout_seconds {
+            format!("{} seconds", timeout)
+        } else {
+            "disabled".dimmed().to_string()
+        };
+
+        println!("Timeout: {}", timeout_display);
+
+        let shutdown_display = if self.graceful_shutdown {
+            "enabled".bright_green()
+        } else {
+            "disabled".bright_red()
+        };
+
+        println!("Graceful Shutdown: {}", shutdown_display);
+
+        if let Some(env) = &self.environment {
+            println!("Environment: {}", env.bright_blue());
+        }
+
+        println!("\n{}", banner_bot);
+    }
 }
 
 #[derive(Debug, Clone, Serialize)]
