@@ -10,53 +10,53 @@ struct TestController;
 #[routes]
 impl TestController {
     #[get("/timeout")]
-    async fn timeout(_: Context) -> HttpResult<HttpResponse> {
+    async fn timeout(&self, _: Context) -> HttpResult<HttpResponse> {
         time::sleep(time::Duration::from_secs(3)).await;
         Ok(HttpResponse::Ok().message("This should not be reached"))
     }
 
     #[get("/timeout-boundary")]
-    async fn timeout_boundary(_: Context) -> HttpResult<HttpResponse> {
+    async fn timeout_boundary(&self, _: Context) -> HttpResult<HttpResponse> {
         time::sleep(time::Duration::from_millis(2000)).await;
         Ok(HttpResponse::Ok().message("This should timeout"))
     }
 
     #[get("/timeout-just-under")]
-    async fn timeout_just_under(_: Context) -> HttpResult<HttpResponse> {
+    async fn timeout_just_under(&self, _: Context) -> HttpResult<HttpResponse> {
         time::sleep(time::Duration::from_millis(1900)).await;
         Ok(HttpResponse::Ok().message("This should complete"))
     }
 
     #[get("/timeout-just-over")]
-    async fn timeout_just_over(_: Context) -> HttpResult<HttpResponse> {
+    async fn timeout_just_over(&self, _: Context) -> HttpResult<HttpResponse> {
         time::sleep(time::Duration::from_millis(2100)).await;
         Ok(HttpResponse::Ok().message("This should timeout"))
     }
 
     #[get("/no-timeout")]
-    async fn no_timeout(_: Context) -> HttpResult<HttpResponse> {
+    async fn no_timeout(&self, _: Context) -> HttpResult<HttpResponse> {
         Ok(HttpResponse::Ok().message("Quick response"))
     }
 
     #[post("/content-type-json")]
-    async fn content_type_json(ctx: Context) -> HttpResult<HttpResponse> {
+    async fn content_type_json(&self, ctx: Context) -> HttpResult<HttpResponse> {
         let _body: Value = ctx.body()?;
         Ok(HttpResponse::Ok().message("JSON received"))
     }
 
     #[post("/content-type-form")]
-    async fn content_type_form(_: Context) -> HttpResult<HttpResponse> {
+    async fn content_type_form(&self, _: Context) -> HttpResult<HttpResponse> {
         Ok(HttpResponse::Ok().message("Form data received"))
     }
 
     #[post("/content-type-any")]
-    async fn content_type_any(ctx: Context) -> HttpResult<HttpResponse> {
+    async fn content_type_any(&self, ctx: Context) -> HttpResult<HttpResponse> {
         let _body: String = ctx.body()?;
         Ok(HttpResponse::Ok().message("Any content type"))
     }
 
     #[get("/no-body")]
-    async fn no_body(_: Context) -> HttpResult<HttpResponse> {
+    async fn no_body(&self, _: Context) -> HttpResult<HttpResponse> {
         Ok(HttpResponse::Ok().message("No body required"))
     }
 }

@@ -1,9 +1,6 @@
 use serde::{Deserialize, Serialize};
-
-use sword::prelude::*;
-use sword::web::HttpResult;
-
 use serde_json::{json, Value};
+use sword::prelude::*;
 
 #[derive(Deserialize, Debug, Serialize)]
 #[config(key = "my-custom-section")]
@@ -17,7 +14,7 @@ struct AppController {}
 #[routes]
 impl AppController {
     #[get("/")]
-    async fn get_data() -> HttpResponse {
+    async fn get_data(&self, _: Context) -> HttpResponse {
         let data = vec![
             "This is a basic web server",
             "It serves static data",
@@ -28,12 +25,12 @@ impl AppController {
     }
 
     #[get("/hello")]
-    async fn hello() -> HttpResponse {
+    async fn hello(&self, _: Context) -> HttpResponse {
         HttpResponse::Ok().data("Hello, World!")
     }
 
     #[post("/submit")]
-    async fn submit_data(ctx: Context) -> HttpResult<HttpResponse> {
+    async fn submit_data(&self, ctx: Context) -> HttpResult<HttpResponse> {
         let body = ctx.body::<Value>()?;
         let custom_config = ctx.config::<MyConfig>()?;
 
@@ -46,7 +43,7 @@ impl AppController {
     }
 
     #[get("/json")]
-    async fn get_json() -> HttpResponse {
+    async fn get_json(&self, _: Context) -> HttpResponse {
         HttpResponse::Ok().data(json!({ "foo": "bar" }))
     }
 }

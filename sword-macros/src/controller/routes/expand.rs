@@ -3,7 +3,7 @@ use proc_macro_error::emit_error;
 use quote::quote;
 use syn::{Attribute, Ident, ImplItem, ItemImpl, parse_macro_input};
 
-use crate::http::{
+use crate::{
     middleware::{expand_middleware_args, parse::MiddlewareKind},
     utils::{HTTP_METHODS, get_attr_http_route},
 };
@@ -55,7 +55,25 @@ pub fn expand_controller_routes(_: TokenStream, item: TokenStream) -> TokenStrea
                 };
 
                 let mut handler = quote! {
-                    ::sword::__internal::#routing_fn(#struct_self::#method_name)
+                    ::sword::__internal::#routing_fn({
+                        let controller_clone = std::sync::Arc::clone(&controller);
+                        move |ctx: ::sword::web::Context| {
+                            let controller_result = controller_clone.clone();
+
+                            async move {
+                                use sword::__internal::IntoResponse;
+
+                                match controller_result.as_ref() {
+                                    Ok(controller) => {
+                                        controller.#method_name(ctx).await.into_response()
+                                    },
+                                    Err(e) => ::sword::web::HttpResponse::InternalServerError()
+                                        .message(format!("Controller build error: {e}"))
+                                        .into_response(),
+                                }
+                            }
+                        }
+                    })
                 };
 
                 for mw in middlewares.iter().rev() {
@@ -77,21 +95,24 @@ pub fn expand_controller_routes(_: TokenStream, item: TokenStream) -> TokenStrea
     let expanded = quote! {
         #input
 
-        impl ::sword::core::RouterProvider for #struct_self {
+        impl ::sword::web::Controller for #struct_self
+            where Self: ::sword::web::ControllerBuilder
+        {
             fn router(app_state: ::sword::core::State) -> ::sword::__internal::AxumRouter {
+                let controller = std::sync::Arc::new(Self::build(app_state.clone()));
 
                 let base_router = ::sword::__internal::AxumRouter::new()
                     #(#routes)*
                     .with_state(app_state.clone());
 
-                let prefix = #struct_self::prefix();
-                let router_with_global_mw = #struct_self::apply_global_middlewares(base_router, app_state);
+                let base_path = #struct_self::base_path();
+                let router_with_global_mw = #struct_self::apply_controller_middlewares(base_router, app_state.clone());
 
-                if prefix == "/" {
+                if base_path == "/" {
                     router_with_global_mw
                 } else {
                     ::sword::__internal::AxumRouter::new()
-                        .nest(prefix, router_with_global_mw)
+                        .nest(base_path, router_with_global_mw)
                 }
             }
         }

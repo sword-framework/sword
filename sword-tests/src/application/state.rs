@@ -1,5 +1,3 @@
-use std::ops::Deref;
-
 use axum_test::TestServer;
 use serde_json::{Value, json};
 
@@ -12,11 +10,11 @@ struct TestController {}
 #[routes]
 impl TestController {
     #[get("/state")]
-    async fn handler(ctx: Context) -> HttpResult<HttpResponse> {
+    async fn handler(&self, ctx: Context) -> HttpResult<HttpResponse> {
         let data = ctx.get_state::<Value>()?;
 
         Ok(HttpResponse::Ok()
-            .data(data.deref())
+            .data(data)
             .add_header("Content-Type", "application/json"))
     }
 }

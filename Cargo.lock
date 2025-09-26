@@ -1197,6 +1197,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "non-static-controller"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "sword",
+]
+
+[[package]]
 name = "num-conv"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

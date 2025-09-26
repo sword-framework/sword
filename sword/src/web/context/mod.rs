@@ -13,7 +13,9 @@ use axum::{
 };
 
 use serde::de::DeserializeOwned;
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
+#[cfg(feature = "shaku-di")]
+use std::sync::Arc;
 
 #[cfg(feature = "shaku-di")]
 use shaku::{HasComponent, Interface, Module};
@@ -90,9 +92,9 @@ impl Context {
     ///     Ok(HttpResponse::Ok().data(format!("Counter: {}", count + 1)))
     /// }
     /// ```
-    pub fn get_state<T>(&self) -> Result<Arc<T>, StateError>
+    pub fn get_state<T>(&self) -> Result<T, StateError>
     where
-        T: Send + Sync + 'static + Clone,
+        T: Clone + Send + Sync + 'static + Clone,
     {
         let value = self
             .state
@@ -135,7 +137,7 @@ impl Context {
     {
         let module = self
             .state
-            .get::<M>()
+            .borrow::<M>()
             .map_err(|_| StateError::TypeNotFound)?;
 
         let interface = module.resolve();

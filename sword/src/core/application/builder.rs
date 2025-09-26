@@ -17,11 +17,10 @@ use crate::{
     core::{
         application::{Application, ApplicationConfig},
         config::Config,
-        router::RouterProvider,
         state::State,
     },
     errors::{ApplicationError, StateError},
-    web::{ContentTypeCheck, ResponsePrettifier},
+    web::{ContentTypeCheck, Controller, ResponsePrettifier},
 };
 
 /// Builder for constructing a Sword application with various configuration options.
@@ -123,8 +122,8 @@ impl ApplicationBuilder {
     ///     .with_controller::<HomeController>()
     ///     .build();
     /// ```
-    pub fn with_controller<R: RouterProvider>(self) -> Self {
-        let controller_router = R::router(self.state.clone());
+    pub fn with_controller<C: Controller>(self) -> Self {
+        let controller_router = C::router(self.state.clone());
         let router = self.router.clone().merge(controller_router);
 
         Self {

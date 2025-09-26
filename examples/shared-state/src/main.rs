@@ -1,7 +1,5 @@
 use serde_json::json;
-
 use sword::prelude::*;
-use sword::web::HttpResult;
 
 mod state;
 use crate::state::AppState;
@@ -12,7 +10,7 @@ struct AppController {}
 #[routes]
 impl AppController {
     #[get("/data")]
-    async fn submit_data(ctx: Context) -> HttpResult<HttpResponse> {
+    async fn submit_data(&self, ctx: Context) -> HttpResult<HttpResponse> {
         let state = ctx.get_state::<AppState>()?;
 
         let count = state.db.read().await.len();

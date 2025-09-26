@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 sword = { workspace = true, features = ["shaku-di"] }
-shaku = { workspace = true }
+shaku = "0.6.2"
 tokio = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

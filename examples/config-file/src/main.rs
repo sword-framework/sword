@@ -1,7 +1,5 @@
-use sword::prelude::*;
-use sword::web::HttpResult;
-
 use serde::{Deserialize, Serialize};
+use sword::prelude::*;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[config(key = "my-custom-section")]
@@ -16,12 +14,12 @@ struct AppController {}
 #[routes]
 impl AppController {
     #[get("/hello")]
-    async fn hello(_: Context) -> HttpResult<HttpResponse> {
+    async fn hello(&self, _: Context) -> HttpResult<HttpResponse> {
         Ok(HttpResponse::Ok().data("Hello, World from config example!"))
     }
 
     #[get("/config")]
-    async fn show_config(ctx: Context) -> HttpResult<HttpResponse> {
+    async fn show_config(&self, ctx: Context) -> HttpResult<HttpResponse> {
         let config = ctx.config::<ApplicationConfig>()?;
 
         Ok(HttpResponse::Ok()
@@ -30,7 +28,7 @@ impl AppController {
     }
 
     #[get("/custom-conf")]
-    async fn custom_config(ctx: Context) -> HttpResult<HttpResponse> {
+    async fn custom_config(&self, ctx: Context) -> HttpResult<HttpResponse> {
         let custom_config = ctx.config::<MyConfig>()?;
 
         Ok(HttpResponse::Ok()

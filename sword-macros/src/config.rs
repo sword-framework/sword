@@ -37,6 +37,15 @@ pub fn expand_config_struct(attr: TokenStream, item: TokenStream) -> TokenStream
                 #toml_key_str
             }
         }
+
+        impl TryFrom<::sword::core::State> for #struct_name {
+            type Error = ::sword::web::HttpResponse;
+
+            fn try_from(state: ::sword::core::State) -> Result<Self, Self::Error> {
+                let config = state.get::<::sword::core::Config>()?;
+                Ok(config.get::<Self>()?)
+            }
+        }
     };
 
     TokenStream::from(expanded)

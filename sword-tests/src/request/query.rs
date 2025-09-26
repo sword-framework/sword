@@ -21,11 +21,6 @@ fn test_server() -> Result<Arc<TestServer>, Box<dyn std::error::Error>> {
         .clone())
 }
 
-#[derive(Deserialize, Serialize)]
-struct Data {
-    name: String,
-}
-
 #[derive(Debug, Deserialize, Serialize)]
 struct QueryData {
     page: Option<u32>,
@@ -92,7 +87,7 @@ pub struct UserController {}
 #[routes]
 impl UserController {
     #[get("/simple-query")]
-    async fn get_users(ctx: Context) -> HttpResult<HttpResponse> {
+    async fn get_users(&self, ctx: Context) -> HttpResult<HttpResponse> {
         let query: Option<QueryData> = ctx.query()?;
 
         Ok(HttpResponse::Ok()
@@ -101,7 +96,10 @@ impl UserController {
     }
 
     #[get("/validate-query")]
-    async fn get_users_with_validation(ctx: Context) -> HttpResult<HttpResponse> {
+    async fn get_users_with_validation(
+        &self,
+        ctx: Context,
+    ) -> HttpResult<HttpResponse> {
         let query: Option<ValidableQueryData> = ctx.validated_query()?;
 
         Ok(HttpResponse::Ok()
@@ -111,6 +109,7 @@ impl UserController {
 
     #[get("/ergonomic-optional-query")]
     async fn get_users_with_ergonomic_query(
+        &self,
         ctx: Context,
     ) -> HttpResult<HttpResponse> {
         let query: OptionalQueryData = ctx.query()?.unwrap_or_default();
@@ -122,6 +121,7 @@ impl UserController {
 
     #[get("/ergonomic-validated-optional-query")]
     async fn get_users_with_ergonomic_validated_optional_query(
+        &self,
         ctx: Context,
     ) -> HttpResult<HttpResponse> {
         let query: DefaultValidableQueryData =
@@ -133,7 +133,10 @@ impl UserController {
     }
 
     #[get("/complex-query")]
-    async fn get_users_with_complex_query(ctx: Context) -> HttpResult<HttpResponse> {
+    async fn get_users_with_complex_query(
+        &self,
+        ctx: Context,
+    ) -> HttpResult<HttpResponse> {
         let query: Option<ComplexQueryData> = ctx.query()?;
 
         Ok(HttpResponse::Ok()
@@ -142,7 +145,10 @@ impl UserController {
     }
 
     #[get("/pattern-match-query")]
-    async fn get_users_with_pattern_match(ctx: Context) -> HttpResult<HttpResponse> {
+    async fn get_users_with_pattern_match(
+        &self,
+        ctx: Context,
+    ) -> HttpResult<HttpResponse> {
         match ctx.query::<OptionalQueryData>()? {
             Some(query) => Ok(HttpResponse::Ok()
                 .data(query)
