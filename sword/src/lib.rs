@@ -82,7 +82,7 @@ mod validation;
 /// ```
 pub mod prelude {
     pub use crate::core::{Application, ApplicationConfig};
-    pub use crate::core::{ConfigItem, config};
+    pub use crate::core::{ConfigItem, TryFromState, config};
 
     pub use crate::errors::{ApplicationError, RequestError, StateError};
     pub use crate::web::*;
@@ -149,16 +149,15 @@ pub mod errors;
 pub mod core {
     mod application;
     mod config;
-    mod router;
     mod state;
     mod utils;
 
-    pub use router::RouterProvider;
     pub use utils::deserialize_size;
 
     pub use application::{Application, ApplicationConfig};
     pub use config::{Config, ConfigItem, config};
     pub use state::State;
+    pub use sword_macros::TryFromState;
 }
 
 /// Web-related components for handling HTTP requests and responses.

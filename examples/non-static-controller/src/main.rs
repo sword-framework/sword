@@ -1,32 +1,47 @@
+use serde::{Deserialize, Serialize};
 use sword::prelude::*;
+
+mod database;
+use crate::database::InMemoryDatabase;
 
 #[controller("/")]
 struct AppController {
-    key: String,
+    db: InMemoryDatabase,
+    config: CustomConfig,
+}
+
+#[derive(Serialize, Deserialize)]
+#[config(key = "custom-config")]
+struct CustomConfig {
+    some_variable: String,
 }
 
 #[routes]
 impl AppController {
     #[get("/")]
-    async fn get_data(&self, _: Context) -> HttpResponse {
-        HttpResponse::Ok().data(&self.key)
+    async fn get_names(&self, _: Context) -> HttpResponse {
+        HttpResponse::Ok().data(self.db.read())
     }
 
-    #[get("/info")]
-    async fn get_info(&self, _: Context) -> HttpResponse {
-        HttpResponse::Ok().data(format!("Info: {}", &self.key))
+    #[post("/{name}")]
+    async fn add_name(&self, ctx: Context) -> HttpResult<HttpResponse> {
+        self.db.write(ctx.param::<String>("name")?);
+
+        Ok(HttpResponse::Created())
     }
 
-    #[post("/update")]
-    async fn update_data(&self, _: Context) -> HttpResponse {
-        HttpResponse::Ok().message("Data updated with key: ".to_string() + &self.key)
+    #[get("/config")]
+    async fn get_config(&self, _: Context) -> HttpResponse {
+        HttpResponse::Ok().data(&self.config)
     }
 }
 
 #[sword::main]
 async fn main() {
+    let in_memory_db = InMemoryDatabase::new();
+
     let app = Application::builder()?
-        .with_state(String::from("Hello, Sword!"))?
+        .with_state(in_memory_db)?
         .with_controller::<AppController>()
         .build();
 

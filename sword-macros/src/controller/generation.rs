@@ -16,7 +16,7 @@ pub fn generate_controller_builder(input: &ControllerInput) -> TokenStream {
 
     let processed_middlewares: Vec<TokenStream> = controller_middlewares
         .iter()
-        .map(|mw| expand_middleware_args(mw))
+        .map(expand_middleware_args)
         .collect();
 
     quote! {
@@ -56,11 +56,11 @@ pub fn generate_controller_builder(input: &ControllerInput) -> TokenStream {
 fn generate_field_extractions(fields: Vec<(Ident, Type)>) -> TokenStream {
     let extractions = fields.iter().map(|(field_name, field_type)| {
         quote! {
-            let #field_name = state.get::<#field_type>().map_err(|e| {
-                ControllerError::StateExtractionError(format!(
-                    "Failed to extract {} from state: {}",
+
+            let #field_name = #field_type::try_from(state.clone()).map_err(|_| {
+                ::sword::web::ControllerError::StateExtractionError(format!(
+                    "Failed to extract {} from state. Is it properly configured?",
                     stringify!(#field_type),
-                    e
                 ))
             })?;
         }

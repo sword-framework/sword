@@ -1,5 +1,11 @@
 # Sword web framework changelog
 
+## [0.1.9]
+
+- Added `TryFromState` derive macro to simplify extracting data from the application state. This macro allows to extract fields from the state struct directly into controller struct fields. See the examples for usage.
+
+- Added `Non static methods for controllers` support. Now, controllers must have `&self` as the first parameter in their methods. This allows to use struct fields that are extracted from the application state using the `TryFromState` derive macro and Config items.
+
 ## [0.1.8]
 
 ### Added
