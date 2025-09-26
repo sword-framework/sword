@@ -19,10 +19,10 @@ async fn main() {
         .with_header(XXSSProtection::on())
         .build();
 
-    let app = Application::builder()?
+    let app = Application::builder()
         .with_controller::<MyController>()
         .with_layer(helmet)
         .build();
 
-    app.run().await?;
+    app.run().await;
 }

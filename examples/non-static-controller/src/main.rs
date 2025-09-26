@@ -40,10 +40,10 @@ impl AppController {
 async fn main() {
     let in_memory_db = InMemoryDatabase::new();
 
-    let app = Application::builder()?
-        .with_state(in_memory_db)?
+    let app = Application::builder()
+        .with_state(in_memory_db)
         .with_controller::<AppController>()
         .build();
 
-    app.run().await?;
+    app.run().await;
 }

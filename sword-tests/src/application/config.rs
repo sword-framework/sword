@@ -27,8 +27,8 @@ impl TestController {
 }
 
 #[tokio::test]
-async fn test_application() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?
+async fn test_application() {
+    let app = Application::builder()
         .with_controller::<TestController>()
         .build();
 
@@ -55,6 +55,4 @@ async fn test_application() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     assert_eq!(json_body.data["custom_key"], expected.custom_key);
-
-    Ok(())
 }

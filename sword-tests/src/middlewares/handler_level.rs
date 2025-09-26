@@ -22,8 +22,6 @@ impl Middleware for MwWithState {
         ctx.extensions.insert::<u16>(8080);
         ctx.extensions.insert(app_state.clone());
 
-        println!("2");
-
         next!(ctx, nxt)
     }
 }
@@ -47,8 +45,6 @@ impl TestController {
     #[middleware(ExtensionsTestMiddleware)]
     async fn extensions_test(&self, ctx: Context) -> HttpResponse {
         let extension_value = ctx.extensions.get::<String>();
-
-        println!("1");
 
         HttpResponse::Ok()
             .message("Test controller response with extensions")
@@ -84,8 +80,8 @@ impl TestController {
 }
 
 #[tokio::test]
-async fn extensions_mw_test() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?
+async fn extensions_mw_test() {
+    let app = Application::builder()
         .with_controller::<TestController>()
         .build();
 
@@ -96,14 +92,12 @@ async fn extensions_mw_test() -> Result<(), Box<dyn std::error::Error>> {
     let json = response.json::<ResponseBody>();
 
     assert_eq!(json.data["extension_value"], "test_extension");
-
-    Ok(())
 }
 
 #[tokio::test]
-async fn middleware_state() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?
-        .with_state(json!({ "key": "value" }))?
+async fn middleware_state() {
+    let app = Application::builder()
+        .with_state(json!({ "key": "value" }))
         .with_controller::<TestController>()
         .build();
 
@@ -117,13 +111,11 @@ async fn middleware_state() -> Result<(), Box<dyn std::error::Error>> {
     assert_eq!(json.data["port"], 8080);
     assert_eq!(json.data["key"], "value");
     assert_eq!(json.data["message"], "test_extension");
-
-    Ok(())
 }
 
 #[tokio::test]
-async fn role_middleware_test() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?
+async fn role_middleware_test() {
+    let app = Application::builder()
         .with_controller::<TestController>()
         .build();
 
@@ -131,6 +123,4 @@ async fn role_middleware_test() -> Result<(), Box<dyn std::error::Error>> {
     let response = test.get("/test/role-test").await;
 
     assert_eq!(response.status_code(), 200);
-
-    Ok(())
 }

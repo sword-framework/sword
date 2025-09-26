@@ -13,15 +13,12 @@ use std::{env, str::FromStr};
 ///
 /// - B (bytes)
 /// - KB, MB, GB, TB (decimal)
-/// - KiB, MiB, GiB, TiB (binary)
 ///
 /// ### Example
 ///
 /// ```toml,ignore
 /// [application]
 /// body_limit = "10MB"  # Parsed as 10,000,000 bytes
-/// # or
-/// body_limit = "10MiB" # Parsed as 10,485,760 bytes
 /// ```
 pub fn deserialize_size<'de, D>(deserializer: D) -> Result<usize, D::Error>
 where

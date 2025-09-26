@@ -39,9 +39,9 @@ impl AppController {
 
 #[sword::main]
 async fn main() {
-    let app = Application::builder()?
+    let app = Application::builder()
         .with_controller::<AppController>()
         .build();
 
-    app.run().await?;
+    app.run().await;
 }

@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, parse_quote};
+use syn::parse_macro_input;
 
 mod config;
 
@@ -538,18 +538,14 @@ pub fn try_from_state(input: TokenStream) -> TokenStream {
 pub fn main(_args: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as syn::ItemFn);
 
-    let mut fn_body = input.block.clone();
+    let fn_body = input.block.clone();
     let fn_attrs = input.attrs.clone();
     let fn_vis = input.vis.clone();
     let _fn_sig = input.sig.clone();
 
-    fn_body
-        .stmts
-        .push(parse_quote!({ Ok::<(), Box<dyn std::error::Error>>(()) }));
-
     let output = quote! {
         #(#fn_attrs)*
-        #fn_vis fn main() -> Result<(), Box<dyn std::error::Error>> {
+        #fn_vis fn main() {
             ::sword::__internal::tokio_runtime::Builder::new_multi_thread()
                 .enable_all()
                 .build()

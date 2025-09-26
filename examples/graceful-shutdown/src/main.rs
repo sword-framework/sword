@@ -27,10 +27,10 @@ impl AdminController {
 
 #[sword::main]
 async fn main() {
-    let app = Application::builder()?
+    let app = Application::builder()
         .with_controller::<AppController>()
         .with_controller::<AdminController>()
         .build();
 
-    app.run().await?;
+    app.run().await;
 }

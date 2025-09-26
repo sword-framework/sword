@@ -9,8 +9,6 @@ impl Middleware for ExtensionsTestMiddleware {
         ctx.extensions
             .insert::<String>("test_extension".to_string());
 
-        println!("DEBERÍA EJECUTARSE PRIMERO");
-
         next!(ctx, nxt)
     }
 }
@@ -24,8 +22,6 @@ impl Middleware for MwWithState {
         ctx.extensions.insert::<u16>(8080);
         ctx.extensions.insert(app_state.clone());
 
-        println!("Debe ejecutarse segundo");
-
         next!(ctx, nxt)
     }
 }
@@ -35,7 +31,6 @@ struct RoleMiddleware;
 impl MiddlewareWithConfig<Vec<&str>> for RoleMiddleware {
     async fn handle(roles: Vec<&str>, ctx: Context, nxt: Next) -> MiddlewareResult {
         dbg!(&roles);
-        println!("Debe ejecutarse segundo");
 
         next!(ctx, nxt)
     }
@@ -84,8 +79,8 @@ impl TestController {
 }
 
 #[tokio::test]
-async fn extensions_mw_test() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?
+async fn extensions_mw_test() {
+    let app = Application::builder()
         .with_controller::<TestController>()
         .build();
 
@@ -96,14 +91,12 @@ async fn extensions_mw_test() -> Result<(), Box<dyn std::error::Error>> {
     let json = response.json::<ResponseBody>();
 
     assert_eq!(json.data["extension_value"], "test_extension");
-
-    Ok(())
 }
 
 #[tokio::test]
-async fn middleware_state() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?
-        .with_state(json!({ "key": "value" }))?
+async fn middleware_state() {
+    let app = Application::builder()
+        .with_state(json!({ "key": "value" }))
         .with_controller::<TestController>()
         .build();
 
@@ -117,19 +110,15 @@ async fn middleware_state() -> Result<(), Box<dyn std::error::Error>> {
     assert_eq!(json.data["port"], 8080);
     assert_eq!(json.data["key"], "value");
     assert_eq!(json.data["message"], "test_extension");
-
-    Ok(())
 }
 
 #[tokio::test]
-async fn role_middleware_test() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?
+async fn role_middleware_test() {
+    let app = Application::builder()
         .with_controller::<TestController>()
         .build();
 
     let test = axum_test::TestServer::new(app.router()).unwrap();
     let response = test.get("/test/role-test").await;
     assert_eq!(response.status_code(), 200);
-
-    Ok(())
 }

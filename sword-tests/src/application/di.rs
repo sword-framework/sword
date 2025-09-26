@@ -192,12 +192,11 @@ impl TestController {
 }
 
 #[tokio::test]
-async fn test_dependency_injection_with_multiple_services()
--> Result<(), Box<dyn std::error::Error>> {
+async fn test_dependency_injection_with_multiple_services() {
     let module = TestModule::builder().build();
 
-    let app = Application::builder()?
-        .with_shaku_di_module(module)?
+    let app = Application::builder()
+        .with_shaku_di_module(module)
         .with_controller::<TestController>()
         .build();
 
@@ -259,17 +258,14 @@ async fn test_dependency_injection_with_multiple_services()
     assert_eq!(final_response.status_code(), 200);
     let final_json = final_response.json::<ResponseBody>();
     assert_eq!(final_json.data["count"], 0);
-
-    Ok(())
 }
 
 #[tokio::test]
-async fn test_service_isolation_between_tests()
--> Result<(), Box<dyn std::error::Error>> {
+async fn test_service_isolation_between_tests() {
     let module = TestModule::builder().build();
 
-    let app = Application::builder()?
-        .with_shaku_di_module(module)?
+    let app = Application::builder()
+        .with_shaku_di_module(module)
         .with_controller::<TestController>()
         .build();
 
@@ -287,6 +283,4 @@ async fn test_service_isolation_between_tests()
     let logs = logs_data["logs"].as_array().unwrap();
 
     assert_eq!(logs.len(), 1);
-
-    Ok(())
 }

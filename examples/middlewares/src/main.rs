@@ -54,10 +54,10 @@ impl TestController {
 
 #[sword::main]
 async fn main() {
-    let app = Application::builder()?
-        .with_state(json!({"key": "value"}))?
+    let app = Application::builder()
+        .with_state(json!({"key": "value"}))
         .with_controller::<TestController>()
         .build();
 
-    app.run().await?;
+    app.run().await;
 }

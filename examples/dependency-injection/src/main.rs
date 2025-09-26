@@ -20,10 +20,10 @@ module! {
 async fn main() {
     let module = AppModule::builder().build();
 
-    let app = Application::builder()?
-        .with_shaku_di_module(module)?
+    let app = Application::builder()
+        .with_shaku_di_module(module)
         .with_controller::<UserController>()
         .build();
 
-    app.run().await?;
+    app.run().await;
 }

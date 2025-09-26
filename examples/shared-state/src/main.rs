@@ -29,10 +29,10 @@ impl AppController {
 async fn main() {
     let app_state = AppState::new();
 
-    let app = Application::builder()?
-        .with_state(app_state)?
+    let app = Application::builder()
+        .with_state(app_state)
         .with_controller::<AppController>()
         .build();
 
-    app.run().await?;
+    app.run().await;
 }
