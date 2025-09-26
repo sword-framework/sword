@@ -8,7 +8,7 @@ lint:
     cargo clippy --workspace --all-targets --all-features -- -D warnings
 
 test entity="":
-    cd sword-tests && cargo test {{entity}}
+    cargo test {{entity}} --workspace --all-features
 
 test-log entity="":
     cargo test {{entity}} -- --nocapture

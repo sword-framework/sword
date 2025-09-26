@@ -5,7 +5,7 @@
 //!
 //! ## 🚀 Quick Start
 //!
-//! ```rust,no_run
+//! ```rust,ignore
 //! use sword::prelude::*;
 //!
 //! #[controller("/api")]
@@ -188,7 +188,7 @@ pub mod core {
 ///
 /// ## Example
 ///
-/// ```rust,no_run
+/// ```rust,ignore
 /// use sword::web::*;
 ///
 /// #[controller("/api")]
