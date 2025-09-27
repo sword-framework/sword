@@ -72,26 +72,6 @@ impl Context {
     ///
     /// This function will return a `StateError::TypeNotFound` if the requested
     /// state type was not registered in the application.
-    ///
-    /// ### Example
-    ///
-    /// ```rust,ignore
-    /// use sword::prelude::*;
-    /// use std::sync::atomic::{AtomicU64, Ordering};
-    ///
-    /// #[derive(Default)]
-    /// struct AppState {
-    ///     counter: AtomicU64,
-    /// }
-    ///
-    /// #[get("/count")]
-    /// async fn increment_counter(ctx: Context) -> HttpResult<HttpResponse> {
-    ///     let state = ctx.get_state::<AppState>()?;
-    ///     let count = state.counter.fetch_add(1, Ordering::SeqCst);
-    ///
-    ///     Ok(HttpResponse::Ok().data(format!("Counter: {}", count + 1)))
-    /// }
-    /// ```
     pub fn get_state<T>(&self) -> Result<T, StateError>
     where
         T: Clone + Send + Sync + 'static + Clone,
@@ -200,7 +180,7 @@ impl Context {
     /// ... asuming the rest of the controller ...
     ///
     /// #[get("/db-info")]
-    /// async fn db_info(ctx: Context) -> HttpResult<HttpResponse> {
+    /// async fn db_info(&self, ctx: Context) -> HttpResult<HttpResponse> {
     ///     let db_config = ctx.config::<DatabaseConfig>()?;
     ///
     ///     Ok(HttpResponse::Ok().data(format!(

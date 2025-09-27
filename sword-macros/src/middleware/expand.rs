@@ -17,7 +17,7 @@ fn expand_sword_middleware(args: &SwordMiddlewareArgs) -> TokenStream {
     match config {
         Some(config) => quote! {
             ::sword::__internal::mw_with_state(
-                app_state.clone(),
+                state.clone(),
                 |ctx: ::sword::web::Context, next: ::sword::web::Next| async move {
                     <#path>::handle(#config, ctx, next).await
                 }
@@ -25,7 +25,7 @@ fn expand_sword_middleware(args: &SwordMiddlewareArgs) -> TokenStream {
         },
         None => quote! {
             ::sword::__internal::mw_with_state(
-                app_state.clone(),
+                state.clone(),
                 |ctx: ::sword::web::Context, next: ::sword::web::Next| async move {
                     <#path>::handle(ctx, next).await
                 }

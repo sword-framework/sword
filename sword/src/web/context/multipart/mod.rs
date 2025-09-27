@@ -12,7 +12,7 @@ impl Context {
     ///
     /// ### Example
     /// ```rust,ignore
-    /// async fn upload(ctx: Context) -> HttpResult<HttpResponse> {
+    /// async fn upload(&self, ctx: Context) -> HttpResult<HttpResponse> {
     ///     let mut multipart = ctx.multipart().await?;
     ///     let mut field_names = Vec::new();
     ///

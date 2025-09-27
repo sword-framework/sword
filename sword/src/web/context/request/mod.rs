@@ -101,7 +101,7 @@ impl Context {
     ///
     /// // Route: GET /users/{id}/posts/{post_id}
     /// #[get("/users/{id}/posts/{post_id}")]
-    /// async fn get_user_post(ctx: Context) -> HttpResult<HttpResponse> {
+    /// async fn get_user_post(&self, ctx: Context) -> HttpResult<HttpResponse> {
     ///     let user_id: u32 = ctx.param("id")?;
     ///     let post_id: u64 = ctx.param("post_id")?;
     ///
@@ -164,7 +164,7 @@ impl Context {
     /// }
     ///
     /// #[post("/users")]
-    /// async fn create_user(ctx: Context) -> HttpResult<HttpResponse> {
+    /// async fn create_user(&self, ctx: Context) -> HttpResult<HttpResponse> {
     ///     let user_data: CreateUserRequest = ctx.body()?;
     ///     
     ///     // Process user creation...
@@ -223,10 +223,10 @@ impl Context {
     ///
     /// // Route: GET /search?q=rust&page=1&limit=10
     /// #[get("/search")]
-    /// async fn search(ctx: Context) -> HttpResult<HttpResponse> {
+    /// async fn search(&self, ctx: Context) -> HttpResult<HttpResponse> {
     ///     let query: SearchQuery = ctx.query()?.unwrap_or_default();
     ///     
-    ///     let search_term = query.q.unwrap_or_else(|| "all".to_string());
+    ///     let search_term = query.q.unwrap_or("".into());
     ///     let page = query.page.unwrap_or(1);
     ///     let limit = query.limit.unwrap_or(20);
     ///     

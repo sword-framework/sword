@@ -26,7 +26,7 @@ impl Context {
     /// ... asuming you have a controller struct ...
     ///
     /// #[get("/show-cookies")]
-    /// async fn show_cookies(ctx: Context) -> HttpResult<HttpResponse> {
+    /// async fn show_cookies(&self, ctx: Context) -> HttpResult<HttpResponse> {
     ///     let cookies = ctx.cookies()?;
     ///     let session_cookie = cookies.get("session_id");
     ///
@@ -61,7 +61,7 @@ impl Context {
     /// ... asuming you have a controller struct ...
     ///
     /// #[get("/set-cookie")]
-    /// async fn set_cookie(mut ctx: Context) -> HttpResult<HttpResponse> {
+    /// async fn set_cookie(&self, mut ctx: Context) -> HttpResult<HttpResponse> {
     ///     let cookie = Cookie::new("session_id", "abc123")
     ///         .path("/")
     ///         .http_only(true)

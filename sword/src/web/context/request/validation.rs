@@ -7,9 +7,11 @@ pub trait RequestValidation {
     fn validated_body<T: DeserializeOwned + Validate>(
         &self,
     ) -> Result<T, RequestError>;
+
     fn validated_query<T: DeserializeOwned + Validate>(
         &self,
     ) -> Result<Option<T>, RequestError>;
+
     fn validated_params<T: DeserializeOwned + Validate>(
         &self,
     ) -> Result<T, RequestError>;
@@ -58,7 +60,7 @@ impl RequestValidation for Context {
     /// }
     ///
     /// #[post("/users")]
-    /// async fn create_user(ctx: Context) -> HttpResult<HttpResponse> {
+    /// async fn create_user(&self, ctx: Context) -> HttpResult<HttpResponse> {
     ///     let user_data: CreateUserRequest = ctx.validated_body()?;
     ///     
     ///     // now data is guaranteed to be valid
@@ -129,7 +131,7 @@ impl RequestValidation for Context {
     ///
     /// // Route: GET /search?q=rust&page=1&limit=10
     /// #[get("/search")]
-    /// async fn search(ctx: Context) -> HttpResult<HttpResponse> {
+    /// async fn search(&self, ctx: Context) -> HttpResult<HttpResponse> {
     ///     let query: SearchQuery = ctx.validated_query()?.unwrap_or_default();
     ///     
     ///     Ok(HttpResponse::Ok().data(query))
