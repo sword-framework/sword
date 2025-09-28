@@ -1,0 +1,9 @@
+[package]
+name = "garde-data-validation"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sword = { workspace = true, features = ["garde"] }
+serde = { workspace = true }
+garde = { workspace = true, features = ["derive"] }

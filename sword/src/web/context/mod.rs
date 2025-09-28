@@ -14,6 +14,7 @@ use axum::{
 
 use serde::de::DeserializeOwned;
 use std::collections::HashMap;
+
 #[cfg(feature = "shaku-di")]
 use std::sync::Arc;
 
@@ -76,10 +77,12 @@ impl Context {
     where
         T: Clone + Send + Sync + 'static + Clone,
     {
+        let type_name = std::any::type_name::<T>().to_string();
+
         let value = self
             .state
             .get::<T>()
-            .map_err(|_| StateError::TypeNotFound)?;
+            .map_err(|_| StateError::TypeNotFound { type_name })?;
 
         Ok(value)
     }
@@ -115,10 +118,12 @@ impl Context {
         M: Module + HasComponent<I> + Send + Sync + 'static,
         I: Interface + ?Sized + 'static,
     {
+        let type_name = std::any::type_name::<I>().to_string();
+
         let module = self
             .state
             .borrow::<M>()
-            .map_err(|_| StateError::TypeNotFound)?;
+            .map_err(|_| StateError::TypeNotFound { type_name })?;
 
         let interface = module.resolve();
 

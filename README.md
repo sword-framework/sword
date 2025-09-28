@@ -12,12 +12,12 @@ It takes advantage of the tokio ecosystem to bring you performance with nice DX.
 
 - **Macro-based routing** - Clean and intuitive route definitions
 - **JSON-first design** - Built with JSON formats as priority
-- **Built-in validation** - Support with `serde` and `validator` crates
+- **Built-in validation** - Support `validator` and `garde` crates
 - **RFC-compliant HTTP responses** - Using `axum_responses` crate
-- **Express-Like** - It provides a `Context` object with utility methods for request handling
 - **Dependency Injection** - Built-in DI support using `shaku` crate
 - **Middleware support** - Easily add middleware to routes or controllers
 - **Asynchronous by default** - Built on top of `axum` and `tokio`
+- **Interactive CLI** - Built to improve the developer experience
 
 ## Usage
 
@@ -36,9 +36,6 @@ serde = { version = "*", features = ["derive"] }
 
 # JSON data handling
 serde_json = "*"
-
-# Data validation and schema definition
-validator = { version = "*", features = ["derive"] }
 ```
 
 ### Basic web server

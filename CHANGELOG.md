@@ -1,10 +1,16 @@
 # Sword web framework changelog
 
-## [0.1.9]
+## Next Release
 
 - Added `TryFromState` derive macro to simplify extracting data from the application state. This macro allows to extract fields from the state struct directly into controller struct fields. See the examples for usage.
 
 - Added `Non static methods for controllers` support. Now, controllers must have `&self` as the first parameter in their methods. This allows to use struct fields that are extracted from the application state using the `TryFromState` derive macro and Config items.
+
+- Added schema validation with feature flags. Now supports the `validator` and `garde` crates, with planned support for `validify`.
+
+- Validation error output has been updated to follow **RFC 9457** (Problem Details for HTTP APIs). Since `garde` does not provide error codes for fields, the `code` field may or may not appear in the HTTP response depending on whether you use `validator` or `garde`.
+
+- With the latest `axum_responses` release, the `data` field in error responses has been removed and replaced with either `error` or `errors`, depending on your configuration. By default, validation errors will be returned under `errors` fields.
 
 ## [0.1.8]
 

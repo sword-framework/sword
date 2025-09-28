@@ -39,6 +39,9 @@ async fn test_application() {
 
     let json_body = response.json::<ResponseBody>();
 
+    assert!(json_body.data.is_some());
+    let data = json_body.data.unwrap();
+
     let expected = MyConfig {
         custom_key: "value".to_string(),
         env_user: Command::new("sh")
@@ -54,5 +57,5 @@ async fn test_application() {
             .to_string(),
     };
 
-    assert_eq!(json_body.data["custom_key"], expected.custom_key);
+    assert_eq!(data["custom_key"], expected.custom_key);
 }

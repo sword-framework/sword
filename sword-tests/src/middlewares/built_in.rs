@@ -77,7 +77,9 @@ async fn timeout() {
         code: 408,
         success: false,
         message: "Request Timeout".into(),
-        data: Value::Null,
+        data: None,
+        error: None,
+        errors: None,
         timestamp: json.timestamp,
     };
 

@@ -38,6 +38,7 @@ async fn test_state() {
     );
 
     let json = response.json::<ResponseBody>();
+    assert!(json.data.is_some());
 
-    assert_eq!(json.data.get("key").unwrap(), "value");
+    assert_eq!(json.data.unwrap().get("key").unwrap(), "value");
 }

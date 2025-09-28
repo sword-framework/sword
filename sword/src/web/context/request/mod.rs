@@ -3,8 +3,19 @@ use std::{collections::HashMap, str::FromStr};
 use axum::http::Method;
 use serde::de::DeserializeOwned;
 
-mod validation;
-pub use validation::RequestValidation;
+pub mod validation {
+    #[cfg(feature = "garde")]
+    pub mod garde;
+
+    #[cfg(feature = "validator")]
+    pub mod validator;
+}
+
+#[cfg(feature = "validator")]
+pub use validation::validator::ValidatorRequestValidation;
+
+#[cfg(feature = "garde")]
+pub use validation::garde::GardeRequestValidation;
 
 use crate::{errors::RequestError, web::Context};
 

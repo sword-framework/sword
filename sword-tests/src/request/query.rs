@@ -3,6 +3,8 @@ use serde::{Deserialize, Serialize};
 use sword::prelude::*;
 use validator::Validate;
 
+use garde::Validate as GardeValidate;
+
 fn test_server() -> TestServer {
     let app = Application::builder()
         .with_controller::<UserController>()
@@ -30,6 +32,14 @@ struct ValidableQueryData {
         min = 1,
         max = 100
     ))]
+    limit: u32,
+}
+
+#[derive(Debug, Deserialize, Serialize, GardeValidate)]
+struct GardeValidableQuery {
+    #[garde(range(min = 1, max = 1000))]
+    page: u32,
+    #[garde(range(min = 1, max = 100))]
     limit: u32,
 }
 
@@ -85,12 +95,24 @@ impl UserController {
             .message("Users retrieved successfully"))
     }
 
+    #[get("/validate-query-garde")]
+    async fn get_users_with_garde_validation(
+        &self,
+        ctx: Context,
+    ) -> HttpResult<HttpResponse> {
+        let query: Option<GardeValidableQuery> = ctx.query_garde()?;
+
+        Ok(HttpResponse::Ok()
+            .data(query)
+            .message("Users retrieved successfully with validation"))
+    }
+
     #[get("/validate-query")]
     async fn get_users_with_validation(
         &self,
         ctx: Context,
     ) -> HttpResult<HttpResponse> {
-        let query: Option<ValidableQueryData> = ctx.validated_query()?;
+        let query: Option<ValidableQueryData> = ctx.query_validator()?;
 
         Ok(HttpResponse::Ok()
             .data(query)
@@ -115,7 +137,7 @@ impl UserController {
         ctx: Context,
     ) -> HttpResult<HttpResponse> {
         let query: DefaultValidableQueryData =
-            ctx.validated_query()?.unwrap_or_default();
+            ctx.query_validator()?.unwrap_or_default();
 
         Ok(HttpResponse::Ok()
             .data(query)
@@ -155,15 +177,18 @@ async fn unvalidated_query_test() {
     let app = test_server();
 
     let response = app.get("/users/simple-query?page=1&limit=5").await;
-
     let json = response.json::<ResponseBody>();
 
     assert_eq!(200_u16, response.status_code().as_u16());
-    assert!(json.data.get("page").is_some());
-    assert!(json.data.get("limit").is_some());
+    assert!(json.data.is_some());
 
-    assert_eq!(json.data.get("page").unwrap(), "1".parse::<u32>().unwrap());
-    assert_eq!(json.data.get("limit").unwrap(), "5".parse::<u32>().unwrap());
+    let data = json.data.unwrap();
+
+    assert!(data.get("page").is_some());
+    assert!(data.get("limit").is_some());
+
+    assert_eq!(data.get("page").unwrap(), "1".parse::<u32>().unwrap());
+    assert_eq!(data.get("limit").unwrap(), "5".parse::<u32>().unwrap());
 }
 
 #[tokio::test]
@@ -174,34 +199,36 @@ async fn validated_query_test() {
     let json = response.json::<ResponseBody>();
 
     assert_eq!(200_u16, response.status_code().as_u16());
-    assert!(json.data.get("page").is_some());
-    assert!(json.data.get("limit").is_some());
+    assert!(json.data.is_some());
 
-    assert_eq!(json.data.get("page").unwrap(), "1".parse::<u32>().unwrap());
-    assert_eq!(json.data.get("limit").unwrap(), "5".parse::<u32>().unwrap());
+    let data = json.data.unwrap();
+
+    assert!(data.get("page").is_some());
+    assert!(data.get("limit").is_some());
+
+    assert_eq!(data.get("page").unwrap(), "1".parse::<u32>().unwrap());
+    assert_eq!(data.get("limit").unwrap(), "5".parse::<u32>().unwrap());
 }
 
 #[tokio::test]
-async fn validated_query_error_test() {
+async fn validated_query_error_test_validator() {
     let app = test_server();
     let response = app.get("/users/validate-query?page=1001&limit=5").await;
 
     let json = response.json::<ResponseBody>();
 
     assert_eq!(400_u16, response.status_code().as_u16());
+    assert!(json.data.is_some());
 
-    assert!(json.data.get("type").is_some());
-    assert_eq!(json.data.get("type").unwrap(), "ValidationError");
-    assert!(json.data.get("errors").is_some());
+    let data = json.data.unwrap();
+    let page_errors = data.get("page").unwrap().as_array().unwrap();
 
-    let errors = json.data.get("errors").unwrap().as_array().unwrap();
+    assert_eq!(page_errors.len(), 1);
 
-    assert_eq!(errors.len(), 1);
+    let error = &page_errors[0];
 
-    let error = &errors[0];
-
-    assert!(error.get("field").is_some());
-    assert_eq!(error.get("field").unwrap(), "page");
+    assert!(error.get("code").is_some());
+    assert_eq!(error.get("code").unwrap(), "range");
     assert!(error.get("message").is_some());
     assert_eq!(
         error.get("message").unwrap(),
@@ -210,9 +237,31 @@ async fn validated_query_error_test() {
 }
 
 #[tokio::test]
+async fn validated_query_error_test_garde() {
+    let app = test_server();
+    let response = app
+        .get("/users/validate-query-garde?page=1001&limit=5")
+        .await;
+
+    let json = response.json::<ResponseBody>();
+
+    assert_eq!(400_u16, response.status_code().as_u16());
+    assert!(json.data.is_some());
+
+    let data = json.data.unwrap();
+    let page_errors = data.get("page").unwrap().as_array().unwrap();
+
+    assert_eq!(page_errors.len(), 1);
+
+    let error = &page_errors[0];
+
+    assert!(error.get("message").is_some());
+    assert_eq!(error.get("message").unwrap(), "greater than 1000");
+}
+
+#[tokio::test]
 async fn ergonomic_optional_query_with_params_test() {
     let app = test_server();
-
     let response = app
         .get("/users/ergonomic-optional-query?page=1&limit=5")
         .await;
@@ -220,33 +269,37 @@ async fn ergonomic_optional_query_with_params_test() {
     let json = response.json::<ResponseBody>();
 
     assert_eq!(200_u16, response.status_code().as_u16());
-    assert!(json.data.get("page").is_some());
-    assert!(json.data.get("limit").is_some());
+    assert!(json.data.is_some());
 
-    assert_eq!(json.data.get("page").unwrap(), "1".parse::<u32>().unwrap());
-    assert_eq!(json.data.get("limit").unwrap(), "5".parse::<u32>().unwrap());
+    let data = json.data.unwrap();
+
+    assert!(data.get("page").is_some());
+    assert!(data.get("limit").is_some());
+
+    assert_eq!(data.get("page").unwrap(), "1".parse::<u32>().unwrap());
+    assert_eq!(data.get("limit").unwrap(), "5".parse::<u32>().unwrap());
 }
 
 #[tokio::test]
 async fn ergonomic_optional_query_without_params_test() {
     let app = test_server();
-
     let response = app.get("/users/ergonomic-optional-query").await;
-
     let json = response.json::<ResponseBody>();
 
     assert_eq!(200_u16, response.status_code().as_u16());
-    assert!(json.data.get("page").is_some());
-    assert!(json.data.get("limit").is_some());
+    assert!(json.data.is_some());
 
-    assert!(json.data.get("page").unwrap().is_null());
-    assert!(json.data.get("limit").unwrap().is_null());
+    let data = json.data.unwrap();
+
+    assert!(data.get("page").is_some());
+    assert!(data.get("limit").is_some());
+    assert!(data.get("page").unwrap().is_null());
+    assert!(data.get("limit").unwrap().is_null());
 }
 
 #[tokio::test]
 async fn ergonomic_validated_optional_query_with_params_test() {
     let app = test_server();
-
     let response = app
         .get("/users/ergonomic-validated-optional-query?page=1&limit=5")
         .await;
@@ -254,24 +307,29 @@ async fn ergonomic_validated_optional_query_with_params_test() {
     let json = response.json::<ResponseBody>();
 
     assert_eq!(200_u16, response.status_code().as_u16());
-    assert!(json.data.get("page").is_some());
-    assert!(json.data.get("limit").is_some());
+    assert!(json.data.is_some());
 
-    assert_eq!(json.data.get("page").unwrap(), "1".parse::<u32>().unwrap());
-    assert_eq!(json.data.get("limit").unwrap(), "5".parse::<u32>().unwrap());
+    let data = json.data.unwrap();
+
+    assert!(data.get("page").is_some());
+    assert!(data.get("limit").is_some());
+    assert_eq!(data.get("page").unwrap(), "1".parse::<u32>().unwrap());
+    assert_eq!(data.get("limit").unwrap(), "5".parse::<u32>().unwrap());
 }
 
 #[tokio::test]
 async fn ergonomic_validated_optional_query_without_params_test() {
     let app = test_server();
-
     let response = app.get("/users/ergonomic-validated-optional-query").await;
-
     let json = response.json::<ResponseBody>();
 
     assert_eq!(200_u16, response.status_code().as_u16());
-    assert!(json.data.get("page").is_some());
-    assert!(json.data.get("limit").is_some());
+    assert!(json.data.is_some());
+
+    let data = json.data.unwrap();
+
+    assert!(data.get("page").is_some());
+    assert!(data.get("limit").is_some());
 }
 
 #[tokio::test]
@@ -312,8 +370,9 @@ async fn complex_encoded_query_test() {
     let json = response.json::<ResponseBody>();
 
     assert_eq!(200_u16, response.status_code().as_u16());
+    assert!(json.data.is_some());
 
-    let data = &json.data;
+    let data = &json.data.unwrap();
 
     if let Some(page) = data.get("page") {
         assert_eq!(page, &1u32);

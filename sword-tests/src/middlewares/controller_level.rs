@@ -1,3 +1,4 @@
+use axum_test::TestServer;
 use serde_json::{Value, json};
 use sword::prelude::*;
 use sword::web::HttpResult;
@@ -84,13 +85,17 @@ async fn extensions_mw_test() {
         .with_controller::<TestController>()
         .build();
 
-    let test = axum_test::TestServer::new(app.router()).unwrap();
+    let test = TestServer::new(app.router()).unwrap();
     let response = test.get("/test/extensions-test").await;
     assert_eq!(response.status_code(), 200);
 
     let json = response.json::<ResponseBody>();
 
-    assert_eq!(json.data["extension_value"], "test_extension");
+    assert!(json.data.is_some());
+
+    let data = json.data.unwrap();
+
+    assert_eq!(data["extension_value"], "test_extension");
 }
 
 #[tokio::test]
@@ -100,16 +105,20 @@ async fn middleware_state() {
         .with_controller::<TestController>()
         .build();
 
-    let test = axum_test::TestServer::new(app.router()).unwrap();
+    let test = TestServer::new(app.router()).unwrap();
     let response = test.get("/test/middleware-state").await;
 
     assert_eq!(response.status_code(), 200);
 
     let json = response.json::<ResponseBody>();
 
-    assert_eq!(json.data["port"], 8080);
-    assert_eq!(json.data["key"], "value");
-    assert_eq!(json.data["message"], "test_extension");
+    assert!(json.data.is_some());
+
+    let data = json.data.unwrap();
+
+    assert_eq!(data["port"], 8080);
+    assert_eq!(data["key"], "value");
+    assert_eq!(data["message"], "test_extension");
 }
 
 #[tokio::test]
@@ -118,7 +127,8 @@ async fn role_middleware_test() {
         .with_controller::<TestController>()
         .build();
 
-    let test = axum_test::TestServer::new(app.router()).unwrap();
+    let test = TestServer::new(app.router()).unwrap();
     let response = test.get("/test/role-test").await;
+
     assert_eq!(response.status_code(), 200);
 }

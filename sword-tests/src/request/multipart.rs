@@ -68,8 +68,10 @@ async fn exceed_limit() -> Result<(), Box<dyn std::error::Error>> {
 
     assert_eq!(response.status_code(), 413);
 
-    assert_eq!(json.message, "Request payload too large".into());
-    assert_eq!(json.data["type"], "PayloadTooLarge");
+    assert_eq!(
+        json.message,
+        "The request body exceeds the maximum allowed size by the server".into()
+    );
 
     Ok(())
 }
@@ -155,8 +157,11 @@ async fn body_limit_just_over_limit() -> Result<(), Box<dyn std::error::Error>> 
 
     assert_eq!(response.status_code(), 413);
     let json = response.json::<ResponseBody>();
-    assert_eq!(json.message, "Request payload too large".into());
-    assert_eq!(json.data["type"], "PayloadTooLarge");
+
+    assert_eq!(
+        json.message,
+        "The request body exceeds the maximum allowed size by the server".into()
+    );
 
     Ok(())
 }
@@ -195,8 +200,11 @@ async fn body_limit_multiple_fields_exceed_limit()
 
     assert_eq!(response.status_code(), 413);
     let json = response.json::<ResponseBody>();
-    assert_eq!(json.message, "Request payload too large".into());
-    assert_eq!(json.data["type"], "PayloadTooLarge");
+
+    assert_eq!(
+        json.message,
+        "The request body exceeds the maximum allowed size by the server".into()
+    );
 
     Ok(())
 }

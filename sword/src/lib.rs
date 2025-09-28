@@ -55,7 +55,6 @@
 //! - `helmet` - Security headers middleware
 //! - `shaku-di` - Dependency injection
 //!
-mod validation;
 
 /// The prelude module contains the most commonly used items from the Sword framework.
 ///
@@ -81,6 +80,12 @@ pub mod prelude {
 
     #[cfg(feature = "multipart")]
     pub use crate::web::multipart;
+
+    #[cfg(feature = "validator")]
+    pub use crate::web::ValidatorRequestValidation;
+
+    #[cfg(feature = "garde")]
+    pub use crate::web::GardeRequestValidation;
 }
 
 /// Error types and error handling utilities.
@@ -205,7 +210,8 @@ pub mod web {
     pub use sword_macros::{controller, delete, get, patch, post, put, routes};
 
     pub use crate::next;
-    pub use context::{Context, request::RequestValidation};
+
+    pub use context::Context;
     pub use middleware::*;
 
     pub use controller::{Controller, ControllerBuilder, ControllerError};
@@ -215,6 +221,12 @@ pub mod web {
 
     #[cfg(feature = "cookies")]
     pub use context::cookies;
+
+    #[cfg(feature = "validator")]
+    pub use context::request::ValidatorRequestValidation;
+
+    #[cfg(feature = "garde")]
+    pub use context::request::GardeRequestValidation;
 }
 
 pub use sword_macros::main;
