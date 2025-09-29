@@ -41,13 +41,13 @@ impl TestController {
     #[get("/role-test")]
     #[middleware(MwWithState)]
     #[middleware(RoleMiddleware, config = vec!["admin", "user"])]
-    async fn role_test(&self, _: Context) -> HttpResponse {
+    async fn role_test(&self) -> HttpResponse {
         HttpResponse::Ok().message("Role middleware test passed")
     }
 
     #[get("/error-test")]
     #[middleware(ErrorMiddleware)]
-    async fn error_test(&self, _: Context) -> HttpResponse {
+    async fn error_test(&self) -> HttpResponse {
         HttpResponse::Ok()
     }
 }

@@ -14,7 +14,7 @@ struct AppController {}
 #[routes]
 impl AppController {
     #[get("/")]
-    async fn get_data(&self, _: Context) -> HttpResponse {
+    async fn get_data(&self) -> HttpResponse {
         let data = vec![
             "This is a basic web server",
             "It serves static data",
@@ -25,7 +25,7 @@ impl AppController {
     }
 
     #[get("/hello")]
-    async fn hello(&self, _: Context) -> HttpResponse {
+    async fn hello(&self) -> HttpResponse {
         HttpResponse::Ok().data("Hello, World!")
     }
 
@@ -43,7 +43,7 @@ impl AppController {
     }
 
     #[get("/json")]
-    async fn get_json(&self, _: Context) -> HttpResponse {
+    async fn get_json(&self) -> HttpResponse {
         HttpResponse::Ok().data(json!({ "foo": "bar" }))
     }
 }

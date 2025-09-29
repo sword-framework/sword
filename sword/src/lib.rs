@@ -14,7 +14,7 @@
 //! #[routes]
 //! impl ApiController {
 //!     #[get("/hello")]
-//!     async fn hello(&self) -> HttpResponse {
+//!     async fn hello() -> HttpResponse {
 //!         HttpResponse::Ok().message("Hello, World!")
 //!     }
 //! }
@@ -83,9 +83,6 @@ pub mod prelude {
 
     #[cfg(feature = "validator")]
     pub use crate::web::ValidatorRequestValidation;
-
-    #[cfg(feature = "garde")]
-    pub use crate::web::GardeRequestValidation;
 }
 
 /// Error types and error handling utilities.
@@ -99,22 +96,6 @@ pub mod prelude {
 ///
 /// All errors implement the standard `Error` trait and provide detailed error messages
 /// for debugging and logging purposes.
-///
-/// ## Error Handling Patterns
-///
-/// ```rust,ignore
-/// use sword::prelude::*;
-///
-/// #[get("/users/:id")]
-/// async fn get_user(ctx: Context) -> HttpResult<HttpResponse> {
-///     // This returns a RequestError if parsing fails
-///     let user_id = ctx.param::<u32>("id")?;
-///     
-///     // This returns a StateError if state not found
-///     let db = ctx.get_state::<Database>()?;
-///     
-///     Ok(HttpResponse::Ok().data(user_id))
-/// }
 /// ```
 pub mod errors;
 
@@ -191,7 +172,7 @@ pub mod core {
 /// #[routes]
 /// impl ApiController {
 ///     #[get("/users/:id")]
-///     async fn get_user(ctx: Context) -> HttpResult<HttpResponse> {
+///     async fn get_user(&self, ctx: Context) -> HttpResult<HttpResponse> {
 ///         let user_id = ctx.param::<u32>("id")?;
 ///         // ... fetch user logic
 ///         Ok(HttpResponse::Ok().message(format!("User {}", user_id)))
@@ -199,7 +180,6 @@ pub mod core {
 /// }
 /// ```
 pub mod web {
-
     mod context;
     mod controller;
     mod middleware;
@@ -224,9 +204,6 @@ pub mod web {
 
     #[cfg(feature = "validator")]
     pub use context::request::ValidatorRequestValidation;
-
-    #[cfg(feature = "garde")]
-    pub use context::request::GardeRequestValidation;
 }
 
 pub use sword_macros::main;

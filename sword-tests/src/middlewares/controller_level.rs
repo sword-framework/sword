@@ -74,7 +74,7 @@ impl TestController {
 
     #[get("/role-test")]
     #[middleware(RoleMiddleware, config = vec!["admin", "user"])]
-    async fn role_test(&self, _: Context) -> HttpResponse {
+    async fn role_test(&self) -> HttpResponse {
         HttpResponse::Ok()
     }
 }

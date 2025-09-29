@@ -12,13 +12,13 @@ struct AppController {}
 impl AppController {
     #[get("/")]
     #[middleware(TimeoutLayer::new(Duration::from_secs(2)))]
-    async fn get_data(&self, _: Context) -> HttpResponse {
+    async fn get_data(&self) -> HttpResponse {
         sleep(Duration::from_secs(3)).await;
         HttpResponse::Ok()
     }
 
     #[get("/fast")]
-    async fn get_fast_data(&self, _: Context) -> HttpResponse {
+    async fn get_fast_data(&self) -> HttpResponse {
         HttpResponse::Ok()
     }
 }

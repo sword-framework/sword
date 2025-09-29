@@ -1,24 +1,16 @@
+mod extractors;
 mod schemas;
 
-use schemas::{MyBody, MyQuery};
+use schemas::MyBody;
 use sword::prelude::*;
+
+use crate::extractors::GardeRequestValidation;
 
 #[controller("/")]
 struct AppController {}
 
 #[routes]
 impl AppController {
-    #[get("/hello")]
-    async fn hello(&self, ctx: Context) -> HttpResult<HttpResponse> {
-        match ctx.query_garde::<MyQuery>()? {
-            Some(query) => Ok(HttpResponse::Ok()
-                .data(query)
-                .message("Hello with query parameters")),
-
-            None => Ok(HttpResponse::Ok().message("Hello without query parameters")),
-        }
-    }
-
     #[post("/submit")]
     async fn submit_data(&self, ctx: Context) -> HttpResult<HttpResponse> {
         let body = ctx.body_garde::<MyBody>()?;

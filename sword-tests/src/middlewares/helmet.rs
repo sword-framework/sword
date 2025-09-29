@@ -8,7 +8,7 @@ struct HelmetTestController;
 #[routes]
 impl HelmetTestController {
     #[get("/")]
-    async fn index(&self, _: Context) -> HttpResponse {
+    async fn index(&self) -> HttpResponse {
         HttpResponse::Ok().message("Hello from helmet test")
     }
 }

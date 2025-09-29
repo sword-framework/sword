@@ -4,18 +4,12 @@ use axum::http::Method;
 use serde::de::DeserializeOwned;
 
 pub mod validation {
-    #[cfg(feature = "garde")]
-    pub mod garde;
-
     #[cfg(feature = "validator")]
     pub mod validator;
 }
 
 #[cfg(feature = "validator")]
 pub use validation::validator::ValidatorRequestValidation;
-
-#[cfg(feature = "garde")]
-pub use validation::garde::GardeRequestValidation;
 
 use crate::{errors::RequestError, web::Context};
 
@@ -137,6 +131,10 @@ impl Context {
         let details = format!("Parameter '{key}' not found in request parameters");
 
         Err(RequestError::ParseError(message, details))
+    }
+
+    pub fn params(&self) -> &HashMap<String, String> {
+        &self.params
     }
 
     /// Deserializes the request body from JSON to a specific type.

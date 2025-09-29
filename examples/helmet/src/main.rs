@@ -7,7 +7,7 @@ struct MyController;
 #[routes]
 impl MyController {
     #[get("/")]
-    async fn index(&self, _: Context) -> HttpResult<HttpResponse> {
+    async fn index(&self) -> HttpResult<HttpResponse> {
         Ok(HttpResponse::Ok().message("Hello, Helmet!"))
     }
 }

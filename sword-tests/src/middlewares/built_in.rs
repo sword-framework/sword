@@ -1,7 +1,7 @@
 use axum_test::{TestServer, multipart::MultipartForm};
 use serde_json::Value;
 use sword::prelude::*;
-use tokio::time;
+use tokio::time::{Duration, sleep};
 
 use multipart::bytes::Bytes;
 
@@ -11,31 +11,31 @@ struct TestController;
 #[routes]
 impl TestController {
     #[get("/timeout")]
-    async fn timeout(&self, _: Context) -> HttpResult<HttpResponse> {
-        time::sleep(time::Duration::from_secs(3)).await;
+    async fn timeout(&self) -> HttpResult<HttpResponse> {
+        sleep(Duration::from_secs(3)).await;
         Ok(HttpResponse::Ok().message("This should not be reached"))
     }
 
     #[get("/timeout-boundary")]
-    async fn timeout_boundary(&self, _: Context) -> HttpResult<HttpResponse> {
-        time::sleep(time::Duration::from_millis(2000)).await;
+    async fn timeout_boundary(&self) -> HttpResult<HttpResponse> {
+        sleep(Duration::from_millis(2000)).await;
         Ok(HttpResponse::Ok().message("This should timeout"))
     }
 
     #[get("/timeout-just-under")]
-    async fn timeout_just_under(&self, _: Context) -> HttpResult<HttpResponse> {
-        time::sleep(time::Duration::from_millis(1900)).await;
+    async fn timeout_just_under(&self) -> HttpResult<HttpResponse> {
+        sleep(Duration::from_millis(1900)).await;
         Ok(HttpResponse::Ok().message("This should complete"))
     }
 
     #[get("/timeout-just-over")]
-    async fn timeout_just_over(&self, _: Context) -> HttpResult<HttpResponse> {
-        time::sleep(time::Duration::from_millis(2100)).await;
+    async fn timeout_just_over(&self) -> HttpResult<HttpResponse> {
+        sleep(Duration::from_millis(2100)).await;
         Ok(HttpResponse::Ok().message("This should timeout"))
     }
 
     #[get("/no-timeout")]
-    async fn no_timeout(&self, _: Context) -> HttpResult<HttpResponse> {
+    async fn no_timeout(&self) -> HttpResult<HttpResponse> {
         Ok(HttpResponse::Ok().message("Quick response"))
     }
 
@@ -46,7 +46,7 @@ impl TestController {
     }
 
     #[post("/content-type-form")]
-    async fn content_type_form(&self, _: Context) -> HttpResult<HttpResponse> {
+    async fn content_type_form(&self) -> HttpResult<HttpResponse> {
         Ok(HttpResponse::Ok().message("Form data received"))
     }
 
@@ -57,7 +57,7 @@ impl TestController {
     }
 
     #[get("/no-body")]
-    async fn no_body(&self, _: Context) -> HttpResult<HttpResponse> {
+    async fn no_body(&self) -> HttpResult<HttpResponse> {
         Ok(HttpResponse::Ok().message("No body required"))
     }
 }

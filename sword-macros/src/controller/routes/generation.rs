@@ -29,25 +29,48 @@ pub fn generate_controller_routes(
             _ => emit_error!("Unsupported HTTP method: {}", route.method),
         };
 
-        let mut handler = quote! {
-            ::sword::__internal::#routing_function({
-                let controller_build = std::sync::Arc::clone(&controller);
+        let mut handler = if route.needs_context {
+            quote! {
+                ::sword::__internal::#routing_function({
+                    let controller_build = std::sync::Arc::clone(&controller);
 
-                move |ctx: ::sword::web::Context| {
-                    let controller_build = controller_build.clone();
+                    move |ctx: ::sword::web::Context| {
+                        let controller_build = controller_build.clone();
 
-                    async move {
-                        use ::sword::__internal::IntoResponse;
+                        async move {
+                            use ::sword::__internal::IntoResponse;
 
-                        match controller_build.as_ref() {
-                            Ok(controller) => controller.#handler_name(ctx).await.into_response(),
-                            Err(err) => ::sword::web::HttpResponse::InternalServerError()
-                                .message(format!("Controller build error: {err}"))
-                                .into_response(),
+                            match controller_build.as_ref() {
+                                Ok(controller) => controller.#handler_name(ctx).await.into_response(),
+                                Err(err) => ::sword::web::HttpResponse::InternalServerError()
+                                    .message(format!("Controller build error: {err}"))
+                                    .into_response(),
+                            }
                         }
                     }
-                }
-            })
+                })
+            }
+        } else {
+            quote! {
+                ::sword::__internal::#routing_function({
+                    let controller_build = std::sync::Arc::clone(&controller);
+
+                    move |_ctx: ::sword::web::Context| {
+                        let controller_build = controller_build.clone();
+
+                        async move {
+                            use ::sword::__internal::IntoResponse;
+
+                            match controller_build.as_ref() {
+                                Ok(controller) => controller.#handler_name().await.into_response(),
+                                Err(err) => ::sword::web::HttpResponse::InternalServerError()
+                                    .message(format!("Controller build error: {err}"))
+                                    .into_response(),
+                            }
+                        }
+                    }
+                })
+            }
         };
 
         for middleware in route.middlewares.iter().rev() {

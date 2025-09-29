@@ -14,7 +14,7 @@ struct AppController {}
 #[routes]
 impl AppController {
     #[get("/hello")]
-    async fn hello(&self, _: Context) -> HttpResult<HttpResponse> {
+    async fn hello(&self) -> HttpResult<HttpResponse> {
         Ok(HttpResponse::Ok().data("Hello, World from config example!"))
     }
 

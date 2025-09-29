@@ -3,8 +3,6 @@ use serde::{Deserialize, Serialize};
 use sword::prelude::*;
 use validator::Validate;
 
-use garde::Validate as GardeValidate;
-
 fn test_server() -> TestServer {
     let app = Application::builder()
         .with_controller::<UserController>()
@@ -32,14 +30,6 @@ struct ValidableQueryData {
         min = 1,
         max = 100
     ))]
-    limit: u32,
-}
-
-#[derive(Debug, Deserialize, Serialize, GardeValidate)]
-struct GardeValidableQuery {
-    #[garde(range(min = 1, max = 1000))]
-    page: u32,
-    #[garde(range(min = 1, max = 100))]
     limit: u32,
 }
 
@@ -93,18 +83,6 @@ impl UserController {
         Ok(HttpResponse::Ok()
             .data(query)
             .message("Users retrieved successfully"))
-    }
-
-    #[get("/validate-query-garde")]
-    async fn get_users_with_garde_validation(
-        &self,
-        ctx: Context,
-    ) -> HttpResult<HttpResponse> {
-        let query: Option<GardeValidableQuery> = ctx.query_garde()?;
-
-        Ok(HttpResponse::Ok()
-            .data(query)
-            .message("Users retrieved successfully with validation"))
     }
 
     #[get("/validate-query")]
@@ -217,10 +195,12 @@ async fn validated_query_error_test_validator() {
 
     let json = response.json::<ResponseBody>();
 
-    assert_eq!(400_u16, response.status_code().as_u16());
-    assert!(json.data.is_some());
+    dbg!(&json);
 
-    let data = json.data.unwrap();
+    assert_eq!(400_u16, response.status_code().as_u16());
+    assert!(json.errors.is_some());
+
+    let data = json.errors.unwrap();
     let page_errors = data.get("page").unwrap().as_array().unwrap();
 
     assert_eq!(page_errors.len(), 1);
@@ -234,29 +214,6 @@ async fn validated_query_error_test_validator() {
         error.get("message").unwrap(),
         "Page must be between 1 and 1000"
     );
-}
-
-#[tokio::test]
-async fn validated_query_error_test_garde() {
-    let app = test_server();
-    let response = app
-        .get("/users/validate-query-garde?page=1001&limit=5")
-        .await;
-
-    let json = response.json::<ResponseBody>();
-
-    assert_eq!(400_u16, response.status_code().as_u16());
-    assert!(json.data.is_some());
-
-    let data = json.data.unwrap();
-    let page_errors = data.get("page").unwrap().as_array().unwrap();
-
-    assert_eq!(page_errors.len(), 1);
-
-    let error = &page_errors[0];
-
-    assert!(error.get("message").is_some());
-    assert_eq!(error.get("message").unwrap(), "greater than 1000");
 }
 
 #[tokio::test]

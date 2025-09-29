@@ -21,6 +21,7 @@ pub struct RouteInfo {
     pub path: String,
     pub handler_name: Ident,
     pub middlewares: Vec<MiddlewareKind>,
+    pub needs_context: bool,
 }
 
 pub fn parse_routes(input: ItemImpl) -> Vec<RouteInfo> {
@@ -65,11 +66,18 @@ pub fn parse_routes(input: ItemImpl) -> Vec<RouteInfo> {
             }
         }
 
+        let needs_context = handler
+            .sig
+            .inputs
+            .iter()
+            .any(|arg| matches!(arg, syn::FnArg::Typed(_)));
+
         routes.push(RouteInfo {
             method: route_method,
             path: route_path,
             handler_name: handler.sig.ident.clone(),
             middlewares,
+            needs_context,
         });
     }
 

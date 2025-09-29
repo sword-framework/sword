@@ -2,7 +2,7 @@ use thiserror::Error;
 
 mod mappers;
 
-#[cfg(any(feature = "garde", feature = "validator"))]
+#[cfg(feature = "validator")]
 mod formatting;
 
 #[derive(Debug, Error)]
@@ -47,10 +47,6 @@ pub enum RequestError {
     #[cfg(feature = "validator")]
     #[error("Failed to validate request")]
     ValidatorError(&'static str, validator::ValidationErrors),
-
-    #[cfg(feature = "garde")]
-    #[error("Failed to validate request")]
-    GardeError(&'static str, garde::Report),
 
     #[error("Request body is empty")]
     BodyIsEmpty(&'static str),

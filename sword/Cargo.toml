@@ -24,7 +24,6 @@ cookies = ["dep:tower-cookies", "tower-cookies/signed", "tower-cookies/private"]
 helmet = ["dep:axum-helmet"]
 shaku-di = ["dep:shaku"]
 validator = ["dep:validator"]
-garde = ["dep:garde"]
 
 [dependencies]
 tokio = { workspace = true }
@@ -44,7 +43,6 @@ serde_path_to_error = "0.1.17"
 byte-unit = "5.1.6"
 
 regex = "1.11.1"
-garde = { workspace = true, optional = true }
 validator = { workspace = true, optional = true }
 
 tower = "0.5.2"

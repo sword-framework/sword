@@ -15,7 +15,6 @@ sword = { path = "../sword", features = [
     "cookies",
     "helmet",
     "validator",
-    "garde",
 ] }
 
 tokio = { version = "1.45.1", features = ["macros", "rt-multi-thread"] }

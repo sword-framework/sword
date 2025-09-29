@@ -3,9 +3,6 @@ use crate::{errors::*, web::HttpResponse};
 #[cfg(feature = "validator")]
 use crate::errors::formatting::format_validator_errors;
 
-#[cfg(feature = "garde")]
-use crate::errors::formatting::format_garde_errors;
-
 impl From<RequestError> for HttpResponse {
     fn from(error: RequestError) -> HttpResponse {
         match error {
@@ -19,11 +16,6 @@ impl From<RequestError> for HttpResponse {
                     .message(message)
                     .errors(format_validator_errors(errors))
             }
-
-            #[cfg(feature = "garde")]
-            RequestError::GardeError(message, errors) => HttpResponse::BadRequest()
-                .message(message)
-                .errors(format_garde_errors(errors)),
 
             RequestError::BodyIsEmpty(message) => {
                 HttpResponse::BadRequest().message(message)

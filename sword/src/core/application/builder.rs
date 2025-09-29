@@ -114,7 +114,7 @@ impl ApplicationBuilder {
     /// #[routes]
     /// impl HomeController {
     ///     #[get("/")]
-    ///     async fn index(&self, _: Context) -> HttpResult<HttpResponse> {
+    ///     async fn index(&self) -> HttpResult<HttpResponse> {
     ///         Ok(HttpResponse::Ok().message("Welcome to the Home Page"))
     ///     }
     /// }
