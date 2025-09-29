@@ -1,8 +1,4 @@
-use axum_responses::http::HttpResponse;
-use serde_json::json;
-
-use super::{RequestError, StateError};
-use crate::errors::ConfigError;
+use crate::{errors::*, web::HttpResponse};
 
 #[cfg(feature = "validator")]
 use crate::errors::formatting::format_validator_errors;
@@ -14,23 +10,20 @@ impl From<RequestError> for HttpResponse {
     fn from(error: RequestError) -> HttpResponse {
         match error {
             RequestError::ParseError(message, details) => {
-                HttpResponse::BadRequest().message(message).data(json!({
-                    "type": "ParseError",
-                    "details": details
-                }))
+                HttpResponse::BadRequest().message(message).error(details)
             }
 
             #[cfg(feature = "validator")]
             RequestError::ValidatorError(message, errors) => {
                 HttpResponse::BadRequest()
                     .message(message)
-                    .data(format_validator_errors(errors))
+                    .errors(format_validator_errors(errors))
             }
 
             #[cfg(feature = "garde")]
             RequestError::GardeError(message, errors) => HttpResponse::BadRequest()
                 .message(message)
-                .data(format_garde_errors(errors)),
+                .errors(format_garde_errors(errors)),
 
             RequestError::BodyIsEmpty(message) => {
                 HttpResponse::BadRequest().message(message)
@@ -82,7 +75,6 @@ impl From<ConfigError> for HttpResponse {
             }
 
             _ => HttpResponse::InternalServerError()
-                .message("Configuration error")
                 .message("An error occurred while processing the app configuration"),
         }
     }

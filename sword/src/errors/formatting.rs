@@ -1,7 +1,9 @@
+use serde_json::{Map, Value, json};
+
 #[cfg(feature = "garde")]
 use garde::Report;
 
-use serde_json::{Map, Value, json};
+#[cfg(feature = "validator")]
 use validator::ValidationErrors;
 
 #[cfg(feature = "validator")]
