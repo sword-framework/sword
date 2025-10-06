@@ -14,7 +14,7 @@ struct AppController {}
 #[routes]
 impl AppController {
     #[get("/hello")]
-    async fn hello(&self, _: Context) -> HttpResult<HttpResponse> {
+    async fn hello(&self) -> HttpResult<HttpResponse> {
         Ok(HttpResponse::Ok().data("Hello, World from config example!"))
     }
 
@@ -39,9 +39,9 @@ impl AppController {
 
 #[sword::main]
 async fn main() {
-    let app = Application::builder()?
+    let app = Application::builder()
         .with_controller::<AppController>()
         .build();
 
-    app.run().await?;
+    app.run().await;
 }

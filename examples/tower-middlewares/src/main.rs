@@ -12,27 +12,31 @@ struct AppController {}
 impl AppController {
     #[get("/")]
     #[middleware(TimeoutLayer::new(Duration::from_secs(2)))]
-    async fn get_data(&self, _: Context) -> HttpResponse {
+    async fn get_data(&self) -> HttpResponse {
         sleep(Duration::from_secs(3)).await;
         HttpResponse::Ok()
     }
 
     #[get("/fast")]
-    async fn get_fast_data(&self, _: Context) -> HttpResponse {
+    async fn get_fast_data(&self) -> HttpResponse {
         HttpResponse::Ok()
     }
 }
 
 #[sword::main]
 async fn main() {
-    let mut app = Application::builder()?;
+    let mut app = Application::builder();
 
-    let cors_config = app.config.get::<CorsConfig>()?;
+    let cors_config = app
+        .config
+        .get::<CorsConfig>()
+        .expect("Failed to load CORS config");
+
     let cors_middleware = CorsMiddleware::new(cors_config);
 
     app = app
         .with_controller::<AppController>()
         .with_layer(cors_middleware.layer);
 
-    app.build().run().await?;
+    app.build().run().await;
 }

@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, parse_quote};
+use syn::parse_macro_input;
 
 mod config;
 
@@ -8,12 +8,19 @@ mod controller {
     pub mod expand;
     pub mod generation;
     pub mod parsing;
+
     pub mod routes {
-        pub mod expand;
+        mod expand;
+        mod generation;
+        mod parsing;
+
+        pub use expand::*;
+        pub use generation::*;
+        pub use parsing::*;
     }
 
     pub use expand::expand_controller;
-    pub use routes::expand::expand_controller_routes;
+    pub use routes::expand_controller_routes;
 }
 
 mod middleware {
@@ -22,8 +29,6 @@ mod middleware {
 
     pub use expand::expand_middleware_args;
 }
-
-mod utils;
 
 /// Defines a handler for HTTP GET requests.
 /// This macro should be used inside an `impl` block of a struct annotated with the `#[controller]` macro.
@@ -39,7 +44,7 @@ mod utils;
 /// #[routes]
 /// impl MyController {
 ///     #[get("/items")]
-///     async fn get_items(ctx: Context) -> HttpResult<HttpResponse> {
+///     async fn get_items(&self, ctx: Context) -> HttpResult<HttpResponse> {
 ///         Ok(HttpResponse::Ok().message("List of items"))
 ///     }
 /// }
@@ -64,7 +69,7 @@ pub fn get(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// #[routes]
 /// impl MyController {
 ///     #[post("/items")]
-///     async fn create_item(ctx: Context) -> HttpResult<HttpResponse> {
+///     async fn create_item(&self, ctx: Context) -> HttpResult<HttpResponse> {
 ///         Ok(HttpResponse::Ok().message("Item created"))
 ///     }
 /// }
@@ -89,7 +94,7 @@ pub fn post(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// #[routes]
 /// impl MyController {
 ///     #[put("/item/{id}")]
-///     async fn update_item(ctx: Context) -> HttpResult<HttpResponse> {
+///     async fn update_item(&self, ctx: Context) -> HttpResult<HttpResponse> {
 ///         Ok(HttpResponse::Ok().message("Item updated"))
 ///     }
 /// }
@@ -114,7 +119,7 @@ pub fn put(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// #[routes]
 /// impl MyController {
 ///     #[delete("/item/{id}")]
-///     async fn delete_item(ctx: Context) -> HttpResult<HttpResponse> {
+///     async fn delete_item(&self, ctx: Context) -> HttpResult<HttpResponse> {
 ///         Ok(HttpResponse::Ok().message("Item deleted"))
 ///     }
 /// }
@@ -139,7 +144,7 @@ pub fn delete(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// #[routes]
 /// impl MyController {
 ///     #[patch("/item/{id}")]
-///     async fn patch_item(ctx: Context) -> HttpResult<HttpResponse> {
+///     async fn patch_item(&self, ctx: Context) -> HttpResult<HttpResponse> {
 ///         Ok(HttpResponse::Ok().message("Item patched"))
 ///     }
 /// }
@@ -164,10 +169,11 @@ pub fn patch(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// #[routes]
 /// impl MyController {
 ///     #[get("/sub_path")]
-///     async fn my_handler(ctx: Context) -> HttpResult<HttpResponse> {
+///     async fn my_handler(&self, ctx: Context) -> HttpResult<HttpResponse> {
 ///        Ok(HttpResponse::Ok().message("Hello from MyController"))    
 ///     }
 /// }
+/// ```
 #[proc_macro_attribute]
 #[proc_macro_error::proc_macro_error]
 pub fn controller(attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -226,7 +232,7 @@ pub fn routes(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// impl MyController {
 ///     #[get("/items")]
 ///     #[middleware(RoleMiddleware, config = vec!["admin", "user"])]
-///     async fn get_items(ctx: Context) -> HttpResult<HttpResponse> {
+///     async fn get_items(&self, ctx: Context) -> HttpResult<HttpResponse> {
 ///         Ok(HttpResponse::Ok().message("List of items"))
 ///     }
 /// }
@@ -263,7 +269,7 @@ pub fn middleware(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// #[routes]
 /// impl SomeController {
 ///     #[get("/config")]
-///     async fn get_config(ctx: Context) -> HttpResult<HttpResponse> {
+///     async fn get_config(&self, ctx: Context) -> HttpResult<HttpResponse> {
 ///         let config = ctx.config::<MyConfig>()?;
 ///         let message = format!("Config key: {}", config.my_key);
 ///
@@ -538,18 +544,14 @@ pub fn try_from_state(input: TokenStream) -> TokenStream {
 pub fn main(_args: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as syn::ItemFn);
 
-    let mut fn_body = input.block.clone();
+    let fn_body = input.block.clone();
     let fn_attrs = input.attrs.clone();
     let fn_vis = input.vis.clone();
     let _fn_sig = input.sig.clone();
 
-    fn_body
-        .stmts
-        .push(parse_quote!({ Ok::<(), Box<dyn std::error::Error>>(()) }));
-
     let output = quote! {
         #(#fn_attrs)*
-        #fn_vis fn main() -> Result<(), Box<dyn std::error::Error>> {
+        #fn_vis fn main() {
             ::sword::__internal::tokio_runtime::Builder::new_multi_thread()
                 .enable_all()
                 .build()

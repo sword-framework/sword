@@ -20,11 +20,11 @@ impl TestController {
 }
 
 #[tokio::test]
-async fn test_state() -> Result<(), Box<dyn std::error::Error>> {
+async fn test_state() {
     let data = json!({ "key": "value" });
 
-    let app = Application::builder()?
-        .with_state(data)?
+    let app = Application::builder()
+        .with_state(data)
         .with_controller::<TestController>()
         .build();
 
@@ -38,8 +38,7 @@ async fn test_state() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let json = response.json::<ResponseBody>();
+    assert!(json.data.is_some());
 
-    assert_eq!(json.data.get("key").unwrap(), "value");
-
-    Ok(())
+    assert_eq!(json.data.unwrap().get("key").unwrap(), "value");
 }

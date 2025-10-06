@@ -7,7 +7,7 @@ struct MyController;
 #[routes]
 impl MyController {
     #[get("/")]
-    async fn index(&self, _: Context) -> HttpResult<HttpResponse> {
+    async fn index(&self) -> HttpResult<HttpResponse> {
         Ok(HttpResponse::Ok().message("Hello, Helmet!"))
     }
 }
@@ -19,10 +19,10 @@ async fn main() {
         .with_header(XXSSProtection::on())
         .build();
 
-    let app = Application::builder()?
+    let app = Application::builder()
         .with_controller::<MyController>()
         .with_layer(helmet)
         .build();
 
-    app.run().await?;
+    app.run().await;
 }

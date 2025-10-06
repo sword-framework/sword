@@ -19,7 +19,6 @@ use crate::{
         config::Config,
         state::State,
     },
-    errors::{ApplicationError, StateError},
     web::{ContentTypeCheck, Controller, ResponsePrettifier},
 };
 
@@ -77,19 +76,21 @@ impl ApplicationBuilder {
     /// - The configuration file cannot be found or read
     /// - The TOML syntax is invalid
     /// - Environment variable interpolation fails
-    pub fn new() -> Result<Self, ApplicationError> {
+    pub fn new() -> Self {
         let state = State::new();
-        let config = Config::new()?;
+        let config = Config::new().expect("Configuration loading error");
 
-        state.insert(config.clone()).unwrap();
+        state
+            .insert(config.clone())
+            .expect("Failed to insert Config into State");
 
         let router = Router::new().with_state(state.clone());
 
-        Ok(Self {
+        Self {
             router,
             state,
             config,
-        })
+        }
     }
 
     /// Registers a controller in the application.
@@ -107,18 +108,18 @@ impl ApplicationBuilder {
     /// ```rust,ignore
     /// use sword::prelude::*;
     ///
-    /// #[controller]
+    /// #[controller("/")]
     /// struct HomeController;
     ///
     /// #[routes]
     /// impl HomeController {
     ///     #[get("/")]
-    ///     async fn index() -> HttpResult<HttpResponse> {
+    ///     async fn index(&self) -> HttpResult<HttpResponse> {
     ///         Ok(HttpResponse::Ok().message("Welcome to the Home Page"))
     ///     }
     /// }
     ///
-    /// let app = Application::builder()?
+    /// let app = Application::builder()
     ///     .with_controller::<HomeController>()
     ///     .build();
     /// ```
@@ -180,11 +181,9 @@ impl ApplicationBuilder {
     /// throughout the application. The state is automatically wrapped in an `Arc` for
     /// safe sharing across multiple threads.
     ///
-    /// State can be retrieved in handlers using `Context::get_state::<T>()`.
-    ///
     /// ### Type Parameters
     ///
-    /// * `S` - The type of state to store (must implement `Sync + Send + 'static`)
+    /// * `S` - The type of state to store (must implement `Clone + Sync + Send + 'static`)
     ///
     /// ### Arguments
     ///
@@ -212,23 +211,20 @@ impl ApplicationBuilder {
     ///     name: "My App".to_string(),
     /// };
     ///
-    /// let app = Application::builder()?
-    ///     .with_state(app_state)?
+    /// let app = Application::builder()
+    ///     .with_state(app_state)
     ///     .build();
     /// ```
-    pub fn with_state<S: Sync + Send + 'static>(
-        self,
-        state: S,
-    ) -> Result<Self, StateError> {
-        self.state.insert(state)?;
+    pub fn with_state<S: Sync + Send + 'static>(self, state: S) -> Self {
+        self.state.insert(state).expect("Failed to insert state");
 
         let router = Router::new().with_state(self.state.clone());
 
-        Ok(Self {
+        Self {
             router,
             state: self.state,
             config: self.config,
-        })
+        }
     }
 
     /// Registers a Shaku dependency injection module in the application.
@@ -282,15 +278,12 @@ impl ApplicationBuilder {
     ///
     /// let module = AppModule::builder().build();
     ///
-    /// let app = Application::builder()?
-    ///     .with_shaku_di_module(module)?
+    /// let app = Application::builder()
+    ///     .with_shaku_di_module(module)
     ///     .build();
     /// ```
     #[cfg(feature = "shaku-di")]
-    pub fn with_shaku_di_module<M: Sync + Send + 'static>(
-        self,
-        module: M,
-    ) -> Result<Self, StateError> {
+    pub fn with_shaku_di_module<M: Sync + Send + 'static>(self, module: M) -> Self {
         self.with_state(module)
     }
 
@@ -331,5 +324,11 @@ impl ApplicationBuilder {
             router,
             config: self.config,
         }
+    }
+}
+
+impl Default for ApplicationBuilder {
+    fn default() -> Self {
+        Self::new()
     }
 }

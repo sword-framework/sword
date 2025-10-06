@@ -2,13 +2,13 @@ use proc_macro::TokenStream;
 use proc_macro_error::emit_error;
 use syn::{Ident, ItemStruct, LitStr, Type};
 
-use crate::middleware::parse::MiddlewareKind;
+use crate::middleware::parse::MiddlewareArgs;
 
 pub struct ControllerInput {
     pub struct_name: Ident,
     pub base_path: String,
     pub fields: Vec<(Ident, Type)>,
-    pub middlewares: Vec<MiddlewareKind>,
+    pub middlewares: Vec<MiddlewareArgs>,
 }
 
 pub fn parse_controller_input(
@@ -23,7 +23,7 @@ pub fn parse_controller_input(
 
     for attr in &input.attrs {
         if attr.path().is_ident("middleware") {
-            match attr.parse_args::<MiddlewareKind>() {
+            match attr.parse_args::<MiddlewareArgs>() {
                 Ok(args) => middlewares.push(args),
                 Err(e) => emit_error!("Failed to parse middleware arguments: {}", e),
             }

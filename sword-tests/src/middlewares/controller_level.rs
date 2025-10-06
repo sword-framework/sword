@@ -1,3 +1,4 @@
+use axum_test::TestServer;
 use serde_json::{Value, json};
 use sword::prelude::*;
 use sword::web::HttpResult;
@@ -8,8 +9,6 @@ impl Middleware for ExtensionsTestMiddleware {
     async fn handle(mut ctx: Context, nxt: Next) -> MiddlewareResult {
         ctx.extensions
             .insert::<String>("test_extension".to_string());
-
-        println!("DEBERÍA EJECUTARSE PRIMERO");
 
         next!(ctx, nxt)
     }
@@ -24,8 +23,6 @@ impl Middleware for MwWithState {
         ctx.extensions.insert::<u16>(8080);
         ctx.extensions.insert(app_state.clone());
 
-        println!("Debe ejecutarse segundo");
-
         next!(ctx, nxt)
     }
 }
@@ -35,7 +32,6 @@ struct RoleMiddleware;
 impl MiddlewareWithConfig<Vec<&str>> for RoleMiddleware {
     async fn handle(roles: Vec<&str>, ctx: Context, nxt: Next) -> MiddlewareResult {
         dbg!(&roles);
-        println!("Debe ejecutarse segundo");
 
         next!(ctx, nxt)
     }
@@ -78,58 +74,61 @@ impl TestController {
 
     #[get("/role-test")]
     #[middleware(RoleMiddleware, config = vec!["admin", "user"])]
-    async fn role_test(&self, _: Context) -> HttpResponse {
+    async fn role_test(&self) -> HttpResponse {
         HttpResponse::Ok()
     }
 }
 
 #[tokio::test]
-async fn extensions_mw_test() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?
+async fn extensions_mw_test() {
+    let app = Application::builder()
         .with_controller::<TestController>()
         .build();
 
-    let test = axum_test::TestServer::new(app.router()).unwrap();
+    let test = TestServer::new(app.router()).unwrap();
     let response = test.get("/test/extensions-test").await;
     assert_eq!(response.status_code(), 200);
 
     let json = response.json::<ResponseBody>();
 
-    assert_eq!(json.data["extension_value"], "test_extension");
+    assert!(json.data.is_some());
 
-    Ok(())
+    let data = json.data.unwrap();
+
+    assert_eq!(data["extension_value"], "test_extension");
 }
 
 #[tokio::test]
-async fn middleware_state() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?
-        .with_state(json!({ "key": "value" }))?
+async fn middleware_state() {
+    let app = Application::builder()
+        .with_state(json!({ "key": "value" }))
         .with_controller::<TestController>()
         .build();
 
-    let test = axum_test::TestServer::new(app.router()).unwrap();
+    let test = TestServer::new(app.router()).unwrap();
     let response = test.get("/test/middleware-state").await;
 
     assert_eq!(response.status_code(), 200);
 
     let json = response.json::<ResponseBody>();
 
-    assert_eq!(json.data["port"], 8080);
-    assert_eq!(json.data["key"], "value");
-    assert_eq!(json.data["message"], "test_extension");
+    assert!(json.data.is_some());
 
-    Ok(())
+    let data = json.data.unwrap();
+
+    assert_eq!(data["port"], 8080);
+    assert_eq!(data["key"], "value");
+    assert_eq!(data["message"], "test_extension");
 }
 
 #[tokio::test]
-async fn role_middleware_test() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?
+async fn role_middleware_test() {
+    let app = Application::builder()
         .with_controller::<TestController>()
         .build();
 
-    let test = axum_test::TestServer::new(app.router()).unwrap();
+    let test = TestServer::new(app.router()).unwrap();
     let response = test.get("/test/role-test").await;
-    assert_eq!(response.status_code(), 200);
 
-    Ok(())
+    assert_eq!(response.status_code(), 200);
 }

@@ -1,43 +1,32 @@
-use axum_responses::http::HttpResponse;
-use serde_json::json;
+use crate::{errors::*, web::HttpResponse};
 
-use super::{RequestError, StateError};
-use crate::errors::ConfigError;
+#[cfg(feature = "validator")]
+use crate::errors::formatting::format_validator_errors;
 
 impl From<RequestError> for HttpResponse {
     fn from(error: RequestError) -> HttpResponse {
         match error {
             RequestError::ParseError(message, details) => {
-                HttpResponse::BadRequest().message(message).data(json!({
-                    "type": "ParseError",
-                    "details": details
-                }))
+                HttpResponse::BadRequest().message(message).error(details)
             }
-            RequestError::ValidationError(message, errors) => {
-                HttpResponse::BadRequest().message(message).data(json!({
-                    "type": "ValidationError",
-                    "errors": errors
-                }))
-            }
-            RequestError::BodyIsEmpty(message) => {
-                HttpResponse::BadRequest().message(message).data(json!({
-                    "type": "BodyEmpty",
-                    "message": "Request body is empty or missing"
-                }))
-            }
-            RequestError::BodyTooLarge => HttpResponse::PayloadTooLarge()
-                .message("Request payload too large")
-                .data(json!({
-                    "type": "PayloadTooLarge",
-                    "message": "The request body exceeds the maximum allowed size by the server"
-                })),
 
-            RequestError::UnsupportedMediaType(message) => HttpResponse::UnsupportedMediaType()
-                .message("Unsupported media type")
-                .data(json!({
-                    "type": "UnsupportedMediaType",
-                    "message": message
-                })),
+            #[cfg(feature = "validator")]
+            RequestError::ValidatorError(message, errors) => {
+                HttpResponse::BadRequest()
+                    .message(message)
+                    .errors(format_validator_errors(errors))
+            }
+
+            RequestError::BodyIsEmpty(message) => {
+                HttpResponse::BadRequest().message(message)
+            }
+            RequestError::BodyTooLarge => HttpResponse::PayloadTooLarge().message(
+                "The request body exceeds the maximum allowed size by the server",
+            ),
+
+            RequestError::UnsupportedMediaType(message) => {
+                HttpResponse::UnsupportedMediaType().message(message)
+            }
 
             RequestError::InternalError(message) => {
                 eprintln!("Internal server error: {message}");
@@ -50,24 +39,16 @@ impl From<RequestError> for HttpResponse {
 impl From<StateError> for HttpResponse {
     fn from(error: StateError) -> Self {
         match error {
-            StateError::TypeNotFound => HttpResponse::InternalServerError()
-                .message("Service configuration error")
-                .data(json!({
-                    "type": "ConfigurationError",
-                    "message": "A required service is not available"
-                })),
-            StateError::LockError => HttpResponse::InternalServerError()
-                .message("Internal server error")
-                .data(json!({
-                    "type": "InternalError",
-                    "message": "A temporary server error occurred"
-                })),
-            StateError::DowncastFailed { .. } => HttpResponse::InternalServerError()
-                .message("Internal server error")
-                .data(json!({
-                    "type": "InternalError",
-                    "message": "An unexpected internal error occurred"
-                })),
+            StateError::TypeNotFound { type_name } => {
+                eprintln!("Type: {type_name} not found on state");
+                HttpResponse::InternalServerError()
+                    .message("Service configuration error")
+            }
+            StateError::LockError => HttpResponse::InternalServerError(),
+            StateError::DowncastFailed { type_name } => {
+                eprintln!("Error downcasting type {type_name} from state");
+                HttpResponse::InternalServerError().message("Internal server error")
+            }
         }
     }
 }
@@ -76,22 +57,17 @@ impl From<ConfigError> for HttpResponse {
     fn from(error: ConfigError) -> Self {
         match error {
             ConfigError::DeserializeError(message) => {
-                HttpResponse::InternalServerError().message("Configuration error").data(json!({
-                    "type": "ConfigError",
-                    "message": message
-                }))
+                eprintln!("Configuration error: {message}");
+                HttpResponse::InternalServerError().message("Configuration error")
             }
             ConfigError::KeyNotFound(key) => {
-                HttpResponse::InternalServerError().message("Configuration error").data(json!({
-                    "type": "ConfigError",
-                    "message": format!("Key '{}' not found in configuration", key)
-                }))
+                let message = format!("Key '{key}' not found in configuration");
+                eprintln!("{message}");
+                HttpResponse::InternalServerError().message("Configuration error")
             }
 
-            _ => HttpResponse::InternalServerError().message("Configuration error").data(json!({
-                "type": "ConfigError",
-                "message": "An error occurred while processing the app configuration"
-            })),
+            _ => HttpResponse::InternalServerError()
+                .message("An error occurred while processing the app configuration"),
         }
     }
 }

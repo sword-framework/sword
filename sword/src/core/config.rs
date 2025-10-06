@@ -61,7 +61,7 @@ impl Config {
     ///
     /// ### Type Parameters
     ///
-    /// * `T` - The configuration type to deserialize (must implement `DeserializeOwned + ConfigItem`)
+    /// * `T` - The configuration type to deserialize (must implement `DeserializeOwned`)
     ///
     /// ### Example
     ///
@@ -78,7 +78,7 @@ impl Config {
     /// // Then in a route handler:
     ///
     /// #[get("/db-info")]
-    /// async fn db_info(ctx: Context) -> HttpResult<HttpResponse> {
+    /// async fn db_info(&self, ctx: Context) -> HttpResult<HttpResponse> {
     ///     let db_config = ctx.config::<DatabaseConfig>()?;
     ///     Ok(HttpResponse::Ok().data(db_config))
     /// }

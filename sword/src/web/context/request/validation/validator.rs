@@ -1,21 +1,25 @@
 use serde::de::DeserializeOwned;
 use validator::Validate;
 
-use crate::{errors::RequestError, web::Context};
+use crate::errors::RequestError;
+use crate::web::Context;
 
-pub trait RequestValidation {
-    fn validated_body<T: DeserializeOwned + Validate>(
+pub trait ValidatorRequestValidation {
+    fn body_validator<T: DeserializeOwned + Validate>(
         &self,
     ) -> Result<T, RequestError>;
-    fn validated_query<T: DeserializeOwned + Validate>(
+
+    fn query_validator<T: DeserializeOwned + Validate>(
         &self,
     ) -> Result<Option<T>, RequestError>;
-    fn validated_params<T: DeserializeOwned + Validate>(
+
+    fn params_validator<T: DeserializeOwned + Validate>(
         &self,
     ) -> Result<T, RequestError>;
 }
 
-impl RequestValidation for Context {
+#[cfg(feature = "validator")]
+impl ValidatorRequestValidation for Context {
     /// Deserializes and validates the request body using validation rules.
     ///
     /// This method combines JSON deserialization with validation using the
@@ -58,7 +62,7 @@ impl RequestValidation for Context {
     /// }
     ///
     /// #[post("/users")]
-    /// async fn create_user(ctx: Context) -> HttpResult<HttpResponse> {
+    /// async fn create_user(&self, ctx: Context) -> HttpResult<HttpResponse> {
     ///     let user_data: CreateUserRequest = ctx.validated_body()?;
     ///     
     ///     // now data is guaranteed to be valid
@@ -66,17 +70,14 @@ impl RequestValidation for Context {
     ///     Ok(HttpResponse::Ok().data(user_data))
     /// }
     /// ```
-    fn validated_body<T>(&self) -> Result<T, RequestError>
+    fn body_validator<T>(&self) -> Result<T, RequestError>
     where
         T: DeserializeOwned + Validate,
     {
         let body = self.body::<T>()?;
 
         body.validate().map_err(|error| {
-            RequestError::ValidationError(
-                "Invalid request body",
-                crate::validation::format_validation_errors(&error),
-            )
+            RequestError::ValidatorError("Invalid request body", error)
         })?;
 
         Ok(body)
@@ -129,23 +130,20 @@ impl RequestValidation for Context {
     ///
     /// // Route: GET /search?q=rust&page=1&limit=10
     /// #[get("/search")]
-    /// async fn search(ctx: Context) -> HttpResult<HttpResponse> {
+    /// async fn search(&self, ctx: Context) -> HttpResult<HttpResponse> {
     ///     let query: SearchQuery = ctx.validated_query()?.unwrap_or_default();
     ///     
     ///     Ok(HttpResponse::Ok().data(query))
     /// }
     /// ```
-    fn validated_query<T>(&self) -> Result<Option<T>, RequestError>
+    fn query_validator<T>(&self) -> Result<Option<T>, RequestError>
     where
         T: DeserializeOwned + Validate,
     {
         match self.query::<T>()? {
             Some(query) => {
                 query.validate().map_err(|error| {
-                    RequestError::ValidationError(
-                        "Invalid request query",
-                        crate::validation::format_validation_errors(&error),
-                    )
+                    RequestError::ValidatorError("Invalid request query", error)
                 })?;
 
                 Ok(Some(query))
@@ -159,7 +157,7 @@ impl RequestValidation for Context {
     /// This method combines path parameter parsing with validation using the
     /// `validator` crate. It first deserializes the path parameters and then
     /// runs validation rules defined on the target type.
-    fn validated_params<T: DeserializeOwned + Validate>(
+    fn params_validator<T: DeserializeOwned + Validate>(
         &self,
     ) -> Result<T, RequestError> {
         let params = serde_json::to_value(self.params.clone()).map_err(|e| {
@@ -174,10 +172,7 @@ impl RequestValidation for Context {
         })?;
 
         deserialized.validate().map_err(|error| {
-            RequestError::ValidationError(
-                "Invalid request params",
-                crate::validation::format_validation_errors(&error),
-            )
+            RequestError::ValidatorError("Invalid request params", error)
         })?;
 
         Ok(deserialized)

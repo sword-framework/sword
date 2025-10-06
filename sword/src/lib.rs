@@ -3,7 +3,7 @@
 //! Sword is a modern, fast, and ergonomic web framework for Rust, built on top of [Axum](https://github.com/tokio-rs/axum).
 //! It provides a clean API, powerful middleware system, and built-in features for rapid web development.
 //!
-//! ## 🚀 Quick Start
+//! ## Quick Start
 //!
 //! ```rust,ignore
 //! use sword::prelude::*;
@@ -21,15 +21,15 @@
 //!
 //! #[sword::main]
 //! async fn main() {
-//!     let app = Application::builder()?
+//!     let app = Application::builder()
 //!         .with_controller::<ApiController>()
 //!         .build();
 //!     
-//!     app.run().await?;
+//!     app.run().await;
 //! }
 //! ```
 //!
-//! ## 🎯 Core Features
+//! ## Core Features
 //!
 //! - ** Macro-based routing** - Clean and intuitive route definitions using `#[get]`, `#[post]`, etc.
 //! - ** JSON-first design** - Built-in JSON serialization/deserialization support
@@ -40,7 +40,7 @@
 //! - ** Middleware system** - Flexible middleware at route and controller levels
 //! - ** Async by default** - Built on `tokio` and `axum` for high performance
 //!
-//! ## 📦 Optional Features
+//! ## Optional Features
 //!
 //! Enable additional functionality by adding features to your `Cargo.toml`:
 //!
@@ -55,18 +55,6 @@
 //! - `helmet` - Security headers middleware
 //! - `shaku-di` - Dependency injection
 //!
-//! ## 📖 Examples
-//!
-//! Check out the comprehensive examples in the [repository](https://github.com/sword-framework/sword/tree/main/examples):
-//!
-//! - **Basic server** - Simple HTTP server setup
-//! - **Middleware** - Custom middleware implementation
-//! - **Data validation** - Request validation examples
-//! - **File uploads** - Multipart form handling
-//! - **Dependency injection** - DI patterns
-//! - **State management** - Shared application state
-
-mod validation;
 
 /// The prelude module contains the most commonly used items from the Sword framework.
 ///
@@ -92,6 +80,9 @@ pub mod prelude {
 
     #[cfg(feature = "multipart")]
     pub use crate::web::multipart;
+
+    #[cfg(feature = "validator")]
+    pub use crate::web::ValidatorRequestValidation;
 }
 
 /// Error types and error handling utilities.
@@ -105,22 +96,6 @@ pub mod prelude {
 ///
 /// All errors implement the standard `Error` trait and provide detailed error messages
 /// for debugging and logging purposes.
-///
-/// ## Error Handling Patterns
-///
-/// ```rust,ignore
-/// use sword::prelude::*;
-///
-/// #[get("/users/:id")]
-/// async fn get_user(ctx: Context) -> HttpResult<HttpResponse> {
-///     // This returns a RequestError if parsing fails
-///     let user_id = ctx.param::<u32>("id")?;
-///     
-///     // This returns a StateError if state not found
-///     let db = ctx.get_state::<Database>()?;
-///     
-///     Ok(HttpResponse::Ok().data(user_id))
-/// }
 /// ```
 pub mod errors;
 
@@ -139,12 +114,12 @@ pub mod errors;
 /// use sword::prelude::*;
 ///
 /// // Create and configure an application
-/// let app = Application::builder()?
+/// let app = Application::builder()
 ///     .with_controller::<MyController>()
 ///     .build();
 ///
 /// // Access configuration
-/// let config = app.config.get::<ApplicationConfig>()?;
+/// let config = app.config.get::<ApplicationConfig>().unwrap();
 /// ```
 pub mod core {
     mod application;
@@ -197,7 +172,7 @@ pub mod core {
 /// #[routes]
 /// impl ApiController {
 ///     #[get("/users/:id")]
-///     async fn get_user(ctx: Context) -> HttpResult<HttpResponse> {
+///     async fn get_user(&self, ctx: Context) -> HttpResult<HttpResponse> {
 ///         let user_id = ctx.param::<u32>("id")?;
 ///         // ... fetch user logic
 ///         Ok(HttpResponse::Ok().message(format!("User {}", user_id)))
@@ -205,7 +180,6 @@ pub mod core {
 /// }
 /// ```
 pub mod web {
-
     mod context;
     mod controller;
     mod middleware;
@@ -216,7 +190,8 @@ pub mod web {
     pub use sword_macros::{controller, delete, get, patch, post, put, routes};
 
     pub use crate::next;
-    pub use context::{Context, request::RequestValidation};
+
+    pub use context::Context;
     pub use middleware::*;
 
     pub use controller::{Controller, ControllerBuilder, ControllerError};
@@ -226,6 +201,9 @@ pub mod web {
 
     #[cfg(feature = "cookies")]
     pub use context::cookies;
+
+    #[cfg(feature = "validator")]
+    pub use context::request::ValidatorRequestValidation;
 }
 
 pub use sword_macros::main;

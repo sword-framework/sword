@@ -46,7 +46,7 @@ impl TestController {
 
 #[tokio::test]
 async fn exceed_limit() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?
+    let app = Application::builder()
         .with_controller::<TestController>()
         .build();
 
@@ -68,8 +68,10 @@ async fn exceed_limit() -> Result<(), Box<dyn std::error::Error>> {
 
     assert_eq!(response.status_code(), 413);
 
-    assert_eq!(json.message, "Request payload too large".into());
-    assert_eq!(json.data["type"], "PayloadTooLarge");
+    assert_eq!(
+        json.message,
+        "The request body exceeds the maximum allowed size by the server".into()
+    );
 
     Ok(())
 }
@@ -78,14 +80,13 @@ async fn exceed_limit() -> Result<(), Box<dyn std::error::Error>> {
 /// The effective limit is ~975KB due to multipart headers/boundaries overhead.
 #[tokio::test]
 async fn body_limit_exactly_at_limit() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?
+    let app = Application::builder()
         .with_controller::<TestController>()
         .build();
 
     let test = TestServer::new(app.router()).unwrap();
 
-    // Based on testing, the effective limit is around 975 KB (considering multipart overhead)
-    let temp_file = TempFile::with_size(975 * 1024); // 975 KB - right at the boundary
+    let temp_file = TempFile::with_size(975 * 1024);
     let bytes = fs::read(&temp_file.path).expect("Failed to read test file");
 
     let part = Part::bytes(bytes)
@@ -107,14 +108,13 @@ async fn body_limit_exactly_at_limit() -> Result<(), Box<dyn std::error::Error>>
 
 #[tokio::test]
 async fn body_limit_just_under_limit() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?
+    let app = Application::builder()
         .with_controller::<TestController>()
         .build();
 
     let test = TestServer::new(app.router()).unwrap();
 
-    // Create a file just under the effective limit
-    let temp_file = TempFile::with_size(970 * 1024); // 970 KB - safely under the limit
+    let temp_file = TempFile::with_size(970 * 1024);
     let bytes = fs::read(&temp_file.path).expect("Failed to read test file");
 
     let part = Part::bytes(bytes)
@@ -136,14 +136,13 @@ async fn body_limit_just_under_limit() -> Result<(), Box<dyn std::error::Error>>
 
 #[tokio::test]
 async fn body_limit_just_over_limit() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?
+    let app = Application::builder()
         .with_controller::<TestController>()
         .build();
 
     let test = TestServer::new(app.router()).unwrap();
 
-    // Create a file just over the effective limit
-    let temp_file = TempFile::with_size(976 * 1024); // 976 KB - just over the limit
+    let temp_file = TempFile::with_size(976 * 1024);
     let bytes = fs::read(&temp_file.path).expect("Failed to read test file");
 
     let part = Part::bytes(bytes)
@@ -158,8 +157,11 @@ async fn body_limit_just_over_limit() -> Result<(), Box<dyn std::error::Error>> 
 
     assert_eq!(response.status_code(), 413);
     let json = response.json::<ResponseBody>();
-    assert_eq!(json.message, "Request payload too large".into());
-    assert_eq!(json.data["type"], "PayloadTooLarge");
+
+    assert_eq!(
+        json.message,
+        "The request body exceeds the maximum allowed size by the server".into()
+    );
 
     Ok(())
 }
@@ -167,7 +169,7 @@ async fn body_limit_just_over_limit() -> Result<(), Box<dyn std::error::Error>> 
 #[tokio::test]
 async fn body_limit_multiple_fields_exceed_limit()
 -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?
+    let app = Application::builder()
         .with_controller::<TestController>()
         .build();
 
@@ -198,17 +200,19 @@ async fn body_limit_multiple_fields_exceed_limit()
 
     assert_eq!(response.status_code(), 413);
     let json = response.json::<ResponseBody>();
-    assert_eq!(json.message, "Request payload too large".into());
-    assert_eq!(json.data["type"], "PayloadTooLarge");
+
+    assert_eq!(
+        json.message,
+        "The request body exceeds the maximum allowed size by the server".into()
+    );
 
     Ok(())
 }
 
-/// Tests that multiple files that together stay within the body limit are accepted.
 #[tokio::test]
 async fn body_limit_small_fields_within_limit()
 -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?
+    let app = Application::builder()
         .with_controller::<TestController>()
         .build();
 
@@ -240,6 +244,7 @@ async fn body_limit_small_fields_within_limit()
 
     assert_eq!(response.status_code(), 200);
     let json = response.json::<ResponseBody>();
+
     assert_eq!(json.message, "Hello, Multipart!".into());
 
     Ok(())

@@ -7,8 +7,8 @@ description = "A structured rust web framework built on top of Axum, providing c
 repository = "https://github.com/sword-framework/sword"
 homepage = "https://github.com/sword-framework/sword"
 documentation = "https://docs.rs/sword"
-keywords = ["sword", "web", "framework", "axum", "async"]
-categories = ["web, http-server", "web-framework", "api"]
+keywords = ["sword", "web", "framework", "axum", "rest"]
+categories = ["web, http-framework", "web-framework", "api"]
 readme = "../README.md"
 license-file = "../LICENSE"
 
@@ -23,6 +23,7 @@ multipart = ["axum/multipart", "dep:bytes"]
 cookies = ["dep:tower-cookies", "tower-cookies/signed", "tower-cookies/private"]
 helmet = ["dep:axum-helmet"]
 shaku-di = ["dep:shaku"]
+validator = ["dep:validator"]
 
 [dependencies]
 tokio = { workspace = true }
@@ -42,7 +43,7 @@ serde_path_to_error = "0.1.17"
 byte-unit = "5.1.6"
 
 regex = "1.11.1"
-validator = { workspace = true }
+validator = { workspace = true, optional = true }
 
 tower = "0.5.2"
 tower-layer = "0.3.3"
@@ -54,3 +55,4 @@ thiserror = "2.0.12"
 shaku = { version = "0.6.2", optional = true }
 bytes = { version = "1.10.1", optional = true }
 colored = "3.0.0"
+inventory = "0.3.21"

@@ -83,10 +83,10 @@ async fn main() {
     let my_key: &[u8] = &[0; 64];
     let key = Key::from(my_key);
 
-    let app = Application::builder()?
-        .with_state(CookieKey(key))?
+    let app = Application::builder()
+        .with_state(CookieKey(key))
         .with_controller::<CookieController>()
         .build();
 
-    app.run().await?;
+    app.run().await;
 }

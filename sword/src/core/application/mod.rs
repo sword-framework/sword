@@ -29,28 +29,22 @@ impl Application {
     /// The builder pattern allows you to configure various aspects of the
     /// application before building the final `Application` instance.
     ///
-    /// ### Returns
-    ///
-    /// Returns `Ok(ApplicationBuilder)` if the configuration can be loaded
-    /// successfully, or `Err(ApplicationError)` if there are configuration issues.
-    ///
-    /// ### Errors
-    ///
-    /// This function will return an error if:
+    /// This function will panic if:
     /// - The configuration file `config/config.toml` cannot be found
     /// - The configuration file contains invalid TOML syntax
     /// - Environment variable interpolation fails
+    /// - The configuration cannot be loaded for any other reason
     ///
     /// ### Example
     ///
     /// ```rust,ignore
     /// use sword::prelude::*;
     ///
-    /// let app = Application::builder()?
+    /// let app = Application::builder()
     ///     .with_controller::<MyController>()
     ///     .build();
     /// ```
-    pub fn builder() -> Result<ApplicationBuilder, ApplicationError> {
+    pub fn builder() -> ApplicationBuilder {
         ApplicationBuilder::new()
     }
 
@@ -89,14 +83,18 @@ impl Application {
     ///     app.run().await?;
     /// }
     /// ```
-    pub async fn run(&self) -> Result<(), ApplicationError> {
-        if self.config.get::<ApplicationConfig>()?.graceful_shutdown {
-            return self
-                .run_with_graceful_shutdown(Self::graceful_signal())
+    pub async fn run(&self) {
+        if self
+            .config
+            .get::<ApplicationConfig>()
+            .expect("Failed to get application config")
+            .graceful_shutdown
+        {
+            self.run_with_graceful_shutdown(Self::graceful_signal())
                 .await;
         }
 
-        let listener = self.pre_run().await?;
+        let listener = self.pre_run().await;
 
         let router = self.router.clone().fallback(async || {
             HttpResponse::NotFound().message("The requested resource was not found")
@@ -104,9 +102,8 @@ impl Application {
 
         axum::serve(listener, router)
             .await
-            .map_err(|e| ApplicationError::ServerError { source: e })?;
-
-        Ok(())
+            .map_err(|e| ApplicationError::ServerError { source: e })
+            .expect("Internal server error");
     }
 
     /// Runs the application server with graceful shutdown support.
@@ -127,19 +124,19 @@ impl Application {
     /// #[routes]
     /// impl AdminController {
     ///     #[get("/")]
-    ///     async fn get_admin_data() -> HttpResponse {
+    ///     async fn get_admin_data(&self) -> HttpResponse {
     ///         HttpResponse::Ok()
     ///     }
     /// }
     ///
     /// #[sword::main]
     /// async fn main() {
-    ///     let app = Application::builder()?
+    ///     let app = Application::builder()
     ///         .with_controller::<AppController>()
     ///         .with_controller::<AdminController>()
     ///         .build();
     ///
-    ///     app.run_with_graceful_shutdown(shutdown_signal()).await?;
+    ///     app.run_with_graceful_shutdown(shutdown_signal()).await;
     /// }
     ///
     /// async fn shutdown_signal() {
@@ -165,14 +162,11 @@ impl Application {
     ///         _ = terminate => {},
     ///     }
     /// }
-    pub async fn run_with_graceful_shutdown<F>(
-        &self,
-        signal: F,
-    ) -> Result<(), ApplicationError>
+    pub async fn run_with_graceful_shutdown<F>(&self, signal: F)
     where
         F: Future<Output = ()> + Send + 'static,
     {
-        let listener = self.pre_run().await?;
+        let listener = self.pre_run().await;
 
         let router = self.router.clone().fallback(async || {
             HttpResponse::NotFound().message("The requested resource was not found")
@@ -181,9 +175,8 @@ impl Application {
         axum::serve(listener, router)
             .with_graceful_shutdown(signal)
             .await
-            .map_err(|e| ApplicationError::ServerError { source: e })?;
-
-        Ok(())
+            .map_err(|e| ApplicationError::ServerError { source: e })
+            .expect("Internal server error");
     }
 
     /// Returns a clone of the internal Axum router.
@@ -202,7 +195,7 @@ impl Application {
     /// ```rust,ignore
     /// use sword::prelude::*;
     ///
-    /// let app = Application::builder()?
+    /// let app = Application::builder()
     ///     .with_controller::<MyController>()
     ///     .build();
     ///
@@ -213,20 +206,25 @@ impl Application {
         self.router.clone()
     }
 
-    async fn pre_run(&self) -> Result<Listener, ApplicationError> {
-        let config = self.config.get::<ApplicationConfig>()?;
+    async fn pre_run(&self) -> Listener {
+        let config = self
+            .config
+            .get::<ApplicationConfig>()
+            .expect("Failed to get application config");
+
         let addr = format!("{}:{}", config.host, config.port);
 
-        let listener = Listener::bind(&addr).await.map_err(|e| {
-            ApplicationError::BindFailed {
+        let listener = Listener::bind(&addr)
+            .await
+            .map_err(|e| ApplicationError::BindFailed {
                 address: addr.to_string(),
                 source: e,
-            }
-        })?;
+            })
+            .expect("Failed to bind to address");
 
         config.display();
 
-        Ok(listener)
+        listener
     }
 
     async fn graceful_signal() {

@@ -29,7 +29,7 @@ pub fn generate_controller_builder(input: &ControllerInput) -> TokenStream {
 
             fn apply_controller_middlewares(
                 router: ::sword::__internal::AxumRouter,
-                app_state: ::sword::core::State,
+                state: ::sword::core::State,
             ) -> ::sword::__internal::AxumRouter {
                 let mut result = router;
 
@@ -48,8 +48,6 @@ pub fn generate_controller_builder(input: &ControllerInput) -> TokenStream {
                 })
             }
         }
-
-
     }
 }
 

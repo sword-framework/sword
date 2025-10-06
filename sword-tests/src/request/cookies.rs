@@ -55,9 +55,10 @@ impl CookieController {
 
 #[tokio::test]
 async fn test_set_cookie() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?
+    let app = Application::builder()
         .with_controller::<CookieController>()
         .build();
+
     let server = TestServer::new(app.router())?;
 
     let response = server.get("/cookies/set").await;
@@ -81,7 +82,7 @@ async fn test_set_cookie() -> Result<(), Box<dyn std::error::Error>> {
 
 #[tokio::test]
 async fn test_with_middleware() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Application::builder()?
+    let app = Application::builder()
         .with_controller::<CookieController>()
         .build();
 

@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-sword = { workspace = true, features = ["shaku-di"] }
+sword = { workspace = true, features = ["shaku-di", "validator"] }
 shaku = "0.6.2"
 tokio = { workspace = true }
 serde = { workspace = true }

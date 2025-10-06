@@ -33,7 +33,7 @@ impl UserController {
 
     #[post("/")]
     async fn add_user(&self, ctx: Context) -> HttpResult<HttpResponse> {
-        let user: IncommingUser = ctx.validated_body()?;
+        let user: IncommingUser = ctx.body_validator()?;
         let repository = ctx.di::<AppModule, dyn DataRepository>()?;
 
         repository.add_data(user.name).await;
