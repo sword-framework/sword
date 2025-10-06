@@ -27,3 +27,5 @@ shaku = "0.6.2"
 uuid = { version = "1.10.0", features = ["v4"] }
 futures = "0.3"
 garde.workspace = true
+tower = { version = "0.5.2", features = ["timeout"] }
+tower-http = { workspace = true, features = ["cors", "timeout"] }

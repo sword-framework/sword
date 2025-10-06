@@ -3,57 +3,67 @@ use syn::{
     parse::{Parse, ParseStream},
 };
 
-pub enum MiddlewareKind {
-    TowerLayer(Expr),
-    Sword(SwordMiddlewareArgs),
+pub enum MiddlewareArgs {
+    SwordSimple(Path),
+    SwordWithConfig {
+        middleware: Path,
+        config: Expr,
+    },
+    /// Any expression (Tower layer or anything else)
+    Expression(Expr),
 }
 
-pub struct SwordMiddlewareArgs {
-    pub path: Path,
-    pub config: Option<Expr>,
-}
-
-impl Parse for MiddlewareKind {
+impl Parse for MiddlewareArgs {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let content = input.to_string();
-
-        if content.contains("::") || (content.contains("(") && content.contains(")"))
-        {
-            let expr: Expr = input.parse()?;
-            return Ok(MiddlewareKind::TowerLayer(expr));
+        if let Some(result) = try_parse_sword_middleware(input)? {
+            return Ok(result);
         }
 
-        if let Ok(sword_args) = input.parse::<SwordMiddlewareArgs>() {
-            return Ok(MiddlewareKind::Sword(sword_args));
-        }
-
-        let expr: Expr = input.parse()?;
-
-        Ok(MiddlewareKind::TowerLayer(expr))
+        Ok(MiddlewareArgs::Expression(input.parse()?))
     }
 }
 
-impl Parse for SwordMiddlewareArgs {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        let path: Path = input.parse()?;
+fn try_parse_sword_middleware(
+    input: ParseStream,
+) -> syn::Result<Option<MiddlewareArgs>> {
+    let fork = input.fork();
 
-        let mut config = None;
+    let _ = match fork.parse::<Path>() {
+        Ok(path) => path,
+        Err(_) => return Ok(None),
+    };
 
-        if input.peek(Token![,]) {
-            input.parse::<Token![,]>()?;
+    if fork.is_empty() {
+        return Ok(Some(MiddlewareArgs::SwordSimple(input.parse()?)));
+    }
 
-            if input.peek(syn::Ident) && input.peek2(Token![=]) {
-                let ident: syn::Ident = input.parse()?;
+    if fork.peek(Token![,]) {
+        let config_fork = fork;
 
-                if ident != "config" {
-                    return Err(syn::Error::new(ident.span(), "expected 'config'"));
+        // Check , config = expr
+        if config_fork.parse::<Token![,]>().is_ok()
+            && config_fork.peek(syn::Ident)
+            && config_fork.peek2(Token![=])
+        {
+            if let Ok(ident) = config_fork.parse::<syn::Ident>() {
+                if ident == "config"
+                    && config_fork.parse::<Token![=]>().is_ok()
+                    && config_fork.parse::<Expr>().is_ok()
+                {
+                    let path: Path = input.parse()?;
+
+                    input.parse::<Token![,]>()?; // ,
+                    input.parse::<syn::Ident>()?; // config
+                    input.parse::<Token![=]>()?; // =
+
+                    return Ok(Some(MiddlewareArgs::SwordWithConfig {
+                        middleware: path,
+                        config: input.parse()?,
+                    }));
                 }
-
-                input.parse::<Token![=]>()?;
-                config = Some(input.parse()?);
             }
         }
-
-        Ok(SwordMiddlewareArgs { path, config })
     }
+
+    Ok(None)
 }

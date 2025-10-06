@@ -12,6 +12,10 @@
 
 - Validation error output has been updated to follow **RFC 9457** (Problem Details for HTTP APIs).
 
+### Fixed
+
+- Fixed an issue where the middleware macro was not working correctly with some configuration types.
+
 ### Changed
 
 - With the latest `axum_responses` release, the `data` field in error responses has been removed and replaced with either `error` or `errors`, depending on your configuration. By default, validation errors will be returned under `errors` fields.

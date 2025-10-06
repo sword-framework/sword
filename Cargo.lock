@@ -1929,6 +1929,8 @@ dependencies = [
  "shaku",
  "sword",
  "tokio",
+ "tower",
+ "tower-http",
  "uuid",
  "validator",
 ]

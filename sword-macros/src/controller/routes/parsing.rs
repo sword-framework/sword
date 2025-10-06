@@ -5,7 +5,7 @@ use regex::Regex;
 use std::sync::LazyLock;
 use syn::{Attribute, ImplItem, ImplItemFn, ItemImpl, LitStr, parse as syn_parse};
 
-use crate::middleware::parse::MiddlewareKind;
+use crate::middleware::parse::MiddlewareArgs;
 
 const VALID_ROUTE_MACROS: &[&str; 6] =
     &["get", "post", "put", "patch", "delete", "middleware"];
@@ -20,7 +20,7 @@ pub struct RouteInfo {
     pub method: String,
     pub path: String,
     pub handler_name: Ident,
-    pub middlewares: Vec<MiddlewareKind>,
+    pub middlewares: Vec<MiddlewareArgs>,
     pub needs_context: bool,
 }
 
@@ -40,7 +40,7 @@ pub fn parse_routes(input: ItemImpl) -> Vec<RouteInfo> {
 
         let mut route_path = String::new();
         let mut route_method = String::new();
-        let mut middlewares: Vec<MiddlewareKind> = vec![];
+        let mut middlewares: Vec<MiddlewareArgs> = vec![];
 
         for attr in &handler.attrs {
             let Some(ident) = attr.path().get_ident() else {
@@ -52,7 +52,7 @@ pub fn parse_routes(input: ItemImpl) -> Vec<RouteInfo> {
             }
 
             if ident == "middleware" {
-                match attr.parse_args::<MiddlewareKind>() {
+                match attr.parse_args::<MiddlewareArgs>() {
                     Ok(args) => middlewares.push(args),
                     Err(e) => emit_error!(attr, "Invalid middleware syntax: {}", e),
                 }
