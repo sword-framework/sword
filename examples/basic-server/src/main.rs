@@ -8,7 +8,7 @@ pub struct MyConfig {
     custom_key: String,
 }
 
-#[controller("/")]
+#[controller("/", version = "v1")]
 struct AppController {}
 
 #[routes]

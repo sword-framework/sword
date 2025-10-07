@@ -4,7 +4,6 @@ use sword::prelude::*;
 use sword::web::HttpResult;
 use tower_http::cors::CorsLayer;
 
-// Enums para testing
 #[derive(Debug, Clone)]
 pub enum LogLevel {
     Debug,
@@ -36,9 +35,9 @@ impl MiddlewareWithConfig<(&str, &str)> for FileValidationMiddleware {
         mut ctx: Context,
         next: Next,
     ) -> MiddlewareResult {
-        println!("Validating file with config: {:?}", config);
         ctx.extensions
             .insert((config.0.to_string(), config.1.to_string()));
+
         next!(ctx, next)
     }
 }
@@ -75,19 +74,15 @@ impl MiddlewareWithConfig<Vec<&str>> for RoleMiddleware {
         mut ctx: Context,
         nxt: Next,
     ) -> MiddlewareResult {
-        dbg!(&roles);
         let roles_owned: Vec<String> = roles.iter().map(|s| s.to_string()).collect();
         ctx.extensions.insert(roles_owned);
+
         next!(ctx, nxt)
     }
 }
 
-// ================================
-// MIDDLEWARES PARA TESTING DE DIFERENTES TIPOS DE CONFIG
-// ================================
-
-// Middleware para probar tuplas
 struct TupleConfigMiddleware;
+
 impl MiddlewareWithConfig<(&str, &str)> for TupleConfigMiddleware {
     async fn handle(
         config: (&str, &str),
@@ -101,77 +96,74 @@ impl MiddlewareWithConfig<(&str, &str)> for TupleConfigMiddleware {
     }
 }
 
-// Middleware para probar arrays
 struct ArrayConfigMiddleware;
+
 impl MiddlewareWithConfig<[i32; 3]> for ArrayConfigMiddleware {
     async fn handle(
         config: [i32; 3],
         mut ctx: Context,
         next: Next,
     ) -> MiddlewareResult {
-        println!("Array config: {:?}", config);
         ctx.extensions.insert(config);
+
         next!(ctx, next)
     }
 }
 
-// Middleware para probar strings
 struct StringConfigMiddleware;
+
 impl MiddlewareWithConfig<String> for StringConfigMiddleware {
     async fn handle(
         config: String,
         mut ctx: Context,
         next: Next,
     ) -> MiddlewareResult {
-        println!("String config: {}", config);
         ctx.extensions.insert(config);
+
         next!(ctx, next)
     }
 }
 
-// Middleware para probar &str
 struct StrConfigMiddleware;
+
 impl MiddlewareWithConfig<&'static str> for StrConfigMiddleware {
     async fn handle(
         config: &'static str,
         mut ctx: Context,
         next: Next,
     ) -> MiddlewareResult {
-        println!("Str config: {}", config);
         ctx.extensions.insert(config.to_string());
+
         next!(ctx, next)
     }
 }
 
-// Middleware para probar números
 struct NumberConfigMiddleware;
 impl MiddlewareWithConfig<i32> for NumberConfigMiddleware {
     async fn handle(config: i32, mut ctx: Context, next: Next) -> MiddlewareResult {
-        println!("Number config: {}", config);
         ctx.extensions.insert(config);
+
         next!(ctx, next)
     }
 }
 
-// Middleware para probar booleans
 struct BoolConfigMiddleware;
 impl MiddlewareWithConfig<bool> for BoolConfigMiddleware {
     async fn handle(config: bool, mut ctx: Context, next: Next) -> MiddlewareResult {
-        println!("Bool config: {}", config);
         ctx.extensions.insert(config);
+
         next!(ctx, next)
     }
 }
 
-// Middleware para probar estructuras complejas
 struct ComplexConfigMiddleware;
+
 impl MiddlewareWithConfig<(Vec<&str>, i32, bool)> for ComplexConfigMiddleware {
     async fn handle(
         config: (Vec<&str>, i32, bool),
         mut ctx: Context,
         next: Next,
     ) -> MiddlewareResult {
-        println!("Complex config: {:?}", config);
         let owned_config = (
             config
                 .0
@@ -181,12 +173,13 @@ impl MiddlewareWithConfig<(Vec<&str>, i32, bool)> for ComplexConfigMiddleware {
             config.1,
             config.2,
         );
+
         ctx.extensions.insert(owned_config);
+
         next!(ctx, next)
     }
 }
 
-// Middleware para probar closures/function calls
 struct FunctionConfigMiddleware;
 impl MiddlewareWithConfig<Vec<String>> for FunctionConfigMiddleware {
     async fn handle(
@@ -194,105 +187,108 @@ impl MiddlewareWithConfig<Vec<String>> for FunctionConfigMiddleware {
         mut ctx: Context,
         next: Next,
     ) -> MiddlewareResult {
-        println!("Function result config: {:?}", config);
         ctx.extensions.insert(config);
+
         next!(ctx, next)
     }
 }
 
-// Helper function para test
 fn create_test_vector() -> Vec<String> {
     vec!["test1".to_string(), "test2".to_string()]
 }
 
-// Middleware para probar expresiones matemáticas
 struct MathConfigMiddleware;
+
 impl MiddlewareWithConfig<i32> for MathConfigMiddleware {
     async fn handle(config: i32, mut ctx: Context, next: Next) -> MiddlewareResult {
-        println!("Math result: {}", config);
         ctx.extensions.insert(config);
+
         next!(ctx, next)
     }
 }
 
-// Middleware para probar referencias y constantes
 struct ConstConfigMiddleware;
+
 impl MiddlewareWithConfig<&'static str> for ConstConfigMiddleware {
     async fn handle(
         config: &'static str,
         mut ctx: Context,
         next: Next,
     ) -> MiddlewareResult {
-        println!("Const config: {}", config);
         ctx.extensions.insert(config.to_string());
+
         next!(ctx, next)
     }
 }
 
 const TEST_CONST: &str = "const_value";
 
-// Middlewares para enum variants
 struct LogMiddleware;
+
 impl MiddlewareWithConfig<LogLevel> for LogMiddleware {
     async fn handle(
         config: LogLevel,
         mut ctx: Context,
         next: Next,
     ) -> MiddlewareResult {
-        println!("Log level: {:?}", config);
         ctx.extensions.insert(config);
+
         next!(ctx, next)
     }
 }
 
 struct DatabaseMiddleware;
+
 impl MiddlewareWithConfig<DatabaseConfig> for DatabaseMiddleware {
     async fn handle(
         config: DatabaseConfig,
         mut ctx: Context,
         next: Next,
     ) -> MiddlewareResult {
-        println!("Database config: {:?}", config);
         ctx.extensions.insert(config);
+
         next!(ctx, next)
     }
 }
 
 struct AuthMiddleware;
+
 impl MiddlewareWithConfig<AuthMethod> for AuthMiddleware {
     async fn handle(
         config: AuthMethod,
         mut ctx: Context,
         next: Next,
     ) -> MiddlewareResult {
-        println!("Auth method: {:?}", config);
         ctx.extensions.insert(config);
+
         next!(ctx, next)
     }
 }
 
 struct EnumOptionMiddleware;
+
 impl MiddlewareWithConfig<Option<LogLevel>> for EnumOptionMiddleware {
     async fn handle(
         config: Option<LogLevel>,
         mut ctx: Context,
         next: Next,
     ) -> MiddlewareResult {
-        println!("Optional log level: {:?}", config);
         ctx.extensions.insert(config);
+
         next!(ctx, next)
     }
 }
 
 struct EnumVecMiddleware;
+
 impl MiddlewareWithConfig<Vec<LogLevel>> for EnumVecMiddleware {
     async fn handle(
         config: Vec<LogLevel>,
         mut ctx: Context,
         next: Next,
     ) -> MiddlewareResult {
-        println!("Log levels: {:?}", config);
         ctx.extensions.insert(config);
+
         next!(ctx, next)
     }
 }
@@ -368,10 +364,6 @@ impl TestController {
             .message("Test with tower middleware")
             .data(json!({"middleware": "cors"}))
     }
-
-    // ================================
-    // HANDLERS PARA TESTING DE DIFERENTES TIPOS DE CONFIG
-    // ================================
 
     #[get("/tuple-config-test")]
     #[middleware(TupleConfigMiddleware, config = ("jpg", "png"))]
@@ -524,7 +516,6 @@ impl TestController {
             }))
     }
 
-    // Casos extremos adicionales
     #[get("/math-config-test")]
     #[middleware(MathConfigMiddleware, config = 2 + 3 * 4 - 1)]
     async fn math_config_test(&self, ctx: Context) -> HttpResponse {
@@ -812,10 +803,6 @@ async fn tower_middleware_test() {
     assert_eq!(data["middleware"], "cors");
 }
 
-// ================================
-// TESTS PARA DIFERENTES TIPOS DE CONFIG
-// ================================
-
 #[tokio::test]
 async fn tuple_config_middleware_test() {
     let app = Application::builder()
@@ -966,7 +953,6 @@ async fn nested_config_middleware_test() {
     assert_eq!(json.data.unwrap()["config_type"], "nested");
 }
 
-// Tests para casos extremos
 #[tokio::test]
 async fn math_config_middleware_test() {
     let app = Application::builder()
@@ -1022,10 +1008,6 @@ async fn closure_config_middleware_test() {
     let json = response.json::<ResponseBody>();
     assert_eq!(json.data.unwrap()["config_type"], "closure");
 }
-
-// ================================
-// TESTS PARA ENUM VARIANTS
-// ================================
 
 #[tokio::test]
 async fn enum_simple_test() {

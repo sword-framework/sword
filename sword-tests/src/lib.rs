@@ -18,6 +18,7 @@ mod application {
     mod config;
     mod di;
     mod state;
+    mod versioning;
 }
 
 #[cfg(test)]
