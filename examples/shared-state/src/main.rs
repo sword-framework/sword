@@ -1,36 +1,41 @@
 use serde_json::json;
+use std::sync::Arc;
 use sword::prelude::*;
+use tokio::sync::RwLock;
 
-mod state;
-use crate::state::AppState;
+pub type InMemoryDb = Arc<RwLock<Vec<String>>>;
 
 #[controller("/api")]
-struct AppController {}
+struct AppController {
+    db: InMemoryDb,
+    config: Config,
+}
 
 #[routes]
 impl AppController {
     #[get("/data")]
-    async fn submit_data(&self, ctx: Context) -> HttpResult<HttpResponse> {
-        let state = ctx.get_state::<AppState>()?;
-
-        let count = state.db.read().await.len();
+    async fn submit_data(&self) -> HttpResult<HttpResponse> {
+        let count = self.db.read().await.len();
         let message = format!("Current data count: {count}");
 
-        state.db.write().await.push(message);
+        self.db.write().await.push(message);
 
         Ok(HttpResponse::Ok().data(json!({
             "count": count,
-            "current_data": state.db.read().await.clone(),
         })))
+    }
+
+    #[get("/config")]
+    async fn get_config(&self) -> HttpResult<HttpResponse> {
+        let value = self.config.get::<ApplicationConfig>().unwrap_or_default();
+        Ok(HttpResponse::Ok().data(&value))
     }
 }
 
 #[sword::main]
 async fn main() {
-    let app_state = AppState::new();
-
     let app = Application::builder()
-        .with_state(app_state)
+        .with_state(Arc::new(RwLock::new(Vec::<String>::new())))
         .with_controller::<AppController>()
         .build();
 

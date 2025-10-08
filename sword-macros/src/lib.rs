@@ -281,32 +281,6 @@ pub fn config(attr: TokenStream, item: TokenStream) -> TokenStream {
     config::expand_config_struct(attr, item)
 }
 
-/// Automatically implements the `TryFrom<State>` trait for a struct.
-/// This allows you to easily extract the struct from the application state
-/// in your controller structs.
-///
-/// This can be useful to replace the usage of `ctx.get_state::<MyStruct>()`
-/// with a more idiomatic approach using `TryFrom`.
-#[proc_macro_derive(TryFromState)]
-pub fn try_from_state(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as syn::DeriveInput);
-    let struct_name = &input.ident;
-
-    let expanded = quote! {
-        impl TryFrom<::sword::core::State> for #struct_name {
-            type Error = ::sword::web::HttpResponse;
-
-            fn try_from(state: ::sword::core::State) -> Result<Self, Self::Error> {
-                state.get::<#struct_name>().map_err(|_| {
-                    ::sword::web::HttpResponse::InternalServerError()
-                })
-            }
-        }
-    };
-
-    TokenStream::from(expanded)
-}
-
 /// ### This is just a re-export of `tokio::main` to simplify the initial setup of
 /// ### Sword, you can use your own version of tokio adding it to your
 /// ### `Cargo.toml`, we are providing this initial base by default

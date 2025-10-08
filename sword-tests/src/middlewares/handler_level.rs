@@ -89,7 +89,6 @@ impl MiddlewareWithConfig<(&str, &str)> for TupleConfigMiddleware {
         mut ctx: Context,
         next: Next,
     ) -> MiddlewareResult {
-        println!("Tuple config: {:?}", config);
         ctx.extensions
             .insert((config.0.to_string(), config.1.to_string()));
         next!(ctx, next)

@@ -31,7 +31,7 @@ use crate::core::ConfigItem;
 /// host = "${HOST:127.0.0.1}"
 /// port = "${PORT:3000}"
 /// ```
-#[derive(Debug, Deserialize, Clone, Serialize)]
+#[derive(Debug, Deserialize, Clone, Serialize, Default)]
 pub struct ApplicationConfig {
     /// The hostname or IP address to bind the server to.
     /// Defaults to "0.0.0.0" if not specified.
@@ -112,7 +112,7 @@ impl ApplicationConfig {
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Default)]
 pub struct BodyLimit {
     pub raw: String,
     pub parsed: usize,
@@ -123,12 +123,61 @@ impl<'de> Deserialize<'de> for BodyLimit {
     where
         D: serde::Deserializer<'de>,
     {
-        let s = String::deserialize(deserializer)?;
-        let parsed = Byte::from_str(&s)
-            .map(|b| b.as_u64() as usize)
-            .map_err(serde::de::Error::custom)?;
+        use serde::de::{Error, MapAccess, Visitor};
+        use std::fmt;
 
-        Ok(Self { raw: s, parsed })
+        struct BodyLimitVisitor;
+
+        impl<'de> Visitor<'de> for BodyLimitVisitor {
+            type Value = BodyLimit;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str(
+                    "a string like \"10MB\" or an object with raw and parsed fields",
+                )
+            }
+
+            // Deserialize from a string (from TOML config)
+            fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+            where
+                E: Error,
+            {
+                let parsed = Byte::from_str(value)
+                    .map(|b| b.as_u64() as usize)
+                    .map_err(Error::custom)?;
+
+                Ok(BodyLimit {
+                    raw: value.to_string(),
+                    parsed,
+                })
+            }
+
+            // Deserialize from a map/object (from JSON serialization)
+            fn visit_map<M>(self, mut map: M) -> Result<Self::Value, M::Error>
+            where
+                M: MapAccess<'de>,
+            {
+                let mut raw = None;
+                let mut parsed = None;
+
+                while let Some(key) = map.next_key::<String>()? {
+                    match key.as_str() {
+                        "raw" => raw = Some(map.next_value()?),
+                        "parsed" => parsed = Some(map.next_value()?),
+                        _ => {
+                            let _: serde::de::IgnoredAny = map.next_value()?;
+                        }
+                    }
+                }
+
+                Ok(BodyLimit {
+                    raw: raw.ok_or_else(|| Error::missing_field("raw"))?,
+                    parsed: parsed.ok_or_else(|| Error::missing_field("parsed"))?,
+                })
+            }
+        }
+
+        deserializer.deserialize_any(BodyLimitVisitor)
     }
 }
 

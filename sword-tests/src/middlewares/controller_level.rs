@@ -30,8 +30,13 @@ impl Middleware for MwWithState {
 struct RoleMiddleware;
 
 impl MiddlewareWithConfig<Vec<&str>> for RoleMiddleware {
-    async fn handle(roles: Vec<&str>, ctx: Context, nxt: Next) -> MiddlewareResult {
-        dbg!(&roles);
+    async fn handle(
+        roles: Vec<&str>,
+        mut ctx: Context,
+        nxt: Next,
+    ) -> MiddlewareResult {
+        ctx.extensions
+            .insert::<String>(format!("Roles: {:?}", roles));
 
         next!(ctx, nxt)
     }

@@ -54,8 +54,7 @@ pub fn generate_controller_builder(input: &ControllerInput) -> TokenStream {
 fn generate_field_extractions(fields: Vec<(Ident, Type)>) -> TokenStream {
     let extractions = fields.iter().map(|(field_name, field_type)| {
         quote! {
-
-            let #field_name = #field_type::try_from(state.clone()).map_err(|_| {
+            let #field_name = state.get::<#field_type>().map_err(|_| {
                 ::sword::web::ControllerError::StateExtractionError(format!(
                     "Failed to extract {} from state. Is it properly configured?",
                     stringify!(#field_type),

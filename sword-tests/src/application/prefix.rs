@@ -16,7 +16,7 @@ pub struct RootController;
 
 #[routes]
 impl RootController {
-    #[get("/{id}")]
+    #[get("/")]
     async fn index(&self) -> HttpResponse {
         HttpResponse::Ok().message("Hello, World!")
     }
