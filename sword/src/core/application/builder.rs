@@ -33,16 +33,10 @@ use crate::{
 /// ```rust,ignore
 /// use sword::prelude::*;
 ///
-/// #[derive(Default)]
-/// struct AppState {
-///     counter: std::sync::atomic::AtomicU64,
-/// }
-///
 /// #[controller]
 /// struct HomeController;
 ///
-/// let app = Application::builder()?
-///     .with_state(AppState::default())?
+/// let app = Application::builder()
 ///     .with_controller::<HomeController>()
 ///     .with_layer(tower_http::cors::CorsLayer::permissive())
 ///     .build();
@@ -51,10 +45,15 @@ use crate::{
 pub struct ApplicationBuilder {
     /// The internal Axum router that handles HTTP requests.
     router: Router,
+
     /// Shared application state for dependency injection and data sharing.
     state: State,
+
     /// Application configuration loaded from TOML files.
     pub config: Config,
+
+    /// Optional URL prefix for all routes in the application.
+    prefix: Option<String>,
 }
 
 impl ApplicationBuilder {
@@ -90,6 +89,7 @@ impl ApplicationBuilder {
             router,
             state,
             config,
+            prefix: None,
         }
     }
 
@@ -131,6 +131,7 @@ impl ApplicationBuilder {
             router,
             state: self.state,
             config: self.config,
+            prefix: self.prefix,
         }
     }
 
@@ -151,7 +152,7 @@ impl ApplicationBuilder {
     /// use tower_http::cors::CorsLayer;
     /// use tower_http::trace::TraceLayer;
     ///
-    /// let app = Application::builder()?
+    /// let app = Application::builder()
     ///     .with_layer(CorsLayer::permissive())
     ///     .with_layer(TraceLayer::new_for_http())
     ///     .build();
@@ -170,6 +171,7 @@ impl ApplicationBuilder {
             router,
             state: self.state,
             config: self.config,
+            prefix: self.prefix,
         }
     }
 
@@ -224,6 +226,7 @@ impl ApplicationBuilder {
             router,
             state: self.state,
             config: self.config,
+            prefix: self.prefix,
         }
     }
 
@@ -287,6 +290,19 @@ impl ApplicationBuilder {
         self.with_state(module)
     }
 
+    /// Sets a URL prefix for all routes in the application.
+    ///
+    /// This method allows you to specify a common prefix that will be
+    /// applied to all routes registered in the application.
+    pub fn with_prefix<S: Into<String>>(self, prefix: S) -> Self {
+        Self {
+            router: self.router,
+            state: self.state,
+            config: self.config,
+            prefix: Some(prefix.into()),
+        }
+    }
+
     /// Builds the final application instance.
     ///
     /// This method finalizes the application configuration and creates the
@@ -319,6 +335,10 @@ impl ApplicationBuilder {
 
         router = router
             .layer(mw_with_state(self.state.clone(), ResponsePrettifier::layer));
+
+        if let Some(prefix) = &self.prefix {
+            router = Router::new().nest(prefix, router);
+        }
 
         Application {
             router,
