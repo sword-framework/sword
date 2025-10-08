@@ -175,9 +175,9 @@ pub fn patch(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// }
 /// ```
 #[proc_macro_attribute]
-#[proc_macro_error::proc_macro_error]
 pub fn controller(attr: TokenStream, item: TokenStream) -> TokenStream {
     controller::expand_controller(attr, item)
+        .unwrap_or_else(|err| err.to_compile_error().into())
 }
 
 /// Implements the routes for a controller defined with the `#[controller]` macro.
@@ -196,9 +196,9 @@ pub fn controller(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// }
 /// ```
 #[proc_macro_attribute]
-#[proc_macro_error::proc_macro_error]
 pub fn routes(attr: TokenStream, item: TokenStream) -> TokenStream {
     controller::expand_controller_routes(attr, item)
+        .unwrap_or_else(|err| err.to_compile_error().into())
 }
 
 /// Declares a executable middleware to apply to a route controller.

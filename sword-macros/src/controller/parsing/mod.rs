@@ -2,7 +2,6 @@ mod attributes;
 mod fields;
 
 use proc_macro::TokenStream;
-use proc_macro_error::emit_error;
 use syn::{Ident, ItemStruct, Type};
 
 use crate::{
@@ -31,10 +30,8 @@ pub fn parse_controller_input(
 
     for attr in &input.attrs {
         if attr.path().is_ident("middleware") {
-            match attr.parse_args::<MiddlewareArgs>() {
-                Ok(args) => middlewares.push(args),
-                Err(e) => emit_error!("Failed to parse middleware arguments: {}", e),
-            }
+            let args = attr.parse_args::<MiddlewareArgs>()?;
+            middlewares.push(args);
         }
     }
 

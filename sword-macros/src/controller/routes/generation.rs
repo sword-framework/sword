@@ -1,33 +1,38 @@
-use proc_macro_error::emit_error;
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::Type;
 
 use crate::{
-    controller::routes::parsing::RouteInfo, middleware::expand_middleware_args,
+    controller::routes::{HTTP_METHODS, parsing::RouteInfo},
+    middleware::expand_middleware_args,
 };
 
 pub fn generate_controller_routes(
     struct_self: &Type,
     routes: Vec<RouteInfo>,
-) -> TokenStream {
+) -> Result<TokenStream, syn::Error> {
     let mut handlers = vec![];
 
     for route in routes.iter() {
-        let mut routing_function = quote! {};
+        let routing_function = match route.method.as_str() {
+            "get" => quote! { axum_get_fn },
+            "post" => quote! { axum_post_fn },
+            "put" => quote! { axum_put_fn },
+            "patch" => quote! { axum_patch_fn },
+            "delete" => quote! { axum_delete_fn },
+            _ => {
+                return Err(syn::Error::new(
+                    proc_macro2::Span::call_site(),
+                    format!(
+                        "Unsupported HTTP method. Only {} are supported",
+                        HTTP_METHODS.join(", ")
+                    ),
+                ));
+            }
+        };
 
-        let route_method = &route.method;
         let route_path = &route.path;
         let handler_name = &route.handler_name;
-
-        match route_method.as_str() {
-            "get" => routing_function = quote! { axum_get_fn },
-            "post" => routing_function = quote! { axum_post_fn },
-            "put" => routing_function = quote! { axum_put_fn },
-            "patch" => routing_function = quote! { axum_patch_fn },
-            "delete" => routing_function = quote! { axum_delete_fn },
-            _ => emit_error!("Unsupported HTTP method: {}", route.method),
-        };
 
         let mut handler = if route.needs_context {
             quote! {
@@ -86,7 +91,7 @@ pub fn generate_controller_routes(
         });
     }
 
-    quote! {
+    Ok(quote! {
         impl ::sword::web::Controller for #struct_self
         where
             Self: ::sword::web::ControllerBuilder
@@ -109,5 +114,5 @@ pub fn generate_controller_routes(
                 }
             }
         }
-    }
+    })
 }
