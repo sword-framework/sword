@@ -1,9 +1,11 @@
-use proc_macro_error::emit_error;
 use proc_macro2::Ident;
 use quote::ToTokens;
 use regex::Regex;
 use std::sync::LazyLock;
-use syn::{Attribute, ImplItem, ImplItemFn, ItemImpl, LitStr, parse as syn_parse};
+use syn::{
+    Attribute, Error, ImplItem, ImplItemFn, ItemImpl, LitStr, parse as syn_parse,
+    spanned::Spanned,
+};
 
 use crate::middleware::parse::MiddlewareArgs;
 
@@ -13,7 +15,7 @@ const VALID_ROUTE_MACROS: &[&str; 6] =
 pub const HTTP_METHODS: [&str; 5] = ["get", "post", "put", "delete", "patch"];
 
 static PATH_KIND_REGEX: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"^\/(?:[^\/{}]+|\{[^*{}][^{}]*\}|\{\*[^{}]+\})*(?:\/(?:[^\/{}]+|\{[^*{}][^{}]*\}|\{\*[^{}]+\}))*$").unwrap()
+    Regex::new(r"^\/(?:[^\/{}:]+|\{[^*{}][^{}]*\}|\{\*[^{}]+\})*(?:\/(?:[^\/{}:]+|\{[^*{}][^{}]*\}|\{\*[^{}]+\}))*$").unwrap()
 });
 
 pub struct RouteInfo {
@@ -24,7 +26,7 @@ pub struct RouteInfo {
     pub needs_context: bool,
 }
 
-pub fn parse_routes(input: ItemImpl) -> Vec<RouteInfo> {
+pub fn parse_routes(input: ItemImpl) -> Result<Vec<RouteInfo>, syn::Error> {
     let mut routes: Vec<RouteInfo> = vec![];
 
     for item in input.items.iter() {
@@ -34,8 +36,7 @@ pub fn parse_routes(input: ItemImpl) -> Vec<RouteInfo> {
 
         let Ok(handler) = syn_parse::<ImplItemFn>(item.to_token_stream().into())
         else {
-            emit_error!(item, "Failed to parse function item");
-            continue;
+            return Err(Error::new(item.span(), "Failed to parse handler function"));
         };
 
         let mut route_path = String::new();
@@ -52,17 +53,11 @@ pub fn parse_routes(input: ItemImpl) -> Vec<RouteInfo> {
             }
 
             if ident == "middleware" {
-                match attr.parse_args::<MiddlewareArgs>() {
-                    Ok(args) => middlewares.push(args),
-                    Err(e) => emit_error!(attr, "Invalid middleware syntax: {}", e),
-                }
+                let args = attr.parse_args::<MiddlewareArgs>()?;
+                middlewares.push(args);
             } else if HTTP_METHODS.contains(&ident.to_string().as_str()) {
                 route_method = ident.to_string();
-
-                match parse_route_path(attr) {
-                    Ok(path) => route_path = path.value(),
-                    Err(e) => emit_error!(attr, "{}", e),
-                }
+                route_path = parse_route_path(attr)?.value();
             }
         }
 
@@ -81,18 +76,28 @@ pub fn parse_routes(input: ItemImpl) -> Vec<RouteInfo> {
         });
     }
 
-    routes
+    Ok(routes)
 }
 
-pub fn parse_route_path(attr: &Attribute) -> Result<LitStr, String> {
+pub fn parse_route_path(attr: &Attribute) -> Result<LitStr, syn::Error> {
     let Ok(path) = attr.parse_args::<LitStr>() else {
-        return Err("Expected a string literal as path in HTTP method attribute, e.g., #[get(\"/path\")]".to_string());
+        return Err(Error::new(
+            attr.span(),
+            "Expected a string literal as path in HTTP method attribute, e.g., #[get(\"/path\")]",
+        ));
     };
 
     let value = path.value();
 
     if !PATH_KIND_REGEX.is_match(&value) {
-        return Err(format!("Invalid path format: {}.", value));
+        return Err(Error::new(
+            path.span(),
+            "Invalid path format. Paths must start with '/' and can include:\n\
+             - Static segments: /users\n\
+             - Dynamic segments: /users/{id}\n\
+             - Wildcard segments: /files/{*path}\n\
+            ",
+        ));
     }
 
     Ok(path)

@@ -30,7 +30,7 @@ impl Parse for ControllerArgs {
                 if !VERSION_REGEX.is_match(&ver_str) {
                     return Err(syn::Error::new(
                         ver.span(),
-                        "Invalid version format",
+                        "Invalid version format. Expected: v<number> (e.g., v1, v2)",
                     ));
                 }
 

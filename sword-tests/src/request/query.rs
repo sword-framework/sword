@@ -195,8 +195,6 @@ async fn validated_query_error_test_validator() {
 
     let json = response.json::<ResponseBody>();
 
-    dbg!(&json);
-
     assert_eq!(400_u16, response.status_code().as_u16());
     assert!(json.errors.is_some());
 
