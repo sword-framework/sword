@@ -9,7 +9,7 @@ use crate::{
 
 pub fn generate_controller_routes(
     struct_self: &Type,
-    routes: Vec<RouteInfo>,
+    routes: &[RouteInfo],
 ) -> Result<TokenStream, syn::Error> {
     let mut handlers = vec![];
 

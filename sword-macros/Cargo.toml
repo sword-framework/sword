@@ -24,7 +24,7 @@ proc-macro = true
 syn = { version = "2", features = ["full"] }
 quote = "1"
 proc-macro2 = "1"
-regex = "1.11.1"
+regex-lite = "0.1.7"
 proc-macro-error = "1.0.4"
 
 [features]

@@ -1570,6 +1570,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "regex-lite"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "943f41321c63ef1c92fd763bfe054d2668f7f225a5c29f0105903dc2fc04ba30"
+
+[[package]]
 name = "regex-syntax"
 version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1912,7 +1918,7 @@ dependencies = [
  "proc-macro-error",
  "proc-macro2",
  "quote",
- "regex",
+ "regex-lite",
  "syn 2.0.106",
 ]
 

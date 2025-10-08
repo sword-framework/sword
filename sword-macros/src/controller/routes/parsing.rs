@@ -1,6 +1,6 @@
 use proc_macro2::Ident;
 use quote::ToTokens;
-use regex::Regex;
+use regex_lite::Regex;
 use std::sync::LazyLock;
 use syn::{
     Attribute, Error, ImplItem, ImplItemFn, ItemImpl, LitStr, parse as syn_parse,
@@ -26,7 +26,7 @@ pub struct RouteInfo {
     pub needs_context: bool,
 }
 
-pub fn parse_routes(input: ItemImpl) -> Result<Vec<RouteInfo>, syn::Error> {
+pub fn parse_routes(input: &ItemImpl) -> Result<Vec<RouteInfo>, syn::Error> {
     let mut routes: Vec<RouteInfo> = vec![];
 
     for item in input.items.iter() {

@@ -11,8 +11,8 @@ pub fn generate_controller_builder(input: &ControllerInput) -> TokenStream {
     let self_fields = &input.fields;
     let controller_middlewares = &input.middlewares;
 
-    let field_extractions = generate_field_extractions(self_fields.clone());
-    let field_assignments = generate_field_assignments(self_fields.clone());
+    let field_extractions = generate_field_extractions(self_fields);
+    let field_assignments = generate_field_assignments(self_fields);
 
     let processed_middlewares: Vec<TokenStream> = controller_middlewares
         .iter()
@@ -51,14 +51,16 @@ pub fn generate_controller_builder(input: &ControllerInput) -> TokenStream {
     }
 }
 
-fn generate_field_extractions(fields: Vec<(Ident, Type)>) -> TokenStream {
+fn generate_field_extractions(fields: &[(Ident, Type)]) -> TokenStream {
     let extractions = fields.iter().map(|(field_name, field_type)| {
+        let type_str = quote!(#field_type).to_string();
+        let error_msg = format!(
+            "Failed to extract {type_str} from state. Is it properly configured?"
+        );
+
         quote! {
             let #field_name = state.get::<#field_type>().map_err(|_| {
-                ::sword::web::ControllerError::StateExtractionError(format!(
-                    "Failed to extract {} from state. Is it properly configured?",
-                    stringify!(#field_type),
-                ))
+                ::sword::web::ControllerError::StateExtractionError(#error_msg.into())
             })?;
         }
     });
@@ -68,7 +70,7 @@ fn generate_field_extractions(fields: Vec<(Ident, Type)>) -> TokenStream {
     }
 }
 
-fn generate_field_assignments(fields: Vec<(Ident, Type)>) -> TokenStream {
+fn generate_field_assignments(fields: &[(Ident, Type)]) -> TokenStream {
     let assignments = fields.iter().map(|(name, _)| {
         quote! { #name }
     });
