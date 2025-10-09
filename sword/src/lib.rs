@@ -221,4 +221,9 @@ pub mod __internal {
     };
 
     pub use tokio::runtime as tokio_runtime;
+
+    #[cfg(feature = "hot-reload")]
+    pub use dioxus_devtools;
+    #[cfg(feature = "hot-reload")]
+    pub use subsecond;
 }

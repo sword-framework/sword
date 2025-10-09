@@ -12,6 +12,8 @@
 
 - Added versioning support on controllers with `version` attribute.
 
+- Added `hot-reload` feature flag to `sword`. This enables hot-reloading of the application during development. It uses the `subsecond` and `dioxus-devtools` crates for hot-reloading functionality. See the examples for usage.
+
 ### Fixed
 
 - Fixed an issue where the middleware macro was not working correctly with some configuration types.
