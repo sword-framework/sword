@@ -1,5 +1,5 @@
 use byte_unit::Byte;
-use regex::Regex;
+use regex_lite::Regex;
 use serde::Deserialize;
 use std::{env, str::FromStr};
 

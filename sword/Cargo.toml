@@ -16,15 +16,6 @@ license-file = "../LICENSE"
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
-[features]
-default = []
-
-multipart = ["axum/multipart", "dep:bytes"]
-cookies = ["dep:tower-cookies", "tower-cookies/signed", "tower-cookies/private"]
-helmet = ["dep:axum-helmet"]
-shaku-di = ["dep:shaku"]
-validator = ["dep:validator"]
-
 [dependencies]
 tokio = { workspace = true }
 axum = { workspace = true }
@@ -42,7 +33,7 @@ form_urlencoded = "^1.1.0"
 serde_path_to_error = "0.1.17"
 byte-unit = "5.1.6"
 
-regex = "1.11.1"
+regex-lite = "0.1.7"
 validator = { workspace = true, optional = true }
 
 tower = "0.5.2"
@@ -56,3 +47,18 @@ shaku = { version = "0.6.2", optional = true }
 bytes = { version = "1.10.1", optional = true }
 colored = "3.0.0"
 inventory = "0.3.21"
+
+subsecond = { version = "0.7.0-rc.1", optional = true }
+dioxus-devtools = { version = "0.7.0-rc.1", features = [
+    "serve",
+], optional = true }
+
+[features]
+default = []
+
+multipart = ["axum/multipart", "dep:bytes"]
+cookies = ["dep:tower-cookies", "tower-cookies/signed", "tower-cookies/private"]
+helmet = ["dep:axum-helmet"]
+shaku-di = ["dep:shaku"]
+validator = ["dep:validator"]
+hot-reload = ["dep:subsecond", "dep:dioxus-devtools", "sword-macros/hot-reload"]
