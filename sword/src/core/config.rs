@@ -85,9 +85,8 @@ impl Config {
     ///
     /// ```
     pub fn get<T: DeserializeOwned + ConfigItem>(&self) -> Result<T, ConfigError> {
-        let config_item = match self.inner.get(T::toml_key()) {
-            Some(value) => value,
-            None => return Err(ConfigError::KeyNotFound(T::toml_key().to_string())),
+        let Some(config_item) = self.inner.get(T::toml_key()) else {
+            return Err(ConfigError::KeyNotFound(T::toml_key().to_string()));
         };
 
         let value = toml::Value::into_deserializer(config_item.clone());

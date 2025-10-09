@@ -35,7 +35,7 @@ impl State {
         let state_ref =
             map.get(&TypeId::of::<T>())
                 .ok_or(StateError::TypeNotFound {
-                    type_name: type_name.clone(),
+                    type_name: type_name.to_string(),
                 })?;
 
         state_ref

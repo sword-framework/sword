@@ -8,9 +8,17 @@
 
 - Added schema validation with feature flags. Now the `validator` crate is included only under `validator` feature flag. This allows users to choose if they want to use `validator` crate or not. If not, you can implement your own trait for validation to the `Context` struct. e.g. with `garde`, `validify`.
 
+- Added `global prefix` support. Now, you can set a global prefix for all routes in the application. This is useful for versioning or grouping routes under a common path.
+
+- Added versioning support on controllers with `version` attribute.
+
+- Added `hot-reload` feature flag to `sword`. This enables hot-reloading of the application during development. It uses the `subsecond` and `dioxus-devtools` crates for hot-reloading functionality. See the examples for usage.
+
 ### Fixed
 
 - Fixed an issue where the middleware macro was not working correctly with some configuration types.
+
+- Fixed the error messages when some macros failed to compile. Now, the error messages are more descriptive and helpful.
 
 ### Changed
 

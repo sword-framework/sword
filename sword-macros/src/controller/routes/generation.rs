@@ -9,7 +9,7 @@ use crate::{
 
 pub fn generate_controller_routes(
     struct_self: &Type,
-    routes: Vec<RouteInfo>,
+    routes: &[RouteInfo],
 ) -> Result<TokenStream, syn::Error> {
     let mut handlers = vec![];
 
@@ -37,20 +37,12 @@ pub fn generate_controller_routes(
         let mut handler = if route.needs_context {
             quote! {
                 ::sword::__internal::#routing_function({
-                    let controller_build = std::sync::Arc::clone(&controller);
+                    let ctrl = std::sync::Arc::clone(&controller);
 
                     move |ctx: ::sword::web::Context| {
-                        let controller_build = controller_build.clone();
-
                         async move {
                             use ::sword::__internal::IntoResponse;
-
-                            match controller_build.as_ref() {
-                                Ok(controller) => controller.#handler_name(ctx).await.into_response(),
-                                Err(err) => ::sword::web::HttpResponse::InternalServerError()
-                                    .message(format!("Controller build error: {err}"))
-                                    .into_response(),
-                            }
+                            ctrl.#handler_name(ctx).await.into_response()
                         }
                     }
                 })
@@ -58,20 +50,12 @@ pub fn generate_controller_routes(
         } else {
             quote! {
                 ::sword::__internal::#routing_function({
-                    let controller_build = std::sync::Arc::clone(&controller);
+                    let ctrl = std::sync::Arc::clone(&controller);
 
-                    move |_ctx: ::sword::web::Context| {
-                        let controller_build = controller_build.clone();
-
+                    move |_: ::sword::web::Context| {
                         async move {
                             use ::sword::__internal::IntoResponse;
-
-                            match controller_build.as_ref() {
-                                Ok(controller) => controller.#handler_name().await.into_response(),
-                                Err(err) => ::sword::web::HttpResponse::InternalServerError()
-                                    .message(format!("Controller build error: {err}"))
-                                    .into_response(),
-                            }
+                            ctrl.#handler_name().await.into_response()
                         }
                     }
                 })
@@ -97,7 +81,13 @@ pub fn generate_controller_routes(
             Self: ::sword::web::ControllerBuilder
         {
             fn router(state: ::sword::core::State) -> ::sword::__internal::AxumRouter {
-                let controller = std::sync::Arc::new(Self::build(state.clone()));
+                let controller = std::sync::Arc::new(
+                    Self::build(state.clone()).unwrap_or_else(|err| {
+                        eprintln!("Controller build error: {err}");
+                        eprintln!("Ensure that all dependencies are correctly registered in the application state.");
+                        panic!("Failed to build controller: {}", err)
+                    })
+                );
 
                 let base_router = ::sword::__internal::AxumRouter::new()
                     #(#handlers)*

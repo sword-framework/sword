@@ -9,8 +9,8 @@ pub fn expand_controller_routes(
     item: TokenStream,
 ) -> Result<TokenStream, syn::Error> {
     let item = syn::parse::<ItemImpl>(item)?;
-    let parsed = parse_routes(item.clone())?;
-    let generated = generate_controller_routes(&item.self_ty, parsed)?;
+    let parsed = parse_routes(&item)?;
+    let generated = generate_controller_routes(&item.self_ty, &parsed)?;
 
     let expanded = quote! {
         #item

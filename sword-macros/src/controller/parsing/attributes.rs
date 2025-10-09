@@ -1,4 +1,4 @@
-use regex::Regex;
+use regex_lite::Regex;
 use std::sync::LazyLock;
 use syn::{
     Ident, LitStr, Token,
