@@ -14,7 +14,7 @@
 //! #[routes]
 //! impl ApiController {
 //!     #[get("/hello")]
-//!     async fn hello() -> HttpResponse {
+//!     async fn hello(&self) -> HttpResponse {
 //!         HttpResponse::Ok().message("Hello, World!")
 //!     }
 //! }
@@ -46,7 +46,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! sword = { version = "0.1.7", features = ["cookies", "multipart", "helmet"] }
+//! sword = { version = "0.1.8", features = ["cookies", "multipart", "helmet"] }
 //! ```
 //!
 //! Available features:
@@ -124,8 +124,11 @@ pub mod errors;
 pub mod core {
     mod application;
     mod config;
+    mod di;
     mod state;
     mod utils;
+
+    pub use di::*;
 
     pub use utils::deserialize_size;
 

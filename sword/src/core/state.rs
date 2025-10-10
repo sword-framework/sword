@@ -72,6 +72,19 @@ impl State {
 
         Ok(())
     }
+
+    pub(crate) fn insert_dependency(
+        &self,
+        type_id: TypeId,
+        instance: Arc<dyn Any + Send + Sync>,
+    ) -> Result<(), StateError> {
+        self.inner
+            .write()
+            .map_err(|_| StateError::LockError)?
+            .insert(type_id, instance);
+
+        Ok(())
+    }
 }
 
 impl Default for State {

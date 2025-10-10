@@ -609,6 +609,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "di"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "sword",
+ "tokio",
+]
+
+[[package]]
 name = "diff"
 version = "0.1.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
