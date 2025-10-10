@@ -1,4 +1,4 @@
-mod built_in;
+mod builtin;
 
 use axum::response::Response as AxumResponse;
 use std::future::Future;
@@ -6,10 +6,10 @@ use std::future::Future;
 use crate::web::{Context, HttpResult};
 
 #[cfg(feature = "helmet")]
-pub use built_in::helmet;
+pub use builtin::helmet;
 
-pub(crate) use built_in::content_type::ContentTypeCheck;
-pub(crate) use built_in::prettifier::ResponsePrettifier;
+pub(crate) use builtin::content_type::ContentTypeCheck;
+pub(crate) use builtin::prettifier::ResponsePrettifier;
 
 pub use axum::middleware::Next;
 pub use sword_macros::middleware;
