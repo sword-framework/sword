@@ -70,9 +70,9 @@
 /// ```
 pub mod prelude {
     pub use crate::core::{Application, ApplicationConfig};
-    pub use crate::core::{Config, ConfigItem, config};
+    pub use crate::core::{Config, ConfigItem, config, injectable};
 
-    pub use crate::errors::{ApplicationError, RequestError, StateError};
+    pub use crate::errors::{ApplicationError, DependencyInjectionError, RequestError, StateError};
     pub use crate::web::*;
 
     #[cfg(feature = "cookies")]
@@ -129,6 +129,7 @@ pub mod core {
     mod utils;
 
     pub use di::*;
+    pub use sword_macros::injectable;
 
     pub use utils::deserialize_size;
 
@@ -196,7 +197,7 @@ pub mod web {
     pub use context::Context;
     pub use middleware::*;
 
-    pub use controller::{Controller, ControllerBuilder, ControllerError};
+    pub use controller::{Controller, ControllerBuilder};
 
     #[cfg(feature = "multipart")]
     pub use context::multipart;

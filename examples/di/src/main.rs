@@ -43,9 +43,8 @@ async fn main() {
     let db = Database::new().await;
 
     let container = DependencyContainer::builder()
-        .register::<TaskRepository>()
-        .register::<TasksService>()
         .register_instance(db)
+        .register::<TasksService>()
         .build();
 
     let app = Application::builder()

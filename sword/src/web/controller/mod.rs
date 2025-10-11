@@ -1,12 +1,5 @@
-use crate::core::State as SwordState;
+use crate::{core::State as SwordState, errors::DependencyInjectionError};
 use axum::Router as AxumRouter;
-use thiserror::Error;
-
-#[derive(Debug, Error)]
-pub enum ControllerError {
-    #[error("State extraction failed: {0}")]
-    StateExtractionError(String),
-}
 
 pub trait Controller: ControllerBuilder {
     fn router(state: SwordState) -> AxumRouter;
@@ -19,7 +12,7 @@ pub trait ControllerBuilder {
         app_state: SwordState,
     ) -> AxumRouter;
 
-    fn build(state: SwordState) -> Result<Self, ControllerError>
+    fn build(state: SwordState) -> Result<Self, DependencyInjectionError>
     where
         Self: Sized;
 }

@@ -3,6 +3,13 @@ use quote::quote;
 use syn::parse_macro_input;
 
 mod config;
+mod shared {
+    mod generation;
+    mod parsing;
+
+    pub use generation::*;
+    pub use parsing::*;
+}
 
 mod controller {
     pub mod expand;
@@ -28,6 +35,16 @@ mod middleware {
     pub mod parse;
 
     pub use expand::expand_middleware_args;
+}
+
+mod injectable {
+    mod expand;
+    mod generation;
+    mod parse;
+
+    pub use expand::*;
+    pub use generation::*;
+    pub use parse::*;
 }
 
 /// Defines a handler for HTTP GET requests.
@@ -279,6 +296,12 @@ pub fn middleware(attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn config(attr: TokenStream, item: TokenStream) -> TokenStream {
     config::expand_config_struct(attr, item)
+}
+
+#[proc_macro_attribute]
+pub fn injectable(attr: TokenStream, item: TokenStream) -> TokenStream {
+    injectable::expand_injectable(attr, item)
+        .unwrap_or_else(|err| err.to_compile_error().into())
 }
 
 /// ### This is just a re-export of `tokio::main` to simplify the initial setup of

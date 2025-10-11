@@ -4,13 +4,18 @@ use std::{
     sync::Arc,
 };
 
-use crate::{core::State, errors::StateError};
+use crate::{core::State, errors::DependencyInjectionError};
 
 type Dependency = Arc<dyn Any + Send + Sync>;
-type DependencyBuilder = Box<dyn Fn(&State) -> Dependency>;
+
+type DependencyBuilder =
+    Box<dyn Fn(&State) -> Result<Dependency, DependencyInjectionError>>;
 
 pub trait Injectable {
-    fn build(state: &State) -> Self;
+    fn build(state: &State) -> Result<Self, DependencyInjectionError>
+    where
+        Self: Sized;
+
     fn dependencies() -> Vec<TypeId>;
 }
 
@@ -52,9 +57,16 @@ impl DependencyContainer {
         T: Injectable + Send + Sync + 'static,
     {
         let type_id = TypeId::of::<T>();
+        let type_name = std::any::type_name::<T>();
 
-        let dependency_builder =
-            Box::new(|state: &State| Arc::new(T::build(state)) as Dependency);
+        let dependency_builder = Box::new(move |state: &State| {
+            T::build(state)
+                .map(|instance| Arc::new(instance) as Dependency)
+                .map_err(|e| DependencyInjectionError::BuildFailed {
+                    type_name: type_name.to_string(),
+                    reason: e.to_string(),
+                })
+        });
 
         self.dependency_graph.insert(type_id, T::dependencies());
         self.dependency_builders.insert(type_id, dependency_builder);
@@ -74,13 +86,21 @@ impl DependencyContainer {
         self
     }
 
-    pub(crate) fn build_all(&self, state: &State) -> Result<(), StateError> {
+    pub(crate) fn build_all(
+        &self,
+        state: &State,
+    ) -> Result<(), DependencyInjectionError> {
         let mut built = HashSet::new();
 
         // First. register all the provided instances
 
         for (type_id, instance) in &self.instances {
-            state.insert_dependency(*type_id, instance.clone())?;
+            state
+                .insert_dependency(*type_id, instance.clone())
+                .map_err(|e| DependencyInjectionError::StateError {
+                    type_name: format!("{:?}", type_id),
+                    source: e,
+                })?;
             built.insert(*type_id);
         }
 
@@ -101,7 +121,7 @@ impl DependencyContainer {
         type_id: &TypeId,
         state: &State,
         built: &mut HashSet<TypeId>,
-    ) -> Result<(), StateError> {
+    ) -> Result<(), DependencyInjectionError> {
         if built.contains(type_id) {
             return Ok(());
         }
@@ -117,7 +137,13 @@ impl DependencyContainer {
         }
 
         if let Some(builder) = self.dependency_builders.get(type_id) {
-            state.insert_dependency(*type_id, builder(state))?;
+            state
+                .insert_dependency(*type_id, builder(state)?)
+                .map_err(|e| DependencyInjectionError::StateError {
+                    type_name: format!("{:?}", type_id),
+                    source: e,
+                })?;
+
             built.insert(*type_id);
         }
 

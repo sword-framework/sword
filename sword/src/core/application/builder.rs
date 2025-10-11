@@ -232,9 +232,9 @@ impl ApplicationBuilder {
     }
 
     pub fn with_dependency_container(self, container: DependencyContainer) -> Self {
-        container
-            .build_all(&self.state)
-            .unwrap_or_else(|e| panic!("Failed to build dependencies: {}", e));
+        container.build_all(&self.state).unwrap_or_else(|err| {
+            panic!("\n❌ Failed to build dependency container\n\n{}\n", err)
+        });
 
         self
     }

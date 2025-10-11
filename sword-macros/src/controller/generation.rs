@@ -40,7 +40,7 @@ pub fn generate_controller_builder(input: &ControllerInput) -> TokenStream {
                 result
             }
 
-            fn build(state: ::sword::core::State) -> Result<Self, ::sword::web::ControllerError> {
+            fn build(state: ::sword::core::State) -> Result<Self, ::sword::errors::DependencyInjectionError> {
                 #field_extractions
 
                 Ok(Self {
@@ -54,13 +54,12 @@ pub fn generate_controller_builder(input: &ControllerInput) -> TokenStream {
 fn generate_field_extractions(fields: &[(Ident, Type)]) -> TokenStream {
     let extractions = fields.iter().map(|(field_name, field_type)| {
         let type_str = quote!(#field_type).to_string();
-        let error_msg = format!(
-            "Failed to extract {type_str} from state. Is it properly configured?"
-        );
 
         quote! {
             let #field_name = state.get::<#field_type>().map_err(|_| {
-                ::sword::web::ControllerError::StateExtractionError(#error_msg.into())
+                ::sword::errors::DependencyInjectionError::DependencyNotFound {
+                    type_name: #type_str.to_string(),
+                }
             })?;
         }
     });
