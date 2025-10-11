@@ -232,19 +232,9 @@ impl ApplicationBuilder {
     }
 
     pub fn with_dependency_container(self, container: DependencyContainer) -> Self {
-        for (type_id, instance) in container.instances {
-            self.state
-                .insert_dependency(type_id, instance)
-                .expect("Failed to insert instance");
-        }
-
-        for (type_id, builder) in container.dependency_builders {
-            let instance = builder(&self.state);
-
-            self.state
-                .insert_dependency(type_id, instance)
-                .expect("Failed to insert dependency");
-        }
+        container
+            .build_all(&self.state)
+            .unwrap_or_else(|e| panic!("Failed to build dependencies: {}", e));
 
         self
     }

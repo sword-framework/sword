@@ -1,10 +1,10 @@
 use std::{
     any::{Any, TypeId},
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     sync::Arc,
 };
 
-use crate::core::State;
+use crate::{core::State, errors::StateError};
 
 type Dependency = Arc<dyn Any + Send + Sync>;
 type DependencyBuilder = Box<dyn Fn(&State) -> Dependency>;
@@ -13,6 +13,24 @@ pub trait Injectable {
     fn build(state: &State) -> Self;
     fn dependencies() -> Vec<TypeId>;
 }
+
+/// A container for managing dependencies and their builders.
+///
+/// Basically it support two types of registrations:
+///
+/// 1. Intances:
+///
+/// Instances are pre-created objects that you want to register directly into the container.
+/// For example, you might have a database connection or external service client that you
+/// need to build beforehand and inject into other Dependencies.
+///
+/// 2. Non-instances:
+///
+/// Are types that has no need to be pre-created. Instead, you register the type itself,
+/// and the container will use the `Injectable` trait to build them when needed, resolving
+/// their dependencies automatically.
+///
+///
 
 pub struct DependencyContainer {
     pub(crate) instances: HashMap<TypeId, Dependency>,
@@ -54,5 +72,55 @@ impl DependencyContainer {
 
     pub fn build(self) -> Self {
         self
+    }
+
+    pub(crate) fn build_all(&self, state: &State) -> Result<(), StateError> {
+        let mut built = HashSet::new();
+
+        // First. register all the provided instances
+
+        for (type_id, instance) in &self.instances {
+            state.insert_dependency(*type_id, instance.clone())?;
+            built.insert(*type_id);
+        }
+
+        // Then, build the rest based on dependencies in
+        // topological order.
+
+        // If a type_id is already built, skip it (Dep already built).
+
+        for type_id in self.dependency_graph.keys() {
+            self.build_recursive(type_id, state, &mut built)?;
+        }
+
+        Ok(())
+    }
+
+    fn build_recursive(
+        &self,
+        type_id: &TypeId,
+        state: &State,
+        built: &mut HashSet<TypeId>,
+    ) -> Result<(), StateError> {
+        if built.contains(type_id) {
+            return Ok(());
+        }
+
+        // Explore to all the dependencies first
+        // and for each dependency, invoke build_recursive
+        // to ensure they are built before building the current type.
+
+        if let Some(deps) = self.dependency_graph.get(type_id) {
+            for dep_id in deps {
+                self.build_recursive(dep_id, state, built)?;
+            }
+        }
+
+        if let Some(builder) = self.dependency_builders.get(type_id) {
+            state.insert_dependency(*type_id, builder(state))?;
+            built.insert(*type_id);
+        }
+
+        Ok(())
     }
 }
