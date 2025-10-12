@@ -74,7 +74,7 @@ impl Context {
     /// state type was not registered in the application.
     pub fn di<T>(&self) -> Result<T, DependencyInjectionError>
     where
-        T: Clone + Send + Sync + 'static + Clone,
+        T: Clone + Send + Sync + 'static,
     {
         let type_name = std::any::type_name::<T>().to_string();
 

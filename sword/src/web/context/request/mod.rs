@@ -25,7 +25,7 @@ impl Context {
     ///
     /// ### Returns
     /// A reference to the HTTP `Method` (GET, POST, PUT, DELETE, etc.).
-    pub fn method(&self) -> &Method {
+    pub const fn method(&self) -> &Method {
         &self.method
     }
 
@@ -37,9 +37,7 @@ impl Context {
     /// ### Returns
     /// `Some(&str)` with the header value if it exists, `None` if not found.
     pub fn header(&self, key: &str) -> Option<&str> {
-        self.headers
-            .get(&key.to_lowercase())
-            .map(|value| value.as_str())
+        self.headers.get(&key.to_lowercase()).map(String::as_str)
     }
 
     /// Gets an immutable reference to all request headers.
@@ -47,7 +45,7 @@ impl Context {
     /// ### Returns
     /// A reference to `HashMap<String, String>` containing all request headers
     /// where the key is the header name and the value is its content.
-    pub fn headers(&self) -> &HashMap<String, String> {
+    pub const fn headers(&self) -> &HashMap<String, String> {
         &self.headers
     }
 
@@ -56,7 +54,7 @@ impl Context {
     /// ### Returns
     /// A mutable reference to `HashMap<String, String>` that allows modifying
     /// existing headers or adding new headers to the request.
-    pub fn headers_mut(&mut self) -> &mut HashMap<String, String> {
+    pub const fn headers_mut(&mut self) -> &mut HashMap<String, String> {
         &mut self.headers
     }
 
@@ -131,7 +129,7 @@ impl Context {
         Err(RequestError::ParseError(message, details))
     }
 
-    pub fn params(&self) -> &HashMap<String, String> {
+    pub const fn params(&self) -> &HashMap<String, String> {
         &self.params
     }
 
@@ -274,7 +272,7 @@ impl Context {
     /// ### Returns
     ///
     /// Returns `true` if the request has a body with content, `false` if empty.
-    pub(crate) fn has_body(&self) -> bool {
+    pub(crate) const fn has_body(&self) -> bool {
         !self.body_bytes.is_empty()
     }
 }

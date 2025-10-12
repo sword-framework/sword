@@ -38,10 +38,10 @@ impl Context {
     /// }
     /// ```
     pub fn cookies(&self) -> Result<&Cookies, HttpResponse> {
-        self.extensions.get::<Cookies>().ok_or(
+        self.extensions.get::<Cookies>().ok_or_else(|| {
             HttpResponse::InternalServerError()
-                .message("Can't extract cookies. Is `CookieManagerLayer` enabled?"),
-        )
+                .message("Can't extract cookies. Is `CookieManagerLayer` enabled?")
+        })
     }
 
     /// Access the cookies from the request context as a mutable reference.
@@ -74,9 +74,9 @@ impl Context {
     /// }
     /// ```
     pub fn cookies_mut(&mut self) -> Result<&mut Cookies, HttpResponse> {
-        self.extensions.get_mut::<Cookies>().ok_or(
+        self.extensions.get_mut::<Cookies>().ok_or_else(|| {
             HttpResponse::InternalServerError()
-                .message("Can't extract cookies. Is `CookieManagerLayer` enabled?"),
-        )
+                .message("Can't extract cookies. Is `CookieManagerLayer` enabled?")
+        })
     }
 }

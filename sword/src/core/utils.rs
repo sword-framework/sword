@@ -40,7 +40,7 @@ pub(crate) fn expand_env_vars(content: &str) -> Result<String, String> {
     for caps in re.captures_iter(content) {
         let full_match = caps.get(0).unwrap().as_str();
         let var_name = caps.get(1).unwrap().as_str();
-        let default_value = caps.get(2).map(|m| m.as_str()).unwrap_or("");
+        let default_value = caps.get(2).map_or("", |m| m.as_str());
 
         let replacement = match env::var(var_name) {
             Ok(value) => value,
@@ -69,11 +69,8 @@ pub(crate) fn expand_env_vars(content: &str) -> Result<String, String> {
             continue;
         }
 
-        let replacement = match env::var(var_name) {
-            Ok(value) => value,
-            Err(_) => {
-                return Err(format!("environment variable '{var_name}' not found"));
-            }
+        let Ok(replacement) = env::var(var_name) else {
+            return Err(format!("environment variable '{var_name}' not found"));
         };
 
         result = result.replace(full_match, &replacement);

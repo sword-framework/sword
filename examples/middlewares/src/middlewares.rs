@@ -15,7 +15,7 @@ pub struct RoleMiddleware;
 
 impl MiddlewareWithConfig<Vec<&str>> for RoleMiddleware {
     async fn handle(roles: Vec<&str>, ctx: Context, next: Next) -> MiddlewareResult {
-        println!("Allowed roles: {:?}", roles);
+        println!("Allowed roles: {roles:?}");
         next!(ctx, next)
     }
 }

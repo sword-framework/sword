@@ -37,9 +37,9 @@ impl CookieController {
     async fn with_middleware(&self, mut ctx: Context) -> HttpResult<HttpResponse> {
         let cookies = ctx.cookies_mut()?;
 
-        let session_cookie = cookies.get("session_id").ok_or(
-            HttpResponse::Unauthorized().message("Session cookie not found"),
-        )?;
+        let session_cookie = cookies.get("session_id").ok_or_else(|| {
+            HttpResponse::Unauthorized().message("Session cookie not found")
+        })?;
 
         Ok(HttpResponse::Ok()
             .message(format!("Session ID: {}", session_cookie.value())))
@@ -64,7 +64,7 @@ impl CookieController {
             private.add(Cookie::new("visited_private", (count + 1).to_string()));
 
             Ok(HttpResponse::Ok()
-                .message(format!("You've been {} times before", count)))
+                .message(format!("You've been {count} times before")))
         }
     }
 }
