@@ -19,6 +19,13 @@ pub trait Injectable {
     fn dependencies() -> Vec<TypeId>;
 }
 
+/// Marker trait for types that are manually instantiated and registered as providers.
+///
+/// Providers are dependencies that cannot be auto-constructed from the State
+/// (e.g., database connections, external API clients) but need to be available
+/// for injection into other services.
+pub trait Provider: Send + Sync + 'static {}
+
 /// A container for managing dependencies and their builders.
 ///
 /// Basically it support two types of registrations:
@@ -79,6 +86,14 @@ impl DependencyContainer {
         T: Send + Sync + 'static,
     {
         self.instances.insert(TypeId::of::<T>(), Arc::new(instance));
+        self
+    }
+
+    pub fn register_provider<T>(mut self, provider: T) -> Self
+    where
+        T: Provider,
+    {
+        self.instances.insert(TypeId::of::<T>(), Arc::new(provider));
         self
     }
 

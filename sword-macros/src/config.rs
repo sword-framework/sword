@@ -37,6 +37,22 @@ pub fn expand_config_struct(attr: TokenStream, item: TokenStream) -> TokenStream
                 #toml_key_str
             }
         }
+
+        impl TryFrom<&::sword::core::State> for #struct_name {
+            type Error = ::sword::errors::DependencyInjectionError;
+
+            fn try_from(state: &::sword::core::State) -> Result<Self, Self::Error> {
+                let config = state.get::<::sword::core::Config>()
+                    .map_err(|_| ::sword::errors::DependencyInjectionError::DependencyNotFound {
+                        type_name: "Config".to_string(),
+                    })?;
+
+                config.get::<Self>()
+                    .map_err(|e| ::sword::errors::DependencyInjectionError::ConfigInjectionError {
+                        source: e,
+                    })
+            }
+        }
     };
 
     TokenStream::from(expanded)

@@ -75,8 +75,8 @@ pub struct ApplicationConfig {
 
 impl ApplicationConfig {
     pub fn display(&self) {
-        let banner_top = "▪───────────────── ⚔ S W O R D ⚔ ───────────────▪".white();
-        let banner_bot = "▪───────────────── ⚔ ───────── ⚔ ───────────────▪".white();
+        let banner_top = "▪──────────────── ⚔ S W O R D ⚔ ──────────────▪".white();
+        let banner_bot = "▪──────────────── ⚔ ───────── ⚔ ──────────────▪".white();
 
         println!("\n{}\n", banner_top);
 

@@ -507,6 +507,7 @@ dependencies = [
 name = "cookies"
 version = "0.1.0"
 dependencies = [
+ "serde",
  "sword",
 ]
 
@@ -590,13 +591,10 @@ checksum = "2a2330da5de22e8a3cb63252ce2abb30116bf5265e89c0e01bc17015ce30a476"
 name = "dependency-injection"
 version = "0.1.0"
 dependencies = [
- "async-trait",
  "serde",
  "serde_json",
- "shaku",
  "sword",
  "tokio",
- "validator",
 ]
 
 [[package]]
@@ -606,16 +604,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a41953f86f8a05768a6cda24def994fd2f424b04ec5c719cf89989779f199071"
 dependencies = [
  "powerfmt",
-]
-
-[[package]]
-name = "di"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "sword",
- "tokio",
 ]
 
 [[package]]
@@ -2025,6 +2013,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "shaku-di"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "serde",
+ "serde_json",
+ "shaku",
+ "sword",
+ "tokio",
+ "validator",
+]
+
+[[package]]
 name = "shaku_derive"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2033,16 +2034,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 1.0.109",
-]
-
-[[package]]
-name = "shared-state"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "sword",
- "tokio",
 ]
 
 [[package]]

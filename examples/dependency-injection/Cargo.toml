@@ -3,11 +3,12 @@ name = "dependency-injection"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "di"
+path = "src/main.rs"
+
 [dependencies]
-sword = { workspace = true, features = ["shaku-di", "validator"] }
-shaku = "0.6.2"
-tokio = { workspace = true }
+sword = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-validator = { workspace = true }
-async-trait = { workspace = true }
+tokio = { workspace = true }

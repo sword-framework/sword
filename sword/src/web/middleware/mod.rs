@@ -63,7 +63,7 @@ pub trait Middleware: Send + Sync + 'static {
 pub trait MiddlewareWithConfig<C>: Send + Sync + 'static {
     fn handle(
         config: C,
-        req: Context,
+        next: Context,
         next: Next,
     ) -> impl Future<Output = MiddlewareResult> + Send;
 }

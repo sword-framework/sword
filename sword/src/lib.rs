@@ -70,9 +70,11 @@
 /// ```
 pub mod prelude {
     pub use crate::core::{Application, ApplicationConfig};
-    pub use crate::core::{Config, ConfigItem, config, injectable};
+    pub use crate::core::{Config, ConfigItem, config, injectable, provider};
 
-    pub use crate::errors::{ApplicationError, DependencyInjectionError, RequestError, StateError};
+    pub use crate::errors::{
+        ApplicationError, DependencyInjectionError, RequestError, StateError,
+    };
     pub use crate::web::*;
 
     #[cfg(feature = "cookies")]
@@ -129,7 +131,7 @@ pub mod core {
     mod utils;
 
     pub use di::*;
-    pub use sword_macros::injectable;
+    pub use sword_macros::{injectable, provider};
 
     pub use utils::deserialize_size;
 

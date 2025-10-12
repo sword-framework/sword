@@ -1,307 +1,150 @@
+use std::{
+    collections::HashMap,
+    sync::{Arc, LazyLock, RwLock},
+};
+
 use axum_test::TestServer;
+use serde_json::Value;
+use sword::prelude::*;
+
+pub type Store = Arc<RwLock<HashMap<&'static str, Vec<Value>>>>;
+
+#[provider]
+pub struct Database {
+    db: Store,
+}
+
+impl Database {
+    pub fn new() -> Self {
+        let db = Arc::new(RwLock::new(HashMap::new()));
+
+        db.write().unwrap().insert("tasks", Vec::new());
+
+        Self { db }
+    }
+
+    pub async fn insert(&self, table: &'static str, record: Value) {
+        let mut db = self.db.write().unwrap();
+
+        if let Some(table_data) = db.get_mut(table) {
+            table_data.push(record);
+        }
+    }
+
+    pub async fn get_all(&self, table: &'static str) -> Option<Vec<Value>> {
+        let db = self.db.read().unwrap();
+
+        db.get(table).cloned()
+    }
+}
+
+use sword::core::injectable;
+
+#[injectable]
+pub struct TasksService {
+    repository: TaskRepository,
+}
+
+impl TasksService {
+    pub async fn create(&self, task: Value) {
+        self.repository.create(task).await;
+    }
+
+    pub async fn find_all(&self) -> Vec<Value> {
+        self.repository.find_all().await.unwrap_or_default()
+    }
+}
+
+#[injectable]
+pub struct TaskRepository {
+    db: Database,
+}
+
+impl TaskRepository {
+    pub async fn create(&self, task: Value) {
+        self.db.insert("tasks", task).await;
+    }
+
+    pub async fn find_all(&self) -> Option<Vec<Value>> {
+        self.db.get_all("tasks").await
+    }
+}
+
 use serde_json::json;
-use std::sync::Arc;
-use std::sync::atomic::{AtomicUsize, Ordering};
+use sword::core::DependencyContainer;
 
-use shaku::{Component, Interface, module};
-use sword::{prelude::*, web::HttpResult};
-
-trait CounterService: Interface {
-    fn get_count(&self) -> usize;
-    fn increment(&self);
-    fn add(&self, value: usize);
-    fn reset(&self);
+#[controller("/tasks", version = "v1")]
+struct TasksController {
+    tasks: TasksService,
 }
-
-#[derive(Component)]
-#[shaku(interface = CounterService)]
-struct AtomicCounter {
-    #[shaku(default)]
-    count: Arc<AtomicUsize>,
-}
-
-impl Default for AtomicCounter {
-    fn default() -> Self {
-        Self {
-            count: Arc::new(AtomicUsize::new(0)),
-        }
-    }
-}
-
-#[allow(dead_code)]
-impl AtomicCounter {
-    fn new() -> Self {
-        Self::default()
-    }
-}
-
-impl CounterService for AtomicCounter {
-    fn get_count(&self) -> usize {
-        self.count.load(Ordering::SeqCst)
-    }
-
-    fn increment(&self) {
-        self.count.fetch_add(1, Ordering::SeqCst);
-    }
-
-    fn add(&self, value: usize) {
-        self.count.fetch_add(value, Ordering::SeqCst);
-    }
-
-    fn reset(&self) {
-        self.count.store(0, Ordering::SeqCst);
-    }
-}
-
-trait Logger: Interface {
-    fn log(&self, message: &str);
-    fn get_logs(&self) -> Vec<String>;
-}
-
-#[derive(Component)]
-#[shaku(interface = Logger)]
-struct InMemoryLogger {
-    #[shaku(default)]
-    logs: Arc<std::sync::Mutex<Vec<String>>>,
-}
-
-impl Default for InMemoryLogger {
-    fn default() -> Self {
-        Self {
-            logs: Arc::new(std::sync::Mutex::new(Vec::new())),
-        }
-    }
-}
-
-#[allow(dead_code)]
-impl InMemoryLogger {
-    fn new() -> Self {
-        Self::default()
-    }
-}
-
-impl Logger for InMemoryLogger {
-    fn log(&self, message: &str) {
-        if let Ok(mut logs) = self.logs.lock() {
-            logs.push(message.to_string());
-        }
-    }
-
-    fn get_logs(&self) -> Vec<String> {
-        if let Ok(logs) = self.logs.lock() {
-            logs.clone()
-        } else {
-            Vec::new()
-        }
-    }
-}
-
-module! {
-    TestModule {
-        components = [AtomicCounter, InMemoryLogger],
-        providers = []
-    }
-}
-
-#[controller("/api")]
-struct TestController {}
 
 #[routes]
-impl TestController {
-    #[get("/counter")]
-    async fn get_counter(&self, ctx: Context) -> HttpResult<HttpResponse> {
-        let counter_service = ctx.di::<TestModule, dyn CounterService>()?;
-        let logger = ctx.di::<TestModule, dyn Logger>()?;
+impl TasksController {
+    #[get("/")]
+    async fn get_tasks(&self) -> HttpResponse {
+        let data = self.tasks.find_all().await;
 
-        let count = counter_service.get_count();
-        logger.log(&format!("Counter accessed: {count}"));
-
-        Ok(HttpResponse::Ok()
-            .data(json!({ "count": count }))
-            .message("Counter retrieved successfully"))
+        HttpResponse::Ok().data(data)
     }
 
-    #[post("/counter/increment")]
-    async fn increment_counter(&self, ctx: Context) -> HttpResult<HttpResponse> {
-        ctx.di::<TestModule, dyn Logger>()?
-            .log("Incrementing counter");
+    #[post("/")]
+    async fn create_task(&self) -> HttpResponse {
+        let total_task = self.tasks.find_all().await.len();
 
-        let counter_service = ctx.di::<TestModule, dyn CounterService>()?;
+        let task = json!({
+            "id": total_task + 1,
+            "title": format!("Task {}", total_task + 1),
+        });
 
-        counter_service.increment();
+        self.tasks.create(task.clone()).await;
 
-        let count = counter_service.get_count();
-
-        ctx.di::<TestModule, dyn Logger>()?
-            .log(&format!("Counter incremented to: {count}"));
-
-        Ok(HttpResponse::Ok()
-            .data(json!({ "count": count }))
-            .message("Counter incremented successfully"))
-    }
-
-    #[post("/counter/add")]
-    async fn add_to_counter(&self, ctx: Context) -> HttpResult<HttpResponse> {
-        #[derive(serde::Deserialize)]
-        struct AddRequest {
-            value: usize,
-        }
-
-        let body: AddRequest = ctx.body()?;
-        let logger = ctx.di::<TestModule, dyn Logger>()?;
-        let counter_service = ctx.di::<TestModule, dyn CounterService>()?;
-
-        counter_service.add(body.value);
-
-        let count = counter_service.get_count();
-
-        logger.log(&format!(
-            "Added {} to counter, new value: {}",
-            body.value, count
-        ));
-
-        Ok(HttpResponse::Ok()
-            .data(json!({
-                "count": count,
-                "added": body.value
-            }))
-            .message("Value added to counter successfully"))
-    }
-
-    #[get("/logs")]
-    async fn get_logs(&self, ctx: Context) -> HttpResult<HttpResponse> {
-        let logger = ctx.di::<TestModule, dyn Logger>()?;
-        let logs = logger.get_logs();
-
-        Ok(HttpResponse::Ok()
-            .data(json!({ "logs": logs }))
-            .message("Logs retrieved successfully"))
-    }
-
-    #[post("/counter/reset")]
-    async fn reset_counter(&self, ctx: Context) -> HttpResult<HttpResponse> {
-        ctx.di::<TestModule, dyn Logger>()?
-            .log("Resetting counter to 0");
-
-        ctx.di::<TestModule, dyn CounterService>()?.reset();
-
-        Ok(HttpResponse::Ok()
-            .data(json!({ "count": 0 }))
-            .message("Counter reset successfully"))
+        HttpResponse::Created().message("Task created").data(task)
     }
 }
 
-#[tokio::test]
-async fn test_dependency_injection_with_multiple_services() {
-    let module = TestModule::builder().build();
+static APP: LazyLock<TestServer> = LazyLock::new(|| {
+    let db = Database::new();
 
-    let app = Application::builder()
-        .with_shaku_di_module(module)
-        .with_controller::<TestController>()
+    let container = DependencyContainer::builder()
+        .register_provider(db)
+        .register::<TaskRepository>()
+        .register::<TasksService>()
         .build();
 
-    let server = TestServer::new(app.router()).unwrap();
+    let app = Application::builder()
+        .with_dependency_container(container)
+        .with_controller::<TasksController>()
+        .build();
 
-    let get_response = server.get("/api/counter").await;
-    assert_eq!(get_response.status_code(), 200);
+    TestServer::new(app.router()).unwrap()
+});
 
-    let get_json = get_response.json::<ResponseBody>();
-    assert!(get_json.data.is_some());
+#[tokio::test]
+async fn test_get_tasks_empty() {
+    let response = APP.get("/v1/tasks").await;
 
-    let data = get_json.data.unwrap();
+    assert_eq!(response.status_code(), StatusCode::OK);
 
-    assert_eq!(data["count"], 0);
+    let body: ResponseBody = response.json();
 
-    let increment_response = server.post("/api/counter/increment").await;
-    let increment_json = increment_response.json::<ResponseBody>();
-    assert!(increment_json.data.is_some());
-
-    let increment_data = increment_json.data.unwrap();
-
-    assert_eq!(increment_response.status_code(), 200);
-    assert_eq!(increment_data["count"], 1);
-
-    let add_response = server
-        .post("/api/counter/add")
-        .content_type("application/json")
-        .json(&json!({ "value": 5 }))
-        .await;
-
-    assert_eq!(add_response.status_code(), 200);
-    let add_json = add_response.json::<ResponseBody>();
-    assert!(add_json.data.is_some());
-
-    let add_data = add_json.data.unwrap();
-
-    assert_eq!(add_data["count"], 6);
-    assert_eq!(add_data["added"], 5);
-
-    let logs_response = server.get("/api/logs").await;
-    assert_eq!(logs_response.status_code(), 200);
-
-    let logs_json = logs_response.json::<ResponseBody>();
-    assert!(logs_json.data.is_some());
-
-    let logs_data = logs_json.data.unwrap();
-    let logs = logs_data["logs"].as_array().unwrap();
-
-    assert_eq!(logs.len(), 4);
-    assert!(logs[0].as_str().unwrap().contains("Counter accessed: 0"));
-    assert!(logs[1].as_str().unwrap().contains("Incrementing counter"));
-    assert!(
-        logs[2]
-            .as_str()
-            .unwrap()
-            .contains("Counter incremented to: 1")
-    );
-    assert!(
-        logs[3]
-            .as_str()
-            .unwrap()
-            .contains("Added 5 to counter, new value: 6")
-    );
-
-    let reset_response = server.post("/api/counter/reset").await;
-    assert_eq!(reset_response.status_code(), 200);
-
-    let reset_json = reset_response.json::<ResponseBody>();
-    assert!(reset_json.data.is_some());
-
-    let final_response = server.get("/api/counter").await;
-    assert_eq!(final_response.status_code(), 200);
-
-    let final_json = final_response.json::<ResponseBody>();
-    assert!(final_json.data.is_some());
-
-    assert_eq!(final_json.data.unwrap()["count"], 0);
+    assert_eq!(body.success, true);
+    assert_eq!(body.code, 200);
+    assert_eq!(body.data, Some(json!([])));
 }
 
 #[tokio::test]
-async fn test_service_isolation_between_tests() {
-    let module = TestModule::builder().build();
+async fn test_create_task() {
+    let response = APP.post("/v1/tasks").await;
 
-    let app = Application::builder()
-        .with_shaku_di_module(module)
-        .with_controller::<TestController>()
-        .build();
+    assert_eq!(response.status_code(), 201);
 
-    let server = TestServer::new(app.router()).unwrap();
+    let body: ResponseBody = response.json();
 
-    let count_response = server.get("/api/counter").await;
-    assert_eq!(count_response.status_code(), 200);
+    assert_eq!(body.success, true);
+    assert_eq!(body.code, 201);
+    assert_eq!(body.message.as_ref(), "Task created");
 
-    let count_json = count_response.json::<ResponseBody>();
-    assert!(count_json.data.is_some());
-    assert_eq!(count_json.data.unwrap()["count"], 0);
-
-    let logs_response = server.get("/api/logs").await;
-    assert_eq!(logs_response.status_code(), 200);
-
-    let logs_json = logs_response.json::<ResponseBody>();
-    assert!(logs_json.data.is_some());
-
-    let logs_data = logs_json.data.unwrap();
-    let logs = logs_data["logs"].as_array().unwrap();
-
-    assert_eq!(logs.len(), 1);
+    let task = body.data.unwrap();
+    assert_eq!(task["id"], 1);
+    assert_eq!(task["title"], "Task 1");
 }

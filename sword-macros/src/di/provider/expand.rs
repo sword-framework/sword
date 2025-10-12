@@ -2,21 +2,24 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::ItemStruct;
 
-use crate::injectable::*;
+use crate::di::{
+    generate_clone_impl, parse_dependency_struct_input,
+    provider::generate_provider_trait,
+};
 
-pub fn expand_injectable(
+pub fn expand_provider(
     attr: TokenStream,
     item: TokenStream,
 ) -> Result<TokenStream, syn::Error> {
     let input = syn::parse::<ItemStruct>(item.clone())?;
-    let parsed = parse_injectable_input(attr, item)?;
+    let parsed = parse_dependency_struct_input(attr, item)?;
 
-    let injectable_impl = generate_injectable_trait(&parsed);
+    let provider_impl = generate_provider_trait(&parsed);
     let clone_impl = generate_clone_impl(&parsed);
 
     let mut expanded = quote! {
         #input
-        #injectable_impl
+        #provider_impl
     };
 
     if parsed.derive_clone {

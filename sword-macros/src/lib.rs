@@ -37,15 +37,7 @@ mod middleware {
     pub use expand::expand_middleware_args;
 }
 
-mod injectable {
-    mod expand;
-    mod generation;
-    mod parse;
-
-    pub use expand::*;
-    pub use generation::*;
-    pub use parse::*;
-}
+mod di;
 
 /// Defines a handler for HTTP GET requests.
 /// This macro should be used inside an `impl` block of a struct annotated with the `#[controller]` macro.
@@ -300,7 +292,68 @@ pub fn config(attr: TokenStream, item: TokenStream) -> TokenStream {
 
 #[proc_macro_attribute]
 pub fn injectable(attr: TokenStream, item: TokenStream) -> TokenStream {
-    injectable::expand_injectable(attr, item)
+    di::injectable::expand_injectable(attr, item)
+        .unwrap_or_else(|err| err.to_compile_error().into())
+}
+
+/// Marks a type as a provider for dependency injection.
+///
+/// This macro implements the `Provider` marker trait for types that are manually constructed
+/// (e.g., database connections, external API clients) and need to be registered in the
+/// DI container to be injected into other services.
+///
+/// Unlike `#[injectable]`, which auto-constructs dependencies from the State,
+/// `#[provider]` marks a type that must be instantiated manually and then registered
+/// using `DependencyContainer::register_provider()`.
+///
+/// By default, this macro also derives a `Clone` implementation. If you want to prevent
+/// this, you can pass `no_derive_clone` as an attribute parameter.
+///
+/// ### Example
+///
+/// ```rust,ignore
+/// use sword::prelude::*;
+///
+/// #[provider]
+/// pub struct Database {
+///     connection_pool: Pool,
+/// }
+///
+/// impl Database {
+///     pub async fn new(url: &str) -> Self {
+///         let pool = Pool::connect(url).await.unwrap();
+///         Self { connection_pool: pool }
+///     }
+/// }
+///
+/// // Injectable service that uses the provider
+/// #[injectable]
+/// pub struct TaskRepository {
+///     db: Database,  // Database is injected from the container
+/// }
+///
+/// #[sword::main]
+/// async fn main() {
+///     let db = Database::new("postgres://localhost").await;
+///     
+///     let container = DependencyContainer::builder()
+///         .register_provider(db)        // Register the manually created provider
+///         .register::<TaskRepository>() // TaskRepository can now inject Database
+///         .build();
+/// }
+/// ```
+///
+/// ### Disabling Clone derivation
+///
+/// ```rust,ignore
+/// #[provider(no_derive_clone)]
+/// pub struct MyProvider {
+///     // ...
+/// }
+/// ```
+#[proc_macro_attribute]
+pub fn provider(attr: TokenStream, item: TokenStream) -> TokenStream {
+    di::provider::expand_provider(attr, item)
         .unwrap_or_else(|err| err.to_compile_error().into())
 }
 

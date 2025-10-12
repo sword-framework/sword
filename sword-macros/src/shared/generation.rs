@@ -9,7 +9,7 @@ pub fn generate_field_extraction_from_state(
         let type_str = quote!(#field_type).to_string();
 
         quote! {
-            let #field_name = state.get::<#field_type>().map_err(|_| {
+            let #field_name = #field_type::try_from(state).map_err(|_| {
                 ::sword::errors::DependencyInjectionError::DependencyNotFound {
                     type_name: #type_str.to_string(),
                 }

@@ -34,9 +34,6 @@ pub enum StateError {
 
     #[error("Failed to acquire lock on state")]
     LockError,
-
-    #[error("Failed to downcast state type '{type_name}'")]
-    DowncastFailed { type_name: String },
 }
 
 #[derive(Debug, Error)]
@@ -48,6 +45,12 @@ pub enum DependencyInjectionError {
         "Dependency '{type_name}' not found in dependency container\n   ↳ Ensure it's registered before use"
     )]
     DependencyNotFound { type_name: String },
+
+    #[error("Failed to inject config: {source}")]
+    ConfigInjectionError {
+        #[from]
+        source: ConfigError,
+    },
 
     #[error("State error while building '{type_name}': {source}")]
     StateError {

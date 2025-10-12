@@ -22,10 +22,10 @@ pub struct UserController {}
 impl UserController {
     #[get("/")]
     async fn get_users(&self, ctx: Context) -> HttpResult<HttpResponse> {
-        let repository = ctx.di::<AppModule, dyn DataRepository>()?;
+        let repository = ctx.shaku_di::<AppModule, dyn DataRepository>()?;
         let users = repository.get_data().await;
 
-        ctx.di::<AppModule, dyn Logger>()?
+        ctx.shaku_di::<AppModule, dyn Logger>()?
             .log(&format!("Found {} users", users.len()));
 
         Ok(HttpResponse::Ok().data(json!({ "users": repository.get_data().await })))
@@ -34,11 +34,11 @@ impl UserController {
     #[post("/")]
     async fn add_user(&self, ctx: Context) -> HttpResult<HttpResponse> {
         let user: IncommingUser = ctx.body_validator()?;
-        let repository = ctx.di::<AppModule, dyn DataRepository>()?;
+        let repository = ctx.shaku_di::<AppModule, dyn DataRepository>()?;
 
         repository.add_data(user.name).await;
 
-        ctx.di::<AppModule, dyn Logger>()?
+        ctx.shaku_di::<AppModule, dyn Logger>()?
             .log("User added successfully");
 
         Ok(HttpResponse::Created().data("User added successfully"))
