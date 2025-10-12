@@ -39,11 +39,7 @@ impl From<RequestError> for HttpResponse {
 impl From<StateError> for HttpResponse {
     fn from(error: StateError) -> Self {
         match error {
-            StateError::TypeNotFound { type_name } => {
-                eprintln!("Type: {type_name} not found on state");
-                HttpResponse::InternalServerError()
-                    .message("Service configuration error")
-            }
+            StateError::TypeNotFound { .. } => HttpResponse::InternalServerError(),
             StateError::LockError => HttpResponse::InternalServerError(),
         }
     }

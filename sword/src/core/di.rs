@@ -6,11 +6,17 @@ use std::{
 
 use crate::{core::State, errors::DependencyInjectionError};
 
+/// Pointer to dyn Any element. It retrieves dynamic capabilites
+/// to the dependency container. Basically represents Any element.
 type Dependency = Arc<dyn Any + Send + Sync>;
 
+/// A function that builds a dependency from application State
 type DependencyBuilder =
     Box<dyn Fn(&State) -> Result<Dependency, DependencyInjectionError>>;
 
+/// Trait to represent Injectable elements.
+/// This trait gives two functions that helps to build a dependency and
+/// its own dependencies in recursive way.
 pub trait Injectable {
     fn build(state: &State) -> Result<Self, DependencyInjectionError>
     where
@@ -30,20 +36,17 @@ pub trait Provider: Send + Sync + 'static {}
 ///
 /// Basically it support two types of registrations:
 ///
-/// 1. Intances:
+/// 1. Provider:
 ///
-/// Instances are pre-created objects that you want to register directly into the container.
+/// Providers are pre-created objects that you want to register directly into the container.
 /// For example, you might have a database connection or external service client that you
 /// need to build beforehand and inject into other Dependencies.
 ///
-/// 2. Non-instances:
+/// 2. Non-instances (Injectables):
 ///
 /// Are types that has no need to be pre-created. Instead, you register the type itself,
 /// and the container will use the `Injectable` trait to build them when needed, resolving
 /// their dependencies automatically.
-///
-///
-
 pub struct DependencyContainer {
     pub(crate) instances: HashMap<TypeId, Dependency>,
     pub(crate) dependency_builders: HashMap<TypeId, DependencyBuilder>,
@@ -59,6 +62,8 @@ impl DependencyContainer {
         }
     }
 
+    /// Register a injectable service into the dependency container.
+    /// The dependency must implement Injectable trait.
     pub fn register<T>(mut self) -> Self
     where
         T: Injectable + Send + Sync + 'static,
@@ -81,14 +86,7 @@ impl DependencyContainer {
         self
     }
 
-    pub fn register_instance<T>(mut self, instance: T) -> Self
-    where
-        T: Send + Sync + 'static,
-    {
-        self.instances.insert(TypeId::of::<T>(), Arc::new(instance));
-        self
-    }
-
+    /// Register pre-built dependency. a.k.a Provider.
     pub fn register_provider<T>(mut self, provider: T) -> Self
     where
         T: Provider,

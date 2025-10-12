@@ -261,7 +261,7 @@ pub fn middleware(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// - `key`: The key in the configuration file where the struct is located.
 ///
 /// ### Usage
-/// ```rust, ignore
+/// ```rust,ignore
 /// #[derive(Deserialize)]
 /// #[config(key = "my-section")]
 /// struct MyConfig {
@@ -271,7 +271,7 @@ pub fn middleware(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///
 /// This allows you to access the configuration in your handlers or middlewares
 ///
-/// ```rust, ignore
+/// ```rust,ignore
 /// #[controller("/some_path")]
 /// struct SomeController {}
 ///

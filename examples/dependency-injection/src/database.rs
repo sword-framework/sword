@@ -1,10 +1,17 @@
 use std::{collections::HashMap, sync::Arc};
 
+use serde::Deserialize;
 use serde_json::Value;
 use sword::prelude::*;
 use tokio::sync::RwLock;
 
-pub type Store = Arc<RwLock<HashMap<&'static str, Vec<Value>>>>;
+pub type Store = Arc<RwLock<HashMap<String, Vec<Value>>>>;
+
+#[derive(Deserialize)]
+#[config(key = "db-config")]
+pub struct DatabaseConfig {
+    collection_name: String,
+}
 
 #[provider]
 pub struct Database {
@@ -12,10 +19,10 @@ pub struct Database {
 }
 
 impl Database {
-    pub async fn new() -> Self {
+    pub async fn new(db_conf: DatabaseConfig) -> Self {
         let db = Arc::new(RwLock::new(HashMap::new()));
 
-        db.write().await.insert("tasks", Vec::new());
+        db.write().await.insert(db_conf.collection_name, Vec::new());
 
         Self { db }
     }

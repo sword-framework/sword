@@ -10,13 +10,13 @@ Hey! Want to help out with Sword? Awesome! Here’s how you can jump in:
 
 ## Code style & tests
 
-- Use `rustfmt` to keep code tidy.
+- Use `rustfmt` to keep code style.
 - Add tests if you can. Run `cargo test` to make sure everything works.
 - Try to write clear code and add comments if something’s tricky.
 
 ## Docs
 
-- If you add something new, update the docs or README if it helps others.
+- If you add something new, add rustdocs or README.
 
 ## Setup
 

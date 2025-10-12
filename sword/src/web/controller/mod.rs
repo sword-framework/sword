@@ -7,6 +7,7 @@ pub trait Controller: ControllerBuilder {
 
 pub trait ControllerBuilder {
     fn base_path() -> &'static str;
+
     fn apply_controller_middlewares(
         router: AxumRouter,
         app_state: SwordState,

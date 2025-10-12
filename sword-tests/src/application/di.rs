@@ -4,7 +4,7 @@ use std::{
 };
 
 use axum_test::TestServer;
-use serde_json::Value;
+use serde_json::{Value, json};
 use sword::prelude::*;
 
 pub type Store = Arc<RwLock<HashMap<&'static str, Vec<Value>>>>;
@@ -69,9 +69,6 @@ impl TaskRepository {
         self.db.get_all("tasks").await
     }
 }
-
-use serde_json::json;
-use sword::core::DependencyContainer;
 
 #[controller("/tasks", version = "v1")]
 struct TasksController {

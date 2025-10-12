@@ -57,11 +57,6 @@ impl Application {
     /// If graceful shutdown is enabled in the configuration, it will handle
     /// termination signals and allow ongoing requests to complete before shutting down.
     ///
-    /// ### Returns
-    ///
-    /// Returns `Ok(())` if the server shuts down gracefully, or
-    /// `Err(ApplicationError)` if there are issues starting or running the server.
-    ///
     /// ### Errors
     ///
     /// This function will return an error if:
@@ -76,11 +71,11 @@ impl Application {
     ///
     /// #[sword::main]
     /// async fn main() {
-    ///     let app = Application::builder()?
+    ///     let app = Application::builder()
     ///         .with_controller::<MyController>()
     ///         .build();
     ///     
-    ///     app.run().await?;
+    ///     app.run().await;
     /// }
     /// ```
     pub async fn run(&self) {
@@ -111,6 +106,10 @@ impl Application {
     ///
     /// See [Axum's docs](https://docs.rs/axum/latest/axum/serve/struct.WithGracefulShutdown.html)
     /// to learn more about graceful shutdown.
+    ///
+    /// To use this method, disable the "graceful shutdown" option on config.toml.
+    /// If this option is setted as true the application it will use the default axum's provided
+    /// Graceful shutdown signal.
     ///
     /// ### Example
     ///

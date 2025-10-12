@@ -3,13 +3,11 @@ use std::{collections::HashMap, str::FromStr};
 use axum::http::Method;
 use serde::de::DeserializeOwned;
 
-pub mod validation {
-    #[cfg(feature = "validator")]
-    pub mod validator;
-}
+#[cfg(feature = "validator")]
+pub mod validator;
 
 #[cfg(feature = "validator")]
-pub use validation::validator::ValidatorRequestValidation;
+pub use validator::ValidatorRequestValidation;
 
 use crate::{errors::RequestError, web::Context};
 

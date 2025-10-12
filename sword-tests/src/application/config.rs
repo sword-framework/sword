@@ -1,8 +1,8 @@
 use std::process::Command;
 
+use axum_test::TestServer;
 use serde::{Deserialize, Serialize};
 use sword::prelude::*;
-use sword::web::HttpResult;
 
 #[derive(Serialize, Deserialize)]
 #[config(key = "my-custom-section")]
@@ -12,17 +12,17 @@ struct MyConfig {
 }
 
 #[controller("/test")]
-struct TestController {}
+struct TestController {
+    custom_config: MyConfig,
+}
 
 #[routes]
 impl TestController {
     #[get("/hello")]
-    async fn hello(&self, ctx: Context) -> HttpResult<HttpResponse> {
-        let custom_config = ctx.config::<MyConfig>()?;
-
-        Ok(HttpResponse::Ok()
-            .data(custom_config)
-            .message("Test controller response"))
+    async fn hello(&self) -> HttpResponse {
+        HttpResponse::Ok()
+            .data(&self.custom_config)
+            .message("Test controller response")
     }
 }
 
@@ -32,14 +32,14 @@ async fn test_application() {
         .with_controller::<TestController>()
         .build();
 
-    let test = axum_test::TestServer::new(app.router()).unwrap();
+    let test = TestServer::new(app.router()).unwrap();
 
     let response = test.get("/test/hello").await;
-    assert_eq!(response.status_code(), 200);
-
     let json_body = response.json::<ResponseBody>();
 
+    assert_eq!(response.status_code(), 200);
     assert!(json_body.data.is_some());
+
     let data = json_body.data.unwrap();
 
     let expected = MyConfig {

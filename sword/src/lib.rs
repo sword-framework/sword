@@ -69,12 +69,15 @@
 /// // Now you have access to Application, Context, HttpResult, and more
 /// ```
 pub mod prelude {
-    pub use crate::core::{Application, ApplicationConfig};
-    pub use crate::core::{Config, ConfigItem, config, injectable, provider};
+    pub use crate::core::{
+        Application, ApplicationConfig, Config, ConfigItem, DependencyContainer,
+        config, injectable, provider,
+    };
 
     pub use crate::errors::{
         ApplicationError, DependencyInjectionError, RequestError, StateError,
     };
+
     pub use crate::web::*;
 
     #[cfg(feature = "cookies")]

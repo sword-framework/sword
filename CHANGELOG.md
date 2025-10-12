@@ -24,6 +24,8 @@
 
 - With the latest `axum_responses` release, the `data` field in error responses has been removed and replaced with either `error` or `errors`, depending on your configuration. By default, validation errors will be returned under `errors` fields.
 
+- Changed global state scope. Now its necessary to use DI pattern. 
+
 ## [0.1.8]
 
 ### Added

@@ -6,5 +6,5 @@ request_timeout_seconds = 15
 graceful_shutdown = false
 name = "MySwordApp"
 
-[my-custom-section]
-custom_key = "custom_value"
+[db-config]
+collection_name = "tasks"

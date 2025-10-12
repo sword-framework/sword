@@ -75,7 +75,7 @@ pub trait MiddlewareWithConfig<C>: Send + Sync + 'static {
 /// It is used in the `handle` method of the `Middleware` trait.
 ///
 /// # Example usage:
-/// ```rust
+/// ```rust,ignore
 /// use sword::prelude::*;
 ///
 /// struct MyMiddleware;

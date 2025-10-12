@@ -1,13 +1,18 @@
 mod database;
+mod middleware;
 mod repository;
 mod service;
 
+pub use middleware::MyMiddleware;
 pub use repository::TaskRepository;
 
 use serde_json::json;
 use sword::{core::DependencyContainer, prelude::*};
 
-use crate::{database::Database, service::TasksService};
+use crate::{
+    database::{Database, DatabaseConfig},
+    service::TasksService,
+};
 
 #[controller("/tasks", version = "v1")]
 struct TasksController {
@@ -17,6 +22,7 @@ struct TasksController {
 #[routes]
 impl TasksController {
     #[get("/")]
+    #[middleware(MyMiddleware)]
     async fn get_tasks(&self) -> HttpResponse {
         let data = self.tasks.find_all().await;
 
@@ -40,7 +46,10 @@ impl TasksController {
 
 #[sword::main]
 async fn main() {
-    let db = Database::new().await;
+    let app = Application::builder();
+    let db_config = app.config.get::<DatabaseConfig>().unwrap();
+
+    let db = Database::new(db_config).await;
 
     let container = DependencyContainer::builder()
         .register_provider(db)
@@ -48,7 +57,7 @@ async fn main() {
         .register::<TasksService>()
         .build();
 
-    let app = Application::builder()
+    let app = app
         .with_dependency_container(container)
         .with_controller::<TasksController>()
         .build();
