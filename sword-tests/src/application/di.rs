@@ -1,6 +1,6 @@
 use std::{
     collections::HashMap,
-    sync::{Arc, LazyLock, RwLock},
+    sync::{Arc, RwLock},
 };
 
 use axum_test::TestServer;
@@ -37,8 +37,6 @@ impl Database {
         db.get(table).cloned()
     }
 }
-
-use sword::core::injectable;
 
 #[injectable]
 pub struct TasksService {
@@ -99,7 +97,8 @@ impl TasksController {
     }
 }
 
-static APP: LazyLock<TestServer> = LazyLock::new(|| {
+#[tokio::test]
+async fn test_get_tasks_empty() {
     let db = Database::new();
 
     let container = DependencyContainer::builder()
@@ -113,12 +112,9 @@ static APP: LazyLock<TestServer> = LazyLock::new(|| {
         .with_controller::<TasksController>()
         .build();
 
-    TestServer::new(app.router()).unwrap()
-});
+    let server = TestServer::new(app.router()).unwrap();
 
-#[tokio::test]
-async fn test_get_tasks_empty() {
-    let response = APP.get("/v1/tasks").await;
+    let response = server.get("/v1/tasks").await;
 
     assert_eq!(response.status_code(), StatusCode::OK);
 
@@ -131,7 +127,22 @@ async fn test_get_tasks_empty() {
 
 #[tokio::test]
 async fn test_create_task() {
-    let response = APP.post("/v1/tasks").await;
+    let db = Database::new();
+
+    let container = DependencyContainer::builder()
+        .register_provider(db)
+        .register::<TaskRepository>()
+        .register::<TasksService>()
+        .build();
+
+    let app = Application::builder()
+        .with_dependency_container(container)
+        .with_controller::<TasksController>()
+        .build();
+
+    let server = TestServer::new(app.router()).unwrap();
+
+    let response = server.post("/v1/tasks").await;
 
     assert_eq!(response.status_code(), 201);
 
