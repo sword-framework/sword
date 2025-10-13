@@ -18,7 +18,6 @@ mod application {
     mod config;
     mod di;
     mod prefix;
-    mod state;
     mod versioning;
 }
 

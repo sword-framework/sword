@@ -1,28 +1,19 @@
+use middleware::*;
+use serde::Deserialize;
 use sword::prelude::*;
 
-#[derive(Clone)]
-struct CookieKey(pub Key);
+mod middleware;
 
-struct SetCookieMw {}
-
-impl Middleware for SetCookieMw {
-    async fn handle(mut ctx: Context, next: Next) -> MiddlewareResult {
-        let cookies = ctx.cookies_mut()?;
-
-        let cookie = CookieBuilder::new("session_id", "abc123")
-            .path("/")
-            .http_only(true)
-            .same_site(SameSite::Lax)
-            .build();
-
-        cookies.add(cookie);
-
-        next!(ctx, next)
-    }
+#[derive(Clone, Deserialize)]
+#[config(key = "cookies")]
+struct CookiesConfig {
+    key: String,
 }
 
 #[controller("/cookies")]
-struct CookieController {}
+struct CookieController {
+    cookies_config: CookiesConfig,
+}
 
 #[routes]
 impl CookieController {
@@ -46,9 +37,9 @@ impl CookieController {
     async fn with_middleware(&self, mut ctx: Context) -> HttpResult<HttpResponse> {
         let cookies = ctx.cookies_mut()?;
 
-        let session_cookie = cookies.get("session_id").ok_or(
-            HttpResponse::Unauthorized().message("Session cookie not found"),
-        )?;
+        let session_cookie = cookies.get("session_id").ok_or_else(|| {
+            HttpResponse::Unauthorized().message("Session cookie not found")
+        })?;
 
         Ok(HttpResponse::Ok()
             .message(format!("Session ID: {}", session_cookie.value())))
@@ -56,8 +47,8 @@ impl CookieController {
 
     #[get("/private-counter")]
     async fn private_counter(&self, mut ctx: Context) -> HttpResult<HttpResponse> {
-        let key = ctx.get_state::<CookieKey>()?;
-        let private = ctx.cookies_mut()?.private(&key.0);
+        let key = Key::from(self.cookies_config.key.as_bytes());
+        let private = ctx.cookies_mut()?.private(&key);
 
         let count = private
             .get("visited_private")
@@ -73,18 +64,14 @@ impl CookieController {
             private.add(Cookie::new("visited_private", (count + 1).to_string()));
 
             Ok(HttpResponse::Ok()
-                .message(format!("You've been {} times before", count)))
+                .message(format!("You've been {count} times before")))
         }
     }
 }
 
 #[sword::main]
 async fn main() {
-    let my_key: &[u8] = &[0; 64];
-    let key = Key::from(my_key);
-
     let app = Application::builder()
-        .with_state(CookieKey(key))
         .with_controller::<CookieController>()
         .build();
 

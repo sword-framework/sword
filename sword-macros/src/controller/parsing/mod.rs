@@ -1,14 +1,11 @@
 mod attributes;
-mod fields;
 
 use proc_macro::TokenStream;
 use syn::{Ident, ItemStruct, Type};
 
 use crate::{
-    controller::parsing::{
-        attributes::ControllerArgs, fields::collect_controller_fields,
-    },
-    middleware::parse::MiddlewareArgs,
+    controller::parsing::attributes::ControllerArgs,
+    middleware::parse::MiddlewareArgs, shared::collect_struct_fields,
 };
 
 pub struct ControllerInput {
@@ -26,7 +23,7 @@ pub fn parse_controller_input(
     let args = syn::parse::<ControllerArgs>(attr)?;
 
     let mut middlewares = vec![];
-    let fields = collect_controller_fields(&input);
+    let fields = collect_struct_fields(&input);
 
     for attr in &input.attrs {
         if attr.path().is_ident("middleware") {

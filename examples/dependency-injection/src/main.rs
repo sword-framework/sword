@@ -1,28 +1,65 @@
-mod controller;
 mod database;
-mod logger;
+mod middleware;
+mod repository;
+mod service;
 
-use shaku::module;
-use sword::prelude::*;
+pub use middleware::MyMiddleware;
+pub use repository::TaskRepository;
 
-use crate::database::InMemoryDatabase;
-use crate::logger::ConsoleLogger;
-use controller::UserController;
+use serde_json::json;
+use sword::{core::DependencyContainer, prelude::*};
 
-module! {
-    pub AppModule {
-        components = [ConsoleLogger, InMemoryDatabase],
-        providers = []
+use crate::{
+    database::{Database, DatabaseConfig},
+    service::TasksService,
+};
+
+#[controller("/tasks", version = "v1")]
+struct TasksController {
+    tasks: TasksService,
+}
+
+#[routes]
+impl TasksController {
+    #[get("/")]
+    #[middleware(MyMiddleware)]
+    async fn get_tasks(&self) -> HttpResponse {
+        let data = self.tasks.find_all().await;
+
+        HttpResponse::Ok().data(data)
+    }
+
+    #[post("/")]
+    async fn create_task(&self) -> HttpResponse {
+        let total_task = self.tasks.find_all().await.len();
+
+        let task = json!({
+            "id": total_task + 1,
+            "title": format!("Task {}", total_task + 1),
+        });
+
+        self.tasks.create(task.clone()).await;
+
+        HttpResponse::Created().message("Task created").data(task)
     }
 }
 
 #[sword::main]
 async fn main() {
-    let module = AppModule::builder().build();
+    let app = Application::builder();
+    let db_config = app.config.get::<DatabaseConfig>().unwrap();
 
-    let app = Application::builder()
-        .with_shaku_di_module(module)
-        .with_controller::<UserController>()
+    let db = Database::new(db_config).await;
+
+    let container = DependencyContainer::builder()
+        .register_provider(db)
+        .register::<TaskRepository>()
+        .register::<TasksService>()
+        .build();
+
+    let app = app
+        .with_dependency_container(container)
+        .with_controller::<TasksController>()
         .build();
 
     app.run().await;

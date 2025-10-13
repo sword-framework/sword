@@ -14,7 +14,7 @@
 //! #[routes]
 //! impl ApiController {
 //!     #[get("/hello")]
-//!     async fn hello() -> HttpResponse {
+//!     async fn hello(&self) -> HttpResponse {
 //!         HttpResponse::Ok().message("Hello, World!")
 //!     }
 //! }
@@ -46,7 +46,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! sword = { version = "0.1.7", features = ["cookies", "multipart", "helmet"] }
+//! sword = { version = "0.1.8", features = ["cookies", "multipart", "helmet"] }
 //! ```
 //!
 //! Available features:
@@ -69,10 +69,15 @@
 /// // Now you have access to Application, Context, HttpResult, and more
 /// ```
 pub mod prelude {
-    pub use crate::core::{Application, ApplicationConfig};
-    pub use crate::core::{Config, ConfigItem, config};
+    pub use crate::core::{
+        Application, ApplicationConfig, Config, ConfigItem, DependencyContainer,
+        config, injectable, provider,
+    };
 
-    pub use crate::errors::{ApplicationError, RequestError, StateError};
+    pub use crate::errors::{
+        ApplicationError, DependencyInjectionError, RequestError, StateError,
+    };
+
     pub use crate::web::*;
 
     #[cfg(feature = "cookies")]
@@ -124,8 +129,12 @@ pub mod errors;
 pub mod core {
     mod application;
     mod config;
+    mod di;
     mod state;
     mod utils;
+
+    pub use di::*;
+    pub use sword_macros::{injectable, provider};
 
     pub use utils::deserialize_size;
 
@@ -193,7 +202,7 @@ pub mod web {
     pub use context::Context;
     pub use middleware::*;
 
-    pub use controller::{Controller, ControllerBuilder, ControllerError};
+    pub use controller::{Controller, ControllerBuilder};
 
     #[cfg(feature = "multipart")]
     pub use context::multipart;

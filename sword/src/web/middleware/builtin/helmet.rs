@@ -21,7 +21,7 @@ pub struct Helmet {
 }
 
 impl Helmet {
-    pub fn builder() -> Self {
+    pub const fn builder() -> Self {
         Self {
             headers: Vec::new(),
         }

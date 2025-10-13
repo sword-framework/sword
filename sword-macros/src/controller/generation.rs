@@ -4,6 +4,7 @@ use syn::{Ident, Type};
 
 use crate::controller::parsing::ControllerInput;
 use crate::middleware::expand_middleware_args;
+use crate::shared::generate_field_extraction_from_state;
 
 pub fn generate_controller_builder(input: &ControllerInput) -> TokenStream {
     let base_path = &input.base_path;
@@ -11,7 +12,7 @@ pub fn generate_controller_builder(input: &ControllerInput) -> TokenStream {
     let self_fields = &input.fields;
     let controller_middlewares = &input.middlewares;
 
-    let field_extractions = generate_field_extractions(self_fields);
+    let field_extractions = generate_field_extraction_from_state(self_fields);
     let field_assignments = generate_field_assignments(self_fields);
 
     let processed_middlewares: Vec<TokenStream> = controller_middlewares
@@ -40,7 +41,15 @@ pub fn generate_controller_builder(input: &ControllerInput) -> TokenStream {
                 result
             }
 
-            fn build(state: ::sword::core::State) -> Result<Self, ::sword::web::ControllerError> {
+            fn build(state: ::sword::core::State) -> Result<Self, ::sword::errors::DependencyInjectionError> {
+                Self::try_from(&state)
+            }
+        }
+
+        impl TryFrom<&::sword::core::State> for #self_name {
+            type Error = ::sword::errors::DependencyInjectionError;
+
+            fn try_from(state: &::sword::core::State) -> Result<Self, Self::Error> {
                 #field_extractions
 
                 Ok(Self {
@@ -48,25 +57,6 @@ pub fn generate_controller_builder(input: &ControllerInput) -> TokenStream {
                 })
             }
         }
-    }
-}
-
-fn generate_field_extractions(fields: &[(Ident, Type)]) -> TokenStream {
-    let extractions = fields.iter().map(|(field_name, field_type)| {
-        let type_str = quote!(#field_type).to_string();
-        let error_msg = format!(
-            "Failed to extract {type_str} from state. Is it properly configured?"
-        );
-
-        quote! {
-            let #field_name = state.get::<#field_type>().map_err(|_| {
-                ::sword::web::ControllerError::StateExtractionError(#error_msg.into())
-            })?;
-        }
-    });
-
-    quote! {
-        #(#extractions)*
     }
 }
 

@@ -36,11 +36,25 @@ impl Config {
     pub(crate) fn new() -> Result<Self, ConfigError> {
         let path = Path::new("config/config.toml");
 
-        if !path.exists() {
-            return Err(ConfigError::FileNotFound("config/toml"));
-        }
+        let content = if path.exists() {
+            read_to_string(path).map_err(ConfigError::ReadError)?
+        } else {
+            let exe_path = std::env::current_exe()
+                .map_err(|_| ConfigError::FileNotFound("config/config.toml"))?;
 
-        let content = read_to_string(path).map_err(ConfigError::ReadError)?;
+            let exe_dir = exe_path
+                .parent()
+                .ok_or(ConfigError::FileNotFound("config/config.toml"))?;
+
+            let fallback_path = exe_dir.join("config/config.toml");
+
+            if fallback_path.exists() {
+                read_to_string(fallback_path).map_err(ConfigError::ReadError)?
+            } else {
+                return Err(ConfigError::FileNotFound("config/config.toml"));
+            }
+        };
+
         let expanded = utils::expand_env_vars(&content)
             .map_err(ConfigError::InterpolationError)?;
 

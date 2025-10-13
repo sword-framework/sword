@@ -68,7 +68,7 @@ where
 
         let mut headers = HashMap::new();
 
-        for (key, value) in parts.headers.iter() {
+        for (key, value) in &parts.headers {
             if let Ok(value_str) = value.to_str() {
                 headers.insert(key.to_string(), value_str.to_string());
             }

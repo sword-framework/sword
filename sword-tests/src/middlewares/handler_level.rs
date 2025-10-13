@@ -1,5 +1,5 @@
 use axum_test::TestServer;
-use serde_json::{Value, json};
+use serde_json::json;
 use sword::prelude::*;
 use sword::web::HttpResult;
 use tower_http::cors::CorsLayer;
@@ -57,11 +57,7 @@ struct MwWithState;
 
 impl Middleware for MwWithState {
     async fn handle(mut ctx: Context, nxt: Next) -> MiddlewareResult {
-        let app_state = ctx.get_state::<Value>()?;
-
         ctx.extensions.insert::<u16>(8080);
-        ctx.extensions.insert(app_state.clone());
-
         next!(ctx, nxt)
     }
 }
@@ -314,12 +310,10 @@ impl TestController {
     #[middleware(MwWithState)]
     async fn middleware_state(&self, ctx: Context) -> HttpResult<HttpResponse> {
         let port = ctx.extensions.get::<u16>().cloned().unwrap_or(0);
-        let app_state = ctx.get_state::<Value>()?;
         let message = ctx.extensions.get::<String>().cloned().unwrap_or_default();
 
         let json = json!({
             "port": port,
-            "key": app_state.get("key").and_then(Value::as_str).unwrap_or_default(),
             "message": message
         });
 
@@ -746,7 +740,6 @@ async fn extensions_mw_test() {
 #[tokio::test]
 async fn middleware_state() {
     let app = Application::builder()
-        .with_state(json!({ "key": "value" }))
         .with_controller::<TestController>()
         .build();
 
@@ -762,7 +755,6 @@ async fn middleware_state() {
     let data = json.data.unwrap();
 
     assert_eq!(data["port"], 8080);
-    assert_eq!(data["key"], "value");
     assert_eq!(data["message"], "test_extension");
 }
 

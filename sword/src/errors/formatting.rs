@@ -4,8 +4,7 @@ use serde_json::{Map, Value, json};
 use validator::ValidationErrors;
 
 #[cfg(feature = "validator")]
-/// Following the RFC 9457 (Problem Details for HTTP APIs)
-/// formats validation errors from the `validator` crate into a structured JSON object.
+/// Structured JSON output for validation errors  from the `validator` crate.
 ///
 /// # Example
 ///

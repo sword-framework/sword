@@ -1,4 +1,4 @@
-mod built_in;
+mod builtin;
 
 use axum::response::Response as AxumResponse;
 use std::future::Future;
@@ -6,15 +6,15 @@ use std::future::Future;
 use crate::web::{Context, HttpResult};
 
 #[cfg(feature = "helmet")]
-pub use built_in::helmet;
+pub use builtin::helmet;
 
-pub(crate) use built_in::content_type::ContentTypeCheck;
-pub(crate) use built_in::prettifier::ResponsePrettifier;
+pub(crate) use builtin::content_type::ContentTypeCheck;
+pub(crate) use builtin::prettifier::ResponsePrettifier;
 
 pub use axum::middleware::Next;
 pub use sword_macros::middleware;
 
-/// MiddlewareResult is the result type returned by middleware handlers.
+/// `MiddlewareResult` is the result type returned by middleware handlers.
 /// It is a `Result` that contains an axum native Response in both success and error cases.
 pub type MiddlewareResult = HttpResult<AxumResponse>;
 
@@ -63,19 +63,21 @@ pub trait Middleware: Send + Sync + 'static {
 pub trait MiddlewareWithConfig<C>: Send + Sync + 'static {
     fn handle(
         config: C,
-        req: Context,
+        next: Context,
         next: Next,
     ) -> impl Future<Output = MiddlewareResult> + Send;
 }
 
 /// A macro to simplify the next middleware call in the middleware chain.
+///
 /// It takes the current context and the next middleware in the chain,
 /// and returns a `Result` with the response of the next middleware.
+///
 /// This macro is used to avoid boilerplate code in middleware implementations.
 /// It is used in the `handle` method of the `Middleware` trait.
 ///
 /// # Example usage:
-/// ```rust
+/// ```rust,ignore
 /// use sword::prelude::*;
 ///
 /// struct MyMiddleware;

@@ -21,12 +21,12 @@ pub struct CorsMiddleware {
 }
 
 impl CorsMiddleware {
-    pub fn new(config: CorsConfig) -> Self {
+    pub fn new(config: &CorsConfig) -> Self {
         let mut methods = HashSet::new();
         let mut headers = HashSet::new();
 
-        for method in config.allowed_http_methods.iter() {
-            let http_method = Method::from_str(method)
+        for method in config.allowed_http_methods.clone() {
+            let http_method = Method::from_str(&method)
                 .expect("Invalid HTTP Method found in config");
 
             methods.insert(http_method);
@@ -42,7 +42,7 @@ impl CorsMiddleware {
         let methods = methods.into_iter().collect::<Vec<_>>();
         let headers = headers.into_iter().collect::<Vec<_>>();
 
-        CorsMiddleware {
+        Self {
             layer: CorsLayer::new()
                 .allow_methods(methods)
                 .allow_headers(headers),

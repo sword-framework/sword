@@ -53,7 +53,7 @@ impl State {
 
         let state_ref =
             map.get(&TypeId::of::<T>())
-                .ok_or(StateError::TypeNotFound {
+                .ok_or_else(|| StateError::TypeNotFound {
                     type_name: type_name.clone(),
                 })?;
 
@@ -67,8 +67,23 @@ impl State {
         &self,
         state: T,
     ) -> Result<(), StateError> {
-        let mut map = self.inner.write().map_err(|_| StateError::LockError)?;
-        map.insert(TypeId::of::<T>(), Arc::new(state));
+        self.inner
+            .write()
+            .map_err(|_| StateError::LockError)?
+            .insert(TypeId::of::<T>(), Arc::new(state));
+
+        Ok(())
+    }
+
+    pub(crate) fn insert_dependency(
+        &self,
+        type_id: TypeId,
+        instance: Arc<dyn Any + Send + Sync>,
+    ) -> Result<(), StateError> {
+        self.inner
+            .write()
+            .map_err(|_| StateError::LockError)?
+            .insert(type_id, instance);
 
         Ok(())
     }

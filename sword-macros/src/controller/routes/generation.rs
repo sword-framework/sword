@@ -83,9 +83,7 @@ pub fn generate_controller_routes(
             fn router(state: ::sword::core::State) -> ::sword::__internal::AxumRouter {
                 let controller = std::sync::Arc::new(
                     Self::build(state.clone()).unwrap_or_else(|err| {
-                        eprintln!("Controller build error: {err}");
-                        eprintln!("Ensure that all dependencies are correctly registered in the application state.");
-                        panic!("Failed to build controller: {}", err)
+                        panic!("\n❌ Failed to build controller\n\n{}\n", err)
                     })
                 );
 

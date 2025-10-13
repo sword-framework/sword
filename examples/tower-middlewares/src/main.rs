@@ -32,7 +32,7 @@ async fn main() {
         .get::<CorsConfig>()
         .expect("Failed to load CORS config");
 
-    let cors_middleware = CorsMiddleware::new(cors_config);
+    let cors_middleware = CorsMiddleware::new(&cors_config);
 
     app = app
         .with_controller::<AppController>()

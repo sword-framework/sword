@@ -1,3 +1,4 @@
+use serde_json::json;
 use sword::prelude::*;
 
 #[controller("/")]
@@ -11,7 +12,7 @@ impl TestController {
         let mut multipart = ctx.multipart().await?;
 
         while let Some(field) = multipart.next_field().await.map_err(|e| {
-            eprintln!("Error reading multipart field: {}", e);
+            eprintln!("Error reading multipart field: {e}");
             HttpResponse::BadRequest().message("Failed to read multipart field")
         })? {
             let name = field.name().unwrap_or("Unnamed").to_string();
@@ -19,12 +20,11 @@ impl TestController {
 
             let content_type = field
                 .content_type()
-                .map(|ct| ct.to_string())
-                .unwrap_or("No content type".to_string());
+                .map_or_else(|| "No content type".to_string(), |ct| ct.to_string());
 
             let data = field.bytes().await.unwrap();
 
-            fields.push(serde_json::json!({
+            fields.push(json!({
                 "name": name,
                 "file_name": file_name,
                 "content_type": content_type,

@@ -7,6 +7,9 @@ use axum::{
     routing::{Route, Router},
 };
 
+#[cfg(feature = "shaku-di")]
+use shaku::Module;
+
 use tower::{Layer, Service};
 use tower_http::{limit::RequestBodyLimitLayer, timeout::TimeoutLayer};
 
@@ -14,11 +17,7 @@ use tower_http::{limit::RequestBodyLimitLayer, timeout::TimeoutLayer};
 use tower_cookies::CookieManagerLayer;
 
 use crate::{
-    core::{
-        application::{Application, ApplicationConfig},
-        config::Config,
-        state::State,
-    },
+    core::*,
     web::{ContentTypeCheck, Controller, ResponsePrettifier},
 };
 
@@ -175,66 +174,26 @@ impl ApplicationBuilder {
         }
     }
 
-    /// Registers shared state in the application.
+    /// Registers the provided dependency container in the application.
     ///
     /// **IMPORTANT**: This method must be called before adding controllers or middleware.
     ///
-    /// This method adds shared state that can be accessed by controllers and middleware
-    /// throughout the application. The state is automatically wrapped in an `Arc` for
-    /// safe sharing across multiple threads.
-    ///
-    /// ### Type Parameters
-    ///
-    /// * `S` - The type of state to store (must implement `Clone + Sync + Send + 'static`)
-    ///
-    /// ### Arguments
-    ///
-    /// * `state` - The state instance to store in the application
-    ///
-    /// ### Errors
-    ///
-    /// This function will return an error if the same state type has already
-    /// been registered in the application.
-    ///
-    /// ### Example
-    ///
-    /// ```rust,ignore
-    /// use sword::prelude::*;
-    /// use std::sync::atomic::AtomicU64;
-    ///
-    /// #[derive(Default)]
-    /// struct AppState {
-    ///     counter: AtomicU64,
-    ///     name: String,
-    /// }
-    ///
-    /// let app_state = AppState {
-    ///     counter: AtomicU64::new(0),
-    ///     name: "My App".to_string(),
-    /// };
-    ///
-    /// let app = Application::builder()
-    ///     .with_state(app_state)
-    ///     .build();
+    /// This method adds a dependency container to the application, allowing you to
+    /// register providers and services that can be resolved later.
     /// ```
-    pub fn with_state<S: Sync + Send + 'static>(self, state: S) -> Self {
-        self.state.insert(state).expect("Failed to insert state");
+    pub fn with_dependency_container(self, container: DependencyContainer) -> Self {
+        container
+            .build_all(&self.state)
+            .unwrap_or_else(|e| panic!("Failed to build dependencies: {e}"));
 
-        let router = Router::new().with_state(self.state.clone());
-
-        Self {
-            router,
-            state: self.state,
-            config: self.config,
-            prefix: self.prefix,
-        }
+        self
     }
 
     /// Registers a Shaku dependency injection module in the application.
     ///
     /// This method integrates Shaku modules for dependency injection, allowing you
     /// to register services and dependencies that can be resolved later using
-    /// `Context::di::<ModuleType, InterfaceType>()`.
+    /// `Context::shaku_di::<ModuleType, InterfaceType>()`.
     ///
     /// Available only when the `shaku-di` feature is enabled.
     ///
@@ -286,8 +245,20 @@ impl ApplicationBuilder {
     ///     .build();
     /// ```
     #[cfg(feature = "shaku-di")]
-    pub fn with_shaku_di_module<M: Sync + Send + 'static>(self, module: M) -> Self {
-        self.with_state(module)
+    pub fn with_shaku_di_module<M: Sync + Send + 'static + Module>(
+        self,
+        module: M,
+    ) -> Self {
+        self.state.insert(module).expect("Failed to insert state");
+
+        let router = Router::new().with_state(self.state.clone());
+
+        Self {
+            router,
+            state: self.state,
+            config: self.config,
+            prefix: self.prefix,
+        }
     }
 
     /// Sets a URL prefix for all routes in the application.

@@ -39,15 +39,34 @@ impl From<RequestError> for HttpResponse {
 impl From<StateError> for HttpResponse {
     fn from(error: StateError) -> Self {
         match error {
-            StateError::TypeNotFound { type_name } => {
-                eprintln!("Type: {type_name} not found on state");
+            StateError::TypeNotFound { .. } => HttpResponse::InternalServerError(),
+            StateError::LockError => HttpResponse::InternalServerError(),
+        }
+    }
+}
+
+impl From<DependencyInjectionError> for HttpResponse {
+    fn from(error: DependencyInjectionError) -> Self {
+        match error {
+            DependencyInjectionError::BuildFailed { type_name, reason } => {
+                eprintln!("Failed to build dependency '{type_name}': {reason}");
+                HttpResponse::InternalServerError().message("Internal server error")
+            }
+            DependencyInjectionError::DependencyNotFound { type_name } => {
+                eprintln!("Dependency '{type_name}' not found in container");
                 HttpResponse::InternalServerError()
                     .message("Service configuration error")
             }
-            StateError::LockError => HttpResponse::InternalServerError(),
-            StateError::DowncastFailed { type_name } => {
-                eprintln!("Error downcasting type {type_name} from state");
+            DependencyInjectionError::StateError { type_name, source } => {
+                eprintln!(
+                    "State error while building '{type_name}': {}",
+                    source.to_string()
+                );
                 HttpResponse::InternalServerError().message("Internal server error")
+            }
+            DependencyInjectionError::ConfigInjectionError { source } => {
+                eprintln!("Failed to inject config: {}", source.to_string());
+                HttpResponse::InternalServerError().message("Configuration error")
             }
         }
     }

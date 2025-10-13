@@ -22,9 +22,8 @@ use std::sync::Arc;
 use shaku::{HasComponent, Interface, Module};
 
 use crate::{
-    core::State,
-    core::{Config, ConfigItem},
-    errors::{ConfigError, StateError},
+    core::{Config, ConfigItem, State},
+    errors::{ConfigError, DependencyInjectionError},
 };
 
 /// Context represents the incoming request context in the Sword framework.
@@ -73,16 +72,15 @@ impl Context {
     ///
     /// This function will return a `StateError::TypeNotFound` if the requested
     /// state type was not registered in the application.
-    pub fn get_state<T>(&self) -> Result<T, StateError>
+    pub fn di<T>(&self) -> Result<T, DependencyInjectionError>
     where
-        T: Clone + Send + Sync + 'static + Clone,
+        T: Clone + Send + Sync + 'static,
     {
         let type_name = std::any::type_name::<T>().to_string();
 
-        let value = self
-            .state
-            .get::<T>()
-            .map_err(|_| StateError::TypeNotFound { type_name })?;
+        let value = self.state.get::<T>().map_err(|_| {
+            DependencyInjectionError::DependencyNotFound { type_name }
+        })?;
 
         Ok(value)
     }
@@ -113,17 +111,18 @@ impl Context {
     /// To see usage, We recommend checking the full example in the sword framework repository.
     /// [Shaku dependency injection example](https://github.com/sword-framework/sword/tree/main/examples/src/dependency_injection)
     #[cfg(feature = "shaku-di")]
-    pub fn di<M, I>(&self) -> Result<Arc<I>, StateError>
+    pub fn shaku_di<M, I>(&self) -> Result<Arc<I>, DependencyInjectionError>
     where
         M: Module + HasComponent<I> + Send + Sync + 'static,
         I: Interface + ?Sized + 'static,
     {
         let type_name = std::any::type_name::<I>().to_string();
 
-        let module = self
-            .state
-            .borrow::<M>()
-            .map_err(|_| StateError::TypeNotFound { type_name })?;
+        let module = self.state.borrow::<M>().map_err(|_| {
+            DependencyInjectionError::DependencyNotFound {
+                type_name: type_name.clone(),
+            }
+        })?;
 
         let interface = module.resolve();
 

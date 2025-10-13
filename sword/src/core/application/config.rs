@@ -75,10 +75,10 @@ pub struct ApplicationConfig {
 
 impl ApplicationConfig {
     pub fn display(&self) {
-        let banner_top = "▪───────────────── ⚔ S W O R D ⚔ ───────────────▪".white();
-        let banner_bot = "▪───────────────── ⚔ ───────── ⚔ ───────────────▪".white();
+        let banner_top = "▪──────────────── ⚔ S W O R D ⚔ ──────────────▪".white();
+        let banner_bot = "▪──────────────── ⚔ ───────── ⚔ ──────────────▪".white();
 
-        println!("\n{}\n", banner_top);
+        println!("\n{}", banner_top);
 
         if let Some(name) = &self.name {
             println!("Application: {}", name.bright_green());
@@ -108,7 +108,7 @@ impl ApplicationConfig {
             println!("Environment: {}", env.bright_blue());
         }
 
-        println!("\n{}", banner_bot);
+        println!("{}", banner_bot);
     }
 }
 

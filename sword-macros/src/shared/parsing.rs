@@ -1,6 +1,6 @@
 use syn::{Ident, ItemStruct, Type};
 
-pub fn collect_controller_fields(item: &ItemStruct) -> Vec<(Ident, Type)> {
+pub fn collect_struct_fields(item: &ItemStruct) -> Vec<(Ident, Type)> {
     match &item.fields {
         syn::Fields::Named(named_fields) => named_fields
             .named
